@@ -1,0 +1,22 @@
+{
+  "name": "knect-mongo",
+  "version": "1.0.0",
+  "description": "Mongodb connection and model helper.",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Blujedis <blujedicorp@gmail.com>",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "mongodb": "^3.2.2"
+  },
+  "devDependencies": {
+    "@types/mongodb": "^3.1.22",
+    "@types/node": "^11.11.3"
+  }
+}
