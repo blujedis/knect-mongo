@@ -1,18 +1,20 @@
 import KnectMongo, { Model } from './';
+import { awaiter } from './utils';
 
-
-const awaiter = <T = any>(promise: Promise<T>, key = 'data') => {
-  return promise
-    .then(data => ({ err: null, [key]: data }))
-    .catch(err => ({ err, [key]: null }));
+const schema = {
+  username: String,
+  password: String,
 };
 
-class UserSchema extends Model {
-  username: string;
-  password: string;
+
+class UserModel extends Model {
+  username: string = 'bobby'
+  password: string = undefined;
 }
 
-const User = KnectMongo.model('user', UserSchema);
+
+const User = KnectMongo.model('user', UserModel);
+
 
 (async function init() {
 
@@ -25,7 +27,10 @@ const User = KnectMongo.model('user', UserSchema);
 
   const user = new User({ username: 'chazelton' });
 
-  console.log(user.db);
+  user.save();
+
+  User.knect.client.close();
+
 
 })();
 

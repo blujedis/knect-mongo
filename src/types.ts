@@ -1,23 +1,23 @@
+import { FilterQuery, UpdateQuery } from 'mongodb';
 
-
-export type HookNextHandler = (err?: Error) => void;
-
-export type HookHandler<T = any> = (document?: T, next?: HookNextHandler) => Promise<any>;
-
-export type ValidateHandler = () => Promise<any>;
+export type PreHandler<T = any> = (context: IHookContext<T>) => Promise<IHookContext<T>>;
+export type PostHandler<T = any> = (doc: T | T[]) => Promise<T | T[]>;
 
 export type Constructor<T> = new (...args: any[]) => T;
 
+export type HookTypes = keyof IHookConfig;
+
+export interface IHookContext<T = any> {
+  filter?: FilterQuery<T>;
+  doc?: T | T[];
+  update?: UpdateQuery<T> | T;
+}
+
 export interface IHookConfig {
-  '*': HookHandler;
-  [key: string]: HookHandler;
+  pre?: PreHandler;
+  post?: PostHandler;
 }
 
 export interface IHooks {
-  validate: IHookConfig;
-  pre: IHookConfig;
-  post: IHookConfig;
+  [key: string]: IHookConfig;
 }
-
-export type Hooks = keyof IHookConfig;
-

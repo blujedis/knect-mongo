@@ -1,12 +1,18 @@
-import { MongoClient, MongoClientOptions, Db, FilterQuery, FindOneOptions, UpdateOneOptions, CollectionInsertOneOptions, CollectionInsertManyOptions, Collection } from 'mongodb';
+import { MongoClient, MongoClientOptions, Db, Collection } from 'mongodb';
 
 import { Model } from './model';
-import { Constructor, Hooks } from './types';
+import { Constructor } from './types';
 
 export const MONGO_CLIENT_DEFAULTS = {
   useNewUrlParser: true
 };
 
+/**
+ * Parses database name from Mongodb connection string.
+ * 
+ * @param uri the Mongodb uri connection string.
+ * @param def the default database name when not found in uri.
+ */
 function parseDbName(uri: string, def: string = '') {
   let str = uri.split('?')[0];
   if (!~str.indexOf('/'))
@@ -14,16 +20,31 @@ function parseDbName(uri: string, def: string = '') {
   return str.split('/').pop();
 }
 
-class Dummy { }
+/**
+ * Default error handler.
+ * 
+ * @param err the error passed.
+ */
+function errorHandler(err: Error) {
+  throw err;
+}
 
 export class KnectMongo {
 
   static Model: typeof Model;
 
+  private _onError: (err: Error) => void = errorHandler;
+
   dbname: string;
   db: Db;
   client: MongoClient;
 
+  /**
+   * Connects to Mongodb instance.
+   * 
+   * @param uri the Mongodb connection uri.
+   * @param options Mongodb client connection options.
+   */
   async connect(uri: string, options?: MongoClientOptions) {
 
     if (this.db) return this.db;
@@ -41,6 +62,7 @@ export class KnectMongo {
   }
 
   /**
+   * Creates new model instance.
    * 
    * @param name the name of the collection.
    * @param Klass the Model class.
@@ -52,31 +74,51 @@ export class KnectMongo {
     return class extends Klass {
 
       static collectionName: string = name;
-
-      static get db() {
-        return self.db;
-      }
+      static defaults: any;
 
       static get collection() {
         return self.db.collection<T>(name);
       }
 
-      get db(): Db {
-        return (this.constructor as any).db;
+      static get knect(): KnectMongo {
+        return self;
       }
 
-      get collection(): Collection<T> {
-        return (this.constructor as any).collection;
+      static onError(err: Error) {
+        self._onError(err);
+      }
+
+      constructor(...args: any[]) {
+        super(...args);
+        const ctor = (this.constructor as any);
+        const defaults = ctor.defaults;
+        for (const k in defaults) {
+          if (defaults.hasOwnProperty(k) && typeof defaults[k] !== 'undefined')
+            this[k] = defaults[k];
+        }
+        delete ctor.defaults;
       }
 
     }
 
   }
 
+  /**
+   * Sets the custom error handler function.
+   * 
+   * @param fn a custom error handler function.
+   */
+  onError(err: Error): void {
+    this._onError(err);
+  }
+
 }
 
 let _instance: KnectMongo;
 
+/**
+ * Gets singleton instance of KnectMongo
+ */
 function getInstance() {
   if (!_instance)
     _instance = new KnectMongo();
