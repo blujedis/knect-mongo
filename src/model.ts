@@ -162,13 +162,17 @@ export abstract class Model<T = any> {
     Model.defaults = defaults;
   }
 
+  get ctx() {
+    return this.constructor as any;
+  }
+
   get id() {
     return this._id;
   }
 
   // DEFAULT CONVENIENCE METHODS //
 
-  async save(options?: UpdateOneOptions) {
+  async save(options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
 
     const doc = Object.getOwnPropertyNames(this)
       .reduce((a, c) => {
@@ -180,20 +184,19 @@ export abstract class Model<T = any> {
 
     if (!validation.error) {
       (doc as any).modified = Date.now();
-      return await Model.update<T>({ _id: this.id }, validation.value, options);
+      return await this.ctx.update({ _id: this.id }, validation.value, options);
     }
 
-    Model.onError(validation.error);
-
+    this.ctx.onError(validation.error);
 
   }
 
-  async delete(options?: UpdateOneOptions) {
-    return await Model.delete<T>({ _id: this.id }, options);
+  async delete(options?: UpdateOneOptions): Promise<DeleteWriteOpResultObject> {
+    return await this.ctx.delete({ _id: this.id }, options);
   }
 
-  async purge(options?: CommonOptions) {
-    return await Model.purge<T>({ _id: this.id }, options);
+  async purge(options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
+    return await this.ctx.purge({ _id: this.id }, options);
   }
 
 }
