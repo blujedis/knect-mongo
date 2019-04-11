@@ -1,19 +1,38 @@
-import KnectMongo, { Model } from './';
+import KnectMongo from './';
+import * as JOI from 'joi';
 import { awaiter } from './utils';
 
-const schema = {
-  username: String,
-  password: String,
-};
-
-
-class UserModel extends Model {
-  username: string = 'bobby'
-  password: string = undefined;
+interface IUser {
+  firstName: string;
+  lastName: string;
 }
 
+const UserSchema = JOI.object();
 
-const User = KnectMongo.model('user', UserModel);
+const UserModel = KnectMongo.model('user', UserSchema);
+
+// We can also create a mixin here to mixin perhaps
+// even more helpers that are common etc.
+// you could also call "UserModel" simply User and extend
+// nothing and just use statics to interact with DB.
+
+class User extends UserModel {
+
+  // customize here.
+  firstName: string;
+  lastName: string;
+
+  // Allow setting defaults in constructor
+  // this could come from a base class.
+  constructor(props?: IUser) {
+    super();
+    for (const k in props) {
+      if (props.hasOwnProperty(k))
+        this[k] = props[k];
+    }
+  }
+
+}
 
 
 (async function init() {
@@ -25,12 +44,13 @@ const User = KnectMongo.model('user', UserModel);
 
   console.log(`connected to: ${db.databaseName}`);
 
-  const user = new User({ username: 'chazelton' });
+  const user = new User({ firstName: 'Aaron', lastName: 'Hazelton' });
+
+  console.log(user);
 
   user.save();
 
-  User.knect.client.close();
-
+  KnectMongo.client.close();
 
 })();
 
