@@ -274,6 +274,16 @@ export class KnectMongo {
 
       // DEFAULT CONVENIENCE METHODS //
 
+      get doc() {
+
+        return Object.getOwnPropertyNames(this)
+          .reduce((a, c) => {
+            a[c] = this[c];
+            return a;
+          }, {} as S);
+
+      }
+
       /**
        * Saves the exiting instance to the database.
        * 
@@ -284,20 +294,14 @@ export class KnectMongo {
         options = options || {};
         options.upsert = false;
 
-        const doc = Object.getOwnPropertyNames(this)
-          .reduce((a, c) => {
-            a[c] = this[c];
-            return a;
-          }, {} as S);
-
-        const validation = (this.constructor as any).validate(doc);
+        const validation = (this.constructor as any).validate(this.doc);
 
         // Save must have an id.
         if (!this._id)
           validation.error = new Error(`Cannot save to collection "${name}", did you mean ".create()"?`);
 
         if (!validation.error) {
-          (doc as any).modified = Date.now();
+          (this.doc as any).modified = Date.now();
           return await (this.constructor as any).update({ _id: this._id }, validation.value, options);
         }
 
@@ -307,19 +311,13 @@ export class KnectMongo {
 
       async create(options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult> {
 
-        const doc = Object.getOwnPropertyNames(this)
-          .reduce((a, c) => {
-            a[c] = this[c];
-            return a;
-          }, {} as S);
-
-        const validation = (this.constructor as any).validate(doc);
+        const validation = (this.constructor as any).validate(this.doc);
 
         if (this._id)
           validation.error = new Error(`Cannot create for collection with existing id "${name}", did you mean ".save()"?`);
 
         if (!validation.error) {
-          (doc as any).modified = Date.now();
+          (this.doc as any).modified = Date.now();
           return await (this.constructor as any).create(validation.value, options);
         }
 
@@ -335,6 +333,10 @@ export class KnectMongo {
         return await (this.constructor as any).purge({ _id: this._id }, options);
       }
 
+      validate(schema?: JOI.ObjectSchema): JOI.ValidationResult<S> {
+        return (this.constructor as any).validate(this.doc, schema);
+      }
+
     }
 
 
@@ -345,7 +347,7 @@ export class KnectMongo {
    * 
    * @param fn a custom error handler function.
    */
-  onError(fn: (err: Error) => void): void {
+  onError(fn: (err: Error) => void) {
     this._onError = fn;
   }
 
