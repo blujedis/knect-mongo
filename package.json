@@ -1,6 +1,6 @@
 {
   "name": "knect-mongo",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Mongodb connection and model helper.",
   "main": "dist/index.js",
   "scripts": {
