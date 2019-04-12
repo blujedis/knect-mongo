@@ -1,5 +1,5 @@
 import { MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions, UpdateWriteOpResult, CommonOptions, DeleteWriteOpResultObject, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions, InsertWriteOpResult, InsertOneWriteOpResult, FindOneOptions } from 'mongodb';
-import { Constructor, IHooks, HookTypes, HookHandler } from './types';
+import { IHooks, HookTypes, HookHandler } from './types';
 import { awaiter } from './utils';
 import * as JOI from 'joi';
 
@@ -59,7 +59,13 @@ export class KnectMongo {
 
   }
 
-  model<T>(name: string, schema: JOI.ObjectSchema) {
+  /**
+   * Accepts a schema and creates model with static and instance convenience methods.
+   * 
+   * @param name the name of the collection
+   * @param schema the JOI Object Schema for validation.
+   */
+  model<S>(name: string, schema: JOI.ObjectSchema) {
 
     const self = this;
 
@@ -78,7 +84,7 @@ export class KnectMongo {
       }
 
       static get collection() {
-        return self.db.collection<T>(name);
+        return self.db.collection<S>(name);
       }
 
       static onError(err: Error) {
@@ -104,44 +110,54 @@ export class KnectMongo {
         this.onError(new Error(`Failed to lookup hook type "${type}" for method "${method}"`));
       }
 
-      static pre(method: string, handler: HookHandler<T>) {
+      static pre(method: string, handler: HookHandler<S>) {
         this.setHook(method, 'pre', handler);
       }
 
-      static post(method: string, handler: HookHandler<T>) {
+      static post(method: string, handler: HookHandler<S>) {
         this.setHook(method, 'post', handler);
       }
 
-      static validate(doc: T, schema?: JOI.ObjectSchema) {
+      static validate(doc: S, schema?: JOI.ObjectSchema) {
         schema = (schema || JOI.object()) as JOI.ObjectSchema;
-        return schema.validate<T>(doc);
+        return schema.validate<S>(doc);
       }
 
-      static async find(filter: FilterQuery<T>, options?: FindOneOptions) {
-
-        let result;
+      static async find(filter: FilterQuery<S>) {
 
         const hooks = this.getHooks('find');
 
         if (hooks.pre)
-          await hooks.pre({ filter, options });
+          await hooks.pre({ filter });
 
-        if (Object.keys(filter).length === 1 && (filter as any)._id)
-          result = await awaiter(this.collection.findOne(filter, options));
+        const result = await awaiter<S[]>(this.collection.find(filter).toArray());
 
-        else
-          result = { err: null, data: this.collection.find(filter).toArray() };
+        if (!result.err)
+          return result.data;
 
-        if (result.err)
-          return this.onError(result.err);
-
-        return result.data;
+        this.onError(result.err);
 
       }
 
-      static async create(doc: T, options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult>;
-      static async create(doc: T[], options?: CollectionInsertManyOptions): Promise<InsertWriteOpResult>;
-      static async create(doc: T | T[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions) {
+      static async findOne(filter: FilterQuery<S>, options?: FindOneOptions) {
+
+        const hooks = this.getHooks('findOne');
+
+        if (hooks.pre)
+          await hooks.pre({ filter, options });
+
+        const result = await awaiter<S>(this.collection.findOne(filter, options));
+
+        if (!result.err)
+          return result.data;
+
+        this.onError(result.err);
+
+      }
+
+      static async create(doc: S, options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult>;
+      static async create(doc: S[], options?: CollectionInsertManyOptions): Promise<InsertWriteOpResult>;
+      static async create(doc: S | S[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions) {
 
         let result;
 
@@ -175,21 +191,21 @@ export class KnectMongo {
 
       }
 
-      static async update(filter: FilterQuery<T>, update: UpdateQuery<T> | T, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
-      static async update(filter: FilterQuery<T>, update: UpdateQuery<T> | T, options?: UpdateManyOptions): Promise<UpdateWriteOpResult>;
-      static async update(filter: FilterQuery<T>, update: UpdateQuery<T> | T, options?: UpdateOneOptions | UpdateManyOptions) {
+      static async update(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
+      static async update(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateManyOptions): Promise<UpdateWriteOpResult>;
+      static async update(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateOneOptions | UpdateManyOptions) {
 
         let result;
 
         const hooks = this.getHooks('update');
 
-        update = !(update as UpdateQuery<T>).$set ? update = { $set: update } : update;
+        update = !(update as UpdateQuery<S>).$set ? update = { $set: update } : update;
 
         if (hooks.pre)
           await hooks.pre({ filter, update, options });
 
         // @ts-ignore
-        (update as UpdateQuery<T>).$set.modified = Date.now();
+        (update as UpdateQuery<S>).$set.modified = Date.now();
 
         if (Object.keys(filter).length === 1 && (filter as any)._id)
           result = await awaiter(this.collection.updateOne(filter, update, options));
@@ -204,7 +220,7 @@ export class KnectMongo {
 
       }
 
-      static async delete(filter: FilterQuery<T>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
+      static async delete(filter: FilterQuery<S>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
 
         let result;
 
@@ -229,7 +245,7 @@ export class KnectMongo {
 
       }
 
-      static async purge(filter: FilterQuery<T>, options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
+      static async purge(filter: FilterQuery<S>, options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
 
         let result;
 
@@ -256,12 +272,13 @@ export class KnectMongo {
       modified: number;
       deleted: number;
 
-      get ctor() {
-        return this.constructor as any;
-      }
-
       // DEFAULT CONVENIENCE METHODS //
 
+      /**
+       * Saves the exiting instance to the database.
+       * 
+       * @param options MongoDB update options.
+       */
       async save(options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
 
         options = options || {};
@@ -271,16 +288,20 @@ export class KnectMongo {
           .reduce((a, c) => {
             a[c] = this[c];
             return a;
-          }, {} as T);
+          }, {} as S);
 
-        const validation = this.ctor.validate(doc);
+        const validation = (this.constructor as any).validate(doc);
+
+        // Save must have an id.
+        if (!this._id)
+          validation.error = new Error(`Cannot save to collection "${name}", did you mean ".create()"?`);
 
         if (!validation.error) {
           (doc as any).modified = Date.now();
-          return await this.ctor.update({ _id: this._id }, validation.value, options);
+          return await (this.constructor as any).update({ _id: this._id }, validation.value, options);
         }
 
-        this.ctor.onError(validation.error);
+        (this.constructor as any).onError(validation.error);
 
       }
 
@@ -290,25 +311,28 @@ export class KnectMongo {
           .reduce((a, c) => {
             a[c] = this[c];
             return a;
-          }, {} as T);
+          }, {} as S);
 
-        const validation = this.ctor.validate(doc);
+        const validation = (this.constructor as any).validate(doc);
+
+        if (this._id)
+          validation.error = new Error(`Cannot create for collection with existing id "${name}", did you mean ".save()"?`);
 
         if (!validation.error) {
           (doc as any).modified = Date.now();
-          return await this.ctor.create(validation.value, options);
+          return await (this.constructor as any).create(validation.value, options);
         }
 
-        this.ctor.onError(validation.error);
+        (this.constructor as any).onError(validation.error);
 
       }
 
       async delete(options?: UpdateOneOptions): Promise<DeleteWriteOpResultObject> {
-        return await this.ctor.delete({ _id: this._id }, options);
+        return await (this.constructor as any).delete({ _id: this._id }, options);
       }
 
       async purge(options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
-        return await this.ctor.purge({ _id: this._id }, options);
+        return await (this.constructor as any).purge({ _id: this._id }, options);
       }
 
     }
@@ -317,12 +341,12 @@ export class KnectMongo {
   }
 
   /**
-   * Sets the custom error handler function.
+   * Sets the custom error handler function globally.
    * 
    * @param fn a custom error handler function.
    */
-  onError(err: Error): void {
-    this._onError(err);
+  onError(fn: (err: Error) => void): void {
+    this._onError = fn;
   }
 
 }

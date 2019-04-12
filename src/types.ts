@@ -22,6 +22,4 @@ export interface IHooks {
   [key: string]: IHookConfig;
 }
 
-export interface ISchemaBase {
-
-}
+export type AwaiterResponse<T = any, K extends string = 'data'> = Promise<{ err?: Error } & Record<K, T>>;

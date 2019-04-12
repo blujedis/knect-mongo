@@ -37,12 +37,12 @@ class User extends UserModel {
 
 (async function init() {
 
-  const { err, db } = await awaiter(KnectMongo.connect('mongodb://10.10.20.10:32770/temp'), 'db');
+  const { err, data } = await awaiter(KnectMongo.connect('mongodb://10.10.20.10:32770/temp'));
 
   if (err)
     throw err;
 
-  console.log(`connected to: ${db.databaseName}`);
+  console.log(`connected to: ${data.databaseName}`);
 
   const user = new User({ firstName: 'Aaron', lastName: 'Hazelton' });
 
