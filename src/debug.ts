@@ -3,8 +3,12 @@ import * as JOI from 'joi';
 import { awaiter } from './utils';
 
 interface IUser {
+  id?: string;
   firstName: string;
   lastName: string;
+  created?: number;
+  modified?: number;
+  deleted?: number;
 }
 
 const UserSchema = JOI.object();
@@ -41,13 +45,20 @@ class User extends UserModel {
   if (err)
     throw err;
 
-  console.log(`connected to: ${data.databaseName}`);
+  console.log(`\nConnected to: ${data.databaseName}`);
 
-  const user = new User({ firstName: 'Aaron', lastName: 'Hazelton' });
+  const user = new User({ id: '5cb144ce2a4d90c837fd72b4', firstName: 'Carey', lastName: 'Hazelton' });
 
-  console.log(user);
+  console.log('\nUser Instance:');
+  console.log('  ', user);
+  console.log();
 
-  user.save();
+  const result = await awaiter(user.save());
+
+  if (result.err)
+    console.log(result.err + '\n');
+  else
+    console.log('Results:\n  matched:', result.data.matchedCount, '\n  modified:', result.data.modifiedCount, '\n  upserted:', result.data.upsertedCount + '\n');
 
   KnectMongo.client.close();
 

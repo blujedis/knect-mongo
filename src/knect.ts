@@ -1,4 +1,4 @@
-import { MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions, UpdateWriteOpResult, CommonOptions, DeleteWriteOpResultObject, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions, InsertWriteOpResult, InsertOneWriteOpResult, FindOneOptions } from 'mongodb';
+import { MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions, UpdateWriteOpResult, CommonOptions, DeleteWriteOpResultObject, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions, InsertWriteOpResult, InsertOneWriteOpResult, FindOneOptions, ObjectID } from 'mongodb';
 import { IHooks, HookTypes, HookHandler } from './types';
 import { awaiter } from './utils';
 import * as JOI from 'joi';
@@ -367,10 +367,21 @@ export class KnectMongo {
 
       }
 
-      _id: string;
       created: number;
       modified: number;
       deleted: number;
+
+      constructor() {
+
+        // Can't emit type defs and use private in derived class.
+        Object.defineProperty(this, '_id', {
+          enumerable: true,
+          writable: true,
+          configurable: true,
+          value: undefined
+        });
+
+      }
 
       // DEFAULT CONVENIENCE METHODS //
 
@@ -382,6 +393,14 @@ export class KnectMongo {
             return a;
           }, {} as S);
 
+      }
+
+      get id(): string {
+        return this['_id'];
+      }
+
+      set id(id: string) {
+        this['_id'] = id;
       }
 
       /**
@@ -396,13 +415,18 @@ export class KnectMongo {
 
         const validation = (this.constructor as any).validate(this.doc);
 
+        let id = this['_id'];
+
         // Save must have an id.
-        if (!this._id)
-          validation.error = new Error(`Cannot save to collection "${name}", did you mean ".create()"?`);
+        if (!this['_id'])
+          validation.error = new Error(`Cannot save to collection "${name}" with missing id, did you mean ".create()"?`);
+
+        id = new ObjectID(id);
+        delete validation.value._id;
 
         if (!validation.error) {
           (this.doc as any).modified = Date.now();
-          return await (this.constructor as any).updateById(this._id, validation.value, options);
+          return await (this.constructor as any).updateById(id, validation.value, options);
         }
 
         (this.constructor as any).onError(validation.error);
@@ -413,12 +437,21 @@ export class KnectMongo {
 
         const validation = (this.constructor as any).validate(this.doc);
 
-        if (this._id)
+        if (this['_id'])
           validation.error = new Error(`Cannot create for collection with existing id "${name}", did you mean ".save()"?`);
 
         if (!validation.error) {
+
           (this.doc as any).modified = Date.now();
-          return await (this.constructor as any).create(validation.value, options);
+
+          const result = await (this.constructor as any).create(validation.value, options);
+
+          // If successfully created set the generated ID
+          if (!result.err && (result.data as InsertOneWriteOpResult).insertedId)
+            this.id = result.data.insertedId;
+
+          return result;
+
         }
 
         (this.constructor as any).onError(validation.error);
@@ -426,11 +459,11 @@ export class KnectMongo {
       }
 
       async delete(options?: UpdateOneOptions): Promise<DeleteWriteOpResultObject> {
-        return await (this.constructor as any).deleteById(this._id, options);
+        return await (this.constructor as any).deleteById(new ObjectID(this['_id']), options);
       }
 
       async purge(options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
-        return await (this.constructor as any).purge({ _id: this._id }, options);
+        return await (this.constructor as any).purgeById(new ObjectID(this['_id']), options);
       }
 
       validate(schema?: JOI.ObjectSchema): JOI.ValidationResult<S> {
