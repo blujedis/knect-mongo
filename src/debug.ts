@@ -9,7 +9,7 @@ interface IUser {
 
 const UserSchema = JOI.object();
 
-const UserModel = KnectMongo.model('user', UserSchema);
+const UserModel = KnectMongo.model<IUser>('user', UserSchema);
 
 // We can also create a mixin here to mixin perhaps
 // even more helpers that are common etc.
@@ -33,7 +33,6 @@ class User extends UserModel {
   }
 
 }
-
 
 (async function init() {
 

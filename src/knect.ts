@@ -191,27 +191,20 @@ export class KnectMongo {
 
       }
 
-      static async update(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
-      static async update(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateManyOptions): Promise<UpdateWriteOpResult>;
-      static async update(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateOneOptions | UpdateManyOptions) {
-
-        let result;
+      static async update(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateManyOptions): Promise<UpdateWriteOpResult> {
 
         const hooks = this.getHooks('update');
 
         update = !(update as UpdateQuery<S>).$set ? update = { $set: update } : update;
 
+        const date = Date.now();
+
+        (update as any).$set.modified = date;
+
         if (hooks.pre)
           await hooks.pre({ filter, update, options });
 
-        // @ts-ignore
-        (update as UpdateQuery<S>).$set.modified = Date.now();
-
-        if (Object.keys(filter).length === 1 && (filter as any)._id)
-          result = await awaiter(this.collection.updateOne(filter, update, options));
-
-        else
-          result = await awaiter(this.collection.updateMany(filter, update, options));
+        const result = await awaiter(this.collection.updateMany(filter, update, options));
 
         if (!result.err)
           return result.data;
@@ -220,9 +213,52 @@ export class KnectMongo {
 
       }
 
-      static async delete(filter: FilterQuery<S>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
+      static async updateOne(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
 
-        let result;
+        const hooks = this.getHooks('updateOne');
+
+        update = !(update as UpdateQuery<S>).$set ? update = { $set: update } : update;
+
+        const date = Date.now();
+
+        (update as any).$set.modified = date;
+
+        if (hooks.pre)
+          await hooks.pre({ filter, update, options });
+
+        const result = await awaiter(this.collection.updateOne(filter, update, options));
+
+        if (!result.err)
+          return result.data;
+
+        this.onError(result.err);
+
+      }
+
+      static async updateById(id: string, update: UpdateQuery<S> | S, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
+
+        const hooks = this.getHooks('updateById');
+
+        const filter = { _id: id };
+
+        update = !(update as UpdateQuery<S>).$set ? update = { $set: update } : update;
+
+        const date = Date.now();
+
+        (update as any).$set.modified = date;
+
+        if (hooks.pre)
+          await hooks.pre({ filter, update, options });
+
+        const result = await awaiter(this.collection.updateOne(filter, update, options));
+
+        if (!result.err)
+          return result.data;
+
+        this.onError(result.err);
+      }
+
+      static async delete(filter: FilterQuery<S>, options?: UpdateManyOptions): Promise<UpdateWriteOpResult> {
 
         const hooks = this.getHooks('delete');
 
@@ -232,11 +268,47 @@ export class KnectMongo {
         const date = Date.now();
         const data = { $set: { modified: date, deleted: date } };
 
-        if (Object.keys(filter).length === 1 && (filter as any)._id)
-          result = await awaiter(this.collection.updateOne(filter, data, options));
+        const result = await awaiter(this.collection.updateMany(filter, data, options));
 
-        else
-          result = await awaiter(this.collection.updateMany(filter, data, options));
+        if (!result.err)
+          return result.data;
+
+        this.onError(result.err);
+
+      }
+
+      static async deleteOne(filter: FilterQuery<S>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
+
+        const hooks = this.getHooks('deleteOne');
+
+        if (hooks.pre)
+          await hooks.pre({ filter, options });
+
+        const date = Date.now();
+        const data = { $set: { modified: date, deleted: date } };
+
+        const result = await awaiter(this.collection.updateOne(filter, data, options));
+
+        if (!result.err)
+          return result.data;
+
+        this.onError(result.err);
+
+      }
+
+      static async deleteById(id: string, options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
+
+        const hooks = this.getHooks('deleteOne');
+
+        const filter = { _id: id };
+
+        if (hooks.pre)
+          await hooks.pre({ filter, options });
+
+        const date = Date.now();
+        const data = { $set: { modified: date, deleted: date } };
+
+        const result = await awaiter(this.collection.updateOne(filter, data, options));
 
         if (!result.err)
           return result.data;
@@ -247,18 +319,46 @@ export class KnectMongo {
 
       static async purge(filter: FilterQuery<S>, options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
 
-        let result;
-
         const hooks = this.getHooks('purge');
 
         if (hooks.pre)
           await hooks.pre({ filter, options });
 
-        if (Object.keys(filter).length === 1 && (filter as any)._id)
-          result = await awaiter(this.collection.deleteOne(filter, options));
+        const result = await awaiter(this.collection.deleteMany(filter, options));
 
-        else
-          result = await awaiter(this.collection.deleteMany(filter, options));
+        if (!result.err)
+          return result.data;
+
+        this.onError(result.err);
+
+      }
+
+      static async purgeOne(filter: FilterQuery<S>, options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
+
+        const hooks = this.getHooks('purgeOne');
+
+        if (hooks.pre)
+          await hooks.pre({ filter, options });
+
+        const result = await awaiter(this.collection.deleteOne(filter, options));
+
+        if (!result.err)
+          return result.data;
+
+        this.onError(result.err);
+
+      }
+
+      static async purgeById(id: string, options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
+
+        const hooks = this.getHooks('purgeById');
+
+        const filter = { _id: id };
+
+        if (hooks.pre)
+          await hooks.pre({ filter, options });
+
+        const result = await awaiter(this.collection.deleteOne(filter, options));
 
         if (!result.err)
           return result.data;
@@ -302,7 +402,7 @@ export class KnectMongo {
 
         if (!validation.error) {
           (this.doc as any).modified = Date.now();
-          return await (this.constructor as any).update({ _id: this._id }, validation.value, options);
+          return await (this.constructor as any).updateById(this._id, validation.value, options);
         }
 
         (this.constructor as any).onError(validation.error);
@@ -326,7 +426,7 @@ export class KnectMongo {
       }
 
       async delete(options?: UpdateOneOptions): Promise<DeleteWriteOpResultObject> {
-        return await (this.constructor as any).delete({ _id: this._id }, options);
+        return await (this.constructor as any).deleteById(this._id, options);
       }
 
       async purge(options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
