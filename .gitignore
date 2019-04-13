@@ -76,7 +76,6 @@ typings/
 .tmp
 temp.js
 **/__snapshots__
-dist/
 
 # dotenv environment variables file
 **/.env.*
