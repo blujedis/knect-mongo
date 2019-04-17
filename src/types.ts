@@ -23,3 +23,9 @@ export interface IHooks {
 }
 
 export type AwaiterResponse<T = any, K extends string = 'data'> = Promise<{ err?: Error } & Record<K, T>>;
+
+export interface IBaseProps {
+  created?: number;
+  modified?: number;
+  deleted?: number;
+}
