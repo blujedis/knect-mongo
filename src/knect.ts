@@ -1,6 +1,13 @@
-import { MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions, UpdateWriteOpResult, CommonOptions, DeleteWriteOpResultObject, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions, InsertWriteOpResult, InsertOneWriteOpResult, FindOneOptions, ObjectID } from 'mongodb';
-import { IHooks, HookTypes, HookHandler, IBaseProps } from './types';
-import { awaiter } from './utils';
+import {
+  MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions,
+  UpdateWriteOpResult, CommonOptions, DeleteWriteOpResultObject, UpdateQuery,
+  UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions,
+  InsertWriteOpResult, InsertOneWriteOpResult, ObjectID,
+} from 'mongodb';
+import {
+  IHooks, HookTypes, HookHandler, IBaseProps, ISchema, ISchemas,
+  LikeObjectID, IFindOneOptions, IJoin, IJoins, ICascadeResult
+} from './types';
 import * as JOI from 'joi';
 
 export const MONGO_CLIENT_DEFAULTS = {
@@ -14,7 +21,7 @@ export const MONGO_CLIENT_DEFAULTS = {
  * @param def the default database name when not found in uri.
  */
 function parseDbName(uri: string, def: string = '') {
-  let str = uri.split('?')[0];
+  const str = uri.split('?')[0];
   if (!~str.indexOf('/'))
     return def;
   return str.split('/').pop();
@@ -25,6 +32,8 @@ export class KnectMongo {
   dbname: string;
   db: Db;
   client: MongoClient;
+
+  schemas: ISchemas = {};
 
   /**
    * Connects to Mongodb instance.
@@ -54,15 +63,24 @@ export class KnectMongo {
    * @param name the name of the collection
    * @param schema the JOI Object Schema for validation.
    */
-  model<S extends IBaseProps>(name: string, schema: JOI.ObjectSchema) {
+  model<S = any>(name: string, schema: ISchema) {
 
     const self = this;
 
-    return class {
+    if (this.schemas[name])
+      throw new Error(`Cannot create schema ${name}, the schema already exists`);
+
+    this.schemas[name] = schema;
+
+    type P = S & IBaseProps & { _id?: LikeObjectID };
+
+    class Klass {
+
+      protected static hooks: IHooks = {};
 
       static dbname = self.dbname;
       static collectionName = name;
-      static schema: JOI.ObjectSchema = schema;
+      static schema = schema;
 
       static get client() {
         return self.client;
@@ -73,13 +91,39 @@ export class KnectMongo {
       }
 
       static get collection() {
-        return self.db.collection<S>(name);
+        return self.db.collection<P>(name);
       }
 
-      static hooks: IHooks = {};
+      protected static normalizeFilter(filter: FilterQuery<P>) {
+        if (filter._id)
+          filter._id = this.toObjectID(filter._id);
+        return filter;
+      }
 
       static onError(err: Error) {
         throw err;
+      }
+
+      static toObjectID(id: LikeObjectID): ObjectID;
+      static toObjectID(ids: LikeObjectID[]): ObjectID[];
+      static toObjectID(ids: LikeObjectID | LikeObjectID[]): ObjectID | ObjectID[] {
+
+        const isArray = Array.isArray(ids);
+
+        if (!isArray)
+          ids = [ids] as any;
+
+        const result = (ids as any).map(id => {
+          if (typeof id === 'string' || typeof id === 'number')
+            return new ObjectID(id);
+          return id;
+        }) as ObjectID[];
+
+        if (isArray)
+          return result;
+
+        return result[0];
+
       }
 
       static setHook(method: string, type: HookTypes, handler: any) {
@@ -99,59 +143,234 @@ export class KnectMongo {
         this.onError(new Error(`Failed to lookup hook type "${type}" for method "${method}"`));
       }
 
-      static pre(method: string, handler: HookHandler<S>) {
+      static pre(method: string, handler: HookHandler<P>) {
         this.setHook(method, 'pre', handler);
       }
 
-      static post(method: string, handler: HookHandler<S>) {
+      static post(method: string, handler: HookHandler<P>) {
         this.setHook(method, 'post', handler);
       }
 
-      static validate(doc: S, schema?: JOI.ObjectSchema) {
-        schema = (schema || JOI.object()) as JOI.ObjectSchema;
-        return schema.validate<S>(doc);
+      static validate(doc: P, props?: JOI.ObjectSchema) {
+        props = (this.schema.props || JOI.object()) as JOI.ObjectSchema;
+        return props.validate<P>(doc);
       }
 
-      static async find(filter: FilterQuery<S>) {
+      static async populate<T extends P>(doc: P, joins: string[] | IJoins): Promise<T>;
+      static async populate<T extends P>(doc: P[], joins: string[] | IJoins): Promise<T[]>;
+      static async populate<T extends P>(doc: P, key: string, join: IJoin): Promise<T>;
+      static async populate<T extends P>(doc: P[], key: string, join: IJoin): Promise<T[]>;
+      static async populate<T extends P>(doc: P | P[], key: any, join?: IJoin): Promise<T | T[]> {
+
+        let joins: IJoins = key;
+        const isArray = Array.isArray(doc);
+
+        if (arguments.length === 3)
+          joins = { [key]: join };
+
+        if (Array.isArray(key)) {
+          joins = key.reduce((a, c) => {
+            const j = this.schema.joins[c];
+            if (j) a[c] = j;
+            return a;
+          }, {});
+        }
+
+        const docs = (!isArray ? [doc] : doc) as T[];
+
+        const result = await Promise.all(docs.map(async d => {
+
+          for (const k in joins) {
+
+            if (joins.hasOwnProperty(k)) {
+
+              const conf = joins[k];
+              const prop = d[k];
+              const filterKey = conf.key || '_id';
+              let values = !Array.isArray(prop) ? [prop] : prop;
+
+              if (filterKey === '_id')
+                values = this.toObjectID(values);
+
+              const filter = { [filterKey]: { '$in': values } };
+
+              const rel = await this.db
+                .collection(conf.collection)
+                .find<T>(filter, conf.options)
+                .toArray();
+
+              d[k] = rel[0];
+
+              if (Array.isArray(prop))
+                d[k] = rel;
+
+            }
+
+          }
+
+          return d;
+
+        }));
+
+        if (!isArray)
+          return result[0];
+
+        return result;
+
+      }
+
+      static async cascade(doc: P, joins: string[] | IJoins): Promise<ICascadeResult<P>>;
+      static async cascade(doc: P[], joins: string[] | IJoins): Promise<ICascadeResult<P>[]>;
+      static async cascade(doc: P, key: string, join: IJoin): Promise<ICascadeResult<P>>;
+      static async cascade(doc: P[], key: string, join: IJoin): Promise<ICascadeResult<P>[]>;
+      static async cascade(doc: P | P[], key: any, join?: IJoin): Promise<ICascadeResult<P> | ICascadeResult<P>[]> {
+
+        let joins: IJoins = key;
+        const isArray = Array.isArray(doc);
+
+        if (arguments.length === 3)
+          joins = { [key]: join };
+
+        if (Array.isArray(key)) {
+          joins = key.reduce((a, c) => {
+            const j = this.schema.joins[c];
+            if (j) a[c] = j;
+            return a;
+          }, {});
+        }
+
+        const docs = (!isArray ? [doc] : doc) as P[];
+
+        const session = this.client.startSession();
+        session.startTransaction();
+
+        try {
+
+          const result = await Promise.all(docs.map(async d => {
+
+            let optKey: string;
+            const ops: DeleteWriteOpResultObject[] = [];
+
+            for (const k in joins) {
+
+              if (joins.hasOwnProperty(k)) {
+
+                optKey = k;
+
+                const conf = joins[k];
+                const prop = d[k];
+                const filterKey = conf.key || '_id';
+                let values = !Array.isArray(prop) ? [prop] : prop;
+
+                if (filterKey === '_id')
+                  values = this.toObjectID(values);
+
+                const filter = { [filterKey]: { '$in': values } };
+
+                const op = await this.db
+                  .collection(conf.collection)
+                  .deleteMany(filter, conf.options);
+
+                ops.push(op);
+
+              }
+
+            }
+
+            return { doc: d, ops: { [optKey]: ops } };
+
+          }));
+
+          await session.commitTransaction();
+          session.endSession();
+
+          if (!isArray)
+            return result[0];
+
+          return result;
+
+        }
+        catch (err) {
+
+          await session.abortTransaction();
+          session.endSession();
+
+          throw err;
+
+        }
+
+      }
+
+      static async find<T extends P>(filter?: FilterQuery<P>, options?: IFindOneOptions): Promise<T[]> {
 
         const hooks = this.getHooks('find');
+        filter = filter || {};
+        options = options || {};
+
+        filter = this.normalizeFilter(filter);
 
         if (hooks.pre)
-          await hooks.pre({ filter });
+          await hooks.pre({ filter, options });
 
-        return this.collection.find(filter);
+        const data = await this.collection.find<T>(filter, options).toArray();
+
+        if (!options.populate)
+          return data;
+
+        if (typeof options.populate === 'string')
+          options.populate = [options.populate];
+
+        return this.populate(data, options.populate);
 
       }
 
-      static async findOne(filter: FilterQuery<S>, options?: FindOneOptions) {
+      static async findOne<T extends P>(filter: FilterQuery<P>, options?: IFindOneOptions): Promise<T> {
 
         const hooks = this.getHooks('findOne');
+        options = options || {};
+
+        filter = this.normalizeFilter(filter);
 
         if (hooks.pre)
           await hooks.pre({ filter, options });
 
-        return this.collection.findOne(filter, options);
+        const data = await this.collection.findOne<T>(filter, options);
+
+        if (!options.populate)
+          return data;
+
+        if (typeof options.populate === 'string')
+          options.populate = [options.populate];
+
+        return this.populate(data, options.populate);
 
       }
 
-      static async findById(id: string, options?: FindOneOptions) {
+      static async findById<T extends P>(id: LikeObjectID, options?: IFindOneOptions): Promise<T> {
 
         const hooks = this.getHooks('findById');
+        options = options || {};
 
-        const filter = { _id: id };
+        const filter = { _id: this.toObjectID(id) };
 
         if (hooks.pre)
           await hooks.pre({ filter, options });
 
-        return this.collection.findOne(filter, options);
+        const data = await this.collection.findOne<T>(filter, options);
+
+        if (!options.populate)
+          return data;
+
+        if (typeof options.populate === 'string')
+          options.populate = [options.populate];
+
+        return this.populate(data, options.populate);
 
       }
 
-      static async create(doc: S, options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult>;
-      static async create(doc: S[], options?: CollectionInsertManyOptions): Promise<InsertWriteOpResult>;
-      static async create(doc: S | S[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions) {
-
-        let result;
+      static async create(doc: P, options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult>;
+      static async create(doc: P[], options?: CollectionInsertManyOptions): Promise<InsertWriteOpResult>;
+      static async create(doc: P | P[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions) {
 
         const hooks = this.getHooks('create');
 
@@ -178,11 +397,13 @@ export class KnectMongo {
 
       }
 
-      static async update(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateManyOptions) {
+      static async update(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateManyOptions) {
 
         const hooks = this.getHooks('update');
 
-        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<S>;
+        filter = this.normalizeFilter(filter);
+
+        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<P>;
 
         const date = Date.now();
 
@@ -193,14 +414,15 @@ export class KnectMongo {
 
         return this.collection.updateMany(filter, update, options);
 
-
       }
 
-      static async updateOne(filter: FilterQuery<S>, update: UpdateQuery<S> | S, options?: UpdateOneOptions) {
+      static async updateOne(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
 
         const hooks = this.getHooks('updateOne');
 
-        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<S>;
+        filter = this.normalizeFilter(filter);
+
+        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<P>;
 
         const date = Date.now();
 
@@ -213,13 +435,13 @@ export class KnectMongo {
 
       }
 
-      static async updateById(id: string, update: UpdateQuery<S> | S, options?: UpdateOneOptions) {
+      static async updateById(id: LikeObjectID, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
 
         const hooks = this.getHooks('updateById');
 
-        const filter = { _id: id };
+        const filter = { _id: this.toObjectID(id) };
 
-        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<S>;
+        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<P>;
 
         const date = Date.now();
 
@@ -232,66 +454,11 @@ export class KnectMongo {
 
       }
 
-      static async delete(filter: FilterQuery<S>): Promise<UpdateWriteOpResult>;
-      static async delete(filter: FilterQuery<S>, options: UpdateManyOptions): Promise<UpdateWriteOpResult>;
-      static async delete(filter: FilterQuery<S>, date: number, options?: UpdateManyOptions): Promise<UpdateWriteOpResult>;
-      static async delete(filter: FilterQuery<S>, date?: number | UpdateManyOptions, options?: UpdateManyOptions) {
-
-        if (date && typeof date !== 'number') {
-          options = date;
-          date = undefined;
-        }
+      static async delete(filter: FilterQuery<P>, options?: CommonOptions) {
 
         const hooks = this.getHooks('delete');
 
-        date = date || Date.now();
-
-        if (hooks.pre)
-          await hooks.pre({ filter, options });
-
-        const data = { $set: { modified: date, deleted: date } };
-
-        return this.collection.updateMany(filter, data, options);
-
-
-      }
-
-      static async deleteOne(filter: FilterQuery<S>): Promise<UpdateWriteOpResult>;
-      static async deleteOne(filter: FilterQuery<S>, options: UpdateOneOptions): Promise<UpdateWriteOpResult>;
-      static async deleteOne(filter: FilterQuery<S>, date: number, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
-      static async deleteOne(filter: FilterQuery<S>, date?: number | UpdateOneOptions, options?: UpdateOneOptions) {
-
-        const hooks = this.getHooks('deleteOne');
-
-        if (hooks.pre)
-          await hooks.pre({ filter, options });
-
-        date = date || Date.now();
-        const data = { $set: { modified: date, deleted: date } };
-
-        return this.collection.updateOne(filter, data, options);
-
-      }
-
-      static async deleteById(id: string, options?: UpdateOneOptions) {
-
-        const hooks = this.getHooks('deleteOne');
-
-        const filter = { _id: id };
-
-        if (hooks.pre)
-          await hooks.pre({ filter, options });
-
-        const date = Date.now();
-        const data = { $set: { modified: date, deleted: date } };
-
-        return this.collection.updateOne(filter, data, options);
-
-      }
-
-      static async purge(filter: FilterQuery<S>, options?: CommonOptions) {
-
-        const hooks = this.getHooks('purge');
+        filter = this.normalizeFilter(filter);
 
         if (hooks.pre)
           await hooks.pre({ filter, options });
@@ -300,9 +467,24 @@ export class KnectMongo {
 
       }
 
-      static async purgeOne(filter: FilterQuery<S>, options?: CommonOptions) {
+      static async deleteOne(filter: FilterQuery<P>, options?: CommonOptions) {
 
-        const hooks = this.getHooks('purgeOne');
+        const hooks = this.getHooks('deleteOne');
+
+        filter = this.normalizeFilter(filter);
+
+        if (hooks.pre)
+          await hooks.pre({ filter, options });
+
+        return this.collection.deleteOne(filter, options);
+
+      }
+
+      static async deleteById(id: LikeObjectID, options?: CommonOptions) {
+
+        const hooks = this.getHooks('deleteById');
+
+        const filter = { _id: this.toObjectID(id) };
 
         if (hooks.pre)
           await hooks.pre({ filter, options });
@@ -311,130 +493,127 @@ export class KnectMongo {
 
       }
 
-      static async purgeById(id: string, options?: CommonOptions) {
+      // CLASS PROPERTIES //
 
-        const hooks = this.getHooks('purgeById');
-
-        const filter = { _id: id };
-
-        if (hooks.pre)
-          await hooks.pre({ filter, options });
-
-        return this.collection.deleteOne(filter, options);
-
-      }
+      private _id: LikeObjectID;
 
       created: number;
       modified: number;
       deleted: number;
 
-      constructor() {
-
-        // Can't emit type defs and use private in derived class.
-        Object.defineProperty(this, '_id', {
-          enumerable: true,
-          writable: true,
-          configurable: true,
-          value: undefined
-        });
-
+      // CONSTRUCTOR //
+      // May need to change this fine for now.
+      constructor(props?: S) {
+        Object.getOwnPropertyNames(props).forEach(k => this[k] = props[k]);
       }
 
-      // DEFAULT CONVENIENCE METHODS //
+      // CLASS GETTERS & SETTERS //
 
-      get doc(): S {
-
+      private get _doc(): P {
         return Object.getOwnPropertyNames(this)
           .reduce((a, c) => {
             a[c] = this[c];
             return a;
-          }, {} as S);
-
+          }, <any>{});
       }
 
-      get id(): string {
-        return this['_id'];
+      get id(): LikeObjectID {
+        return this._id;
       }
 
-      set id(id: string) {
-        this['_id'] = id;
+      set id(id: LikeObjectID) {
+        this._id = id;
       }
+
+      // CLASS METHODS //
 
       /**
        * Saves the exiting instance to the database.
        * 
        * @param options MongoDB update options.
        */
-      async save(options?: UpdateOneOptions): Promise<UpdateWriteOpResult> {
+      async save(options?: UpdateOneOptions) {
 
         options = options || {};
         options.upsert = false;
 
         this.modified = Date.now();
 
-        const doc = this.doc;
+        const doc = this._doc;
 
-        const validation = (this.constructor as any).validate(doc);
+        const validation = Klass.validate(doc);
 
-        let id = this['_id'];
+        let id: ObjectID;
+        let err: Error;
 
         // Save must have an id.
-        if (!this['_id'])
-          validation.error = new Error(`Cannot save to collection "${name}" with missing id, did you mean ".create()"?`);
+        if (!this.id)
+          err = new Error(`Cannot save to collection "${name}" with
+           missing id, did you mean ".create()"?`);
 
-        id = new ObjectID(id);
-        delete validation.value._id;
+        id = Klass.toObjectID(this.id);
 
-        if (!validation.error)
-          return await (this.constructor as any).updateById(id, validation.value, options);
+        return new Promise<UpdateWriteOpResult>((resolve, reject) => {
 
-        (this.constructor as any).onError(validation.error);
+          if (err)
+            return reject(err);
+
+          resolve(Klass.updateById(id, validation.value, options));
+
+        });
 
       }
 
-      async create(options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult> {
+      async create(options?: CollectionInsertOneOptions) {
 
         const date = Date.now();
         this.created = date;
         this.modified = date;
 
-        const doc = this.doc;
+        let doc = this._doc;
+        const validation = Klass.validate(doc);
 
-        const validation = (this.constructor as any).validate(doc);
+        let err: Error;
 
-        if (this['_id'])
-          validation.error = new Error(`Cannot create for collection with existing id "${name}", did you mean ".save()"?`);
+        if (this.id)
+          err = new Error(`Cannot create for collection with existing 
+          id "${name}", did you mean ".save()"?`);
 
-        if (!validation.error) {
+        return new Promise<InsertOneWriteOpResult>(async (resolve, reject) => {
 
-          const result = await awaiter((this.constructor as any).create(validation.value, options));
+          if (err)
+            return reject(err);
 
-          // If successfully created set the generated ID
-          if (!result.err && (result.data as InsertOneWriteOpResult).insertedId)
-            this.id = result.data.insertedId;
+          const result = await Klass.create(validation.value, options);
 
-          return result.data;
+          doc = (result.ops && result.ops[0]) || {};
 
-        }
+          Object.keys(doc).forEach(k => {
+            if (k === '_id') {
+              this.id = doc[k];
+            }
+            else if (typeof this[k] === 'undefined') {
+              this[k] = doc[k];
+            }
+          });
 
-        (this.constructor as any).onError(validation.error);
+          resolve(result);
+
+        });
 
       }
 
-      async delete(options?: UpdateOneOptions): Promise<DeleteWriteOpResultObject> {
-        return (this.constructor as any).deleteById(new ObjectID(this['_id']), options);
+      async delete(options?: CommonOptions) {
+        return Klass.deleteById(Klass.toObjectID(this.id), options);
       }
 
-      async purge(options?: CommonOptions): Promise<DeleteWriteOpResultObject> {
-        return (this.constructor as any).purgeById(new ObjectID(this['_id']), options);
-      }
-
-      validate(schema?: JOI.ObjectSchema): JOI.ValidationResult<S> {
-        return (this.constructor as any).validate(this.doc, schema);
+      validate(props?: JOI.ObjectSchema) {
+        return Klass.validate(this._doc, props);
       }
 
     }
 
+    return Klass;
 
   }
 

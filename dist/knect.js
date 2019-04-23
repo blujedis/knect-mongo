@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
-const utils_1 = require("./utils");
 const JOI = require("joi");
 exports.MONGO_CLIENT_DEFAULTS = {
     useNewUrlParser: true
@@ -13,22 +12,14 @@ exports.MONGO_CLIENT_DEFAULTS = {
  * @param def the default database name when not found in uri.
  */
 function parseDbName(uri, def = '') {
-    let str = uri.split('?')[0];
+    const str = uri.split('?')[0];
     if (!~str.indexOf('/'))
         return def;
     return str.split('/').pop();
 }
-/**
- * Default error handler.
- *
- * @param err the error passed.
- */
-function errorHandler(err) {
-    throw err;
-}
 class KnectMongo {
     constructor() {
-        this._onError = errorHandler;
+        this.schemas = {};
     }
     /**
      * Connects to Mongodb instance.
@@ -52,267 +43,267 @@ class KnectMongo {
      * @param schema the JOI Object Schema for validation.
      */
     model(name, schema) {
-        var _a;
         const self = this;
-        return _a = class {
-                constructor() {
-                    // Can't emit type defs and use private in derived class.
-                    Object.defineProperty(this, '_id', {
-                        enumerable: true,
-                        writable: true,
-                        configurable: true,
-                        value: undefined
-                    });
-                }
-                static get client() {
-                    return self.client;
-                }
-                static get db() {
-                    return self.db;
-                }
-                static get collection() {
-                    return self.db.collection(name);
-                }
-                static onError(err) {
-                    self._onError(err);
-                }
-                static setHook(method, type, handler) {
-                    this.hooks[method] = this.hooks[method] || {};
-                    this.hooks[method][type] = handler;
-                }
-                static getHooks(method) {
-                    return this.hooks[method] || {};
-                }
-                static getHook(method, type) {
-                    this.hooks[method] = this.hooks[method] || {};
-                    const hook = this.getHooks[method][type];
-                    if (hook)
-                        return hook;
-                    this.onError(new Error(`Failed to lookup hook type "${type}" for method "${method}"`));
-                }
-                static pre(method, handler) {
-                    this.setHook(method, 'pre', handler);
-                }
-                static post(method, handler) {
-                    this.setHook(method, 'post', handler);
-                }
-                static validate(doc, schema) {
-                    schema = (schema || JOI.object());
-                    return schema.validate(doc);
-                }
-                static async find(filter) {
-                    const hooks = this.getHooks('find');
-                    if (hooks.pre)
-                        await hooks.pre({ filter });
-                    const result = await utils_1.awaiter(this.collection.find(filter).toArray());
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async findOne(filter, options) {
-                    const hooks = this.getHooks('findOne');
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const result = await utils_1.awaiter(this.collection.findOne(filter, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async create(doc, options) {
-                    let result;
-                    const hooks = this.getHooks('create');
-                    if (hooks.pre)
-                        await hooks.pre({ doc, options });
-                    const date = Date.now();
-                    if (Array.isArray(doc)) {
-                        doc.reduce((a, c) => {
-                            c.created = date;
-                            c.modified = date;
-                            a.push(c);
-                            return a;
-                        }, []);
-                        result = await utils_1.awaiter(this.collection.insertMany(doc, options));
-                    }
-                    else {
-                        doc.created = date;
-                        doc.modified = date;
-                        result = await utils_1.awaiter(this.collection.insertOne(doc, options));
-                    }
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async update(filter, update, options) {
-                    const hooks = this.getHooks('update');
-                    update = !update.$set ? update = { $set: update } : update;
-                    const date = Date.now();
-                    update.$set.modified = date;
-                    if (hooks.pre)
-                        await hooks.pre({ filter, update, options });
-                    const result = await utils_1.awaiter(this.collection.updateMany(filter, update, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async updateOne(filter, update, options) {
-                    const hooks = this.getHooks('updateOne');
-                    update = !update.$set ? update = { $set: update } : update;
-                    const date = Date.now();
-                    update.$set.modified = date;
-                    if (hooks.pre)
-                        await hooks.pre({ filter, update, options });
-                    const result = await utils_1.awaiter(this.collection.updateOne(filter, update, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async updateById(id, update, options) {
-                    const hooks = this.getHooks('updateById');
-                    const filter = { _id: id };
-                    update = !update.$set ? update = { $set: update } : update;
-                    const date = Date.now();
-                    update.$set.modified = date;
-                    if (hooks.pre)
-                        await hooks.pre({ filter, update, options });
-                    const result = await utils_1.awaiter(this.collection.updateOne(filter, update, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async delete(filter, options) {
-                    const hooks = this.getHooks('delete');
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const date = Date.now();
-                    const data = { $set: { modified: date, deleted: date } };
-                    const result = await utils_1.awaiter(this.collection.updateMany(filter, data, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async deleteOne(filter, options) {
-                    const hooks = this.getHooks('deleteOne');
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const date = Date.now();
-                    const data = { $set: { modified: date, deleted: date } };
-                    const result = await utils_1.awaiter(this.collection.updateOne(filter, data, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async deleteById(id, options) {
-                    const hooks = this.getHooks('deleteOne');
-                    const filter = { _id: id };
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const date = Date.now();
-                    const data = { $set: { modified: date, deleted: date } };
-                    const result = await utils_1.awaiter(this.collection.updateOne(filter, data, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async purge(filter, options) {
-                    const hooks = this.getHooks('purge');
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const result = await utils_1.awaiter(this.collection.deleteMany(filter, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async purgeOne(filter, options) {
-                    const hooks = this.getHooks('purgeOne');
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const result = await utils_1.awaiter(this.collection.deleteOne(filter, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                static async purgeById(id, options) {
-                    const hooks = this.getHooks('purgeById');
-                    const filter = { _id: id };
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const result = await utils_1.awaiter(this.collection.deleteOne(filter, options));
-                    if (!result.err)
-                        return result.data;
-                    this.onError(result.err);
-                }
-                // DEFAULT CONVENIENCE METHODS //
-                get doc() {
-                    return Object.getOwnPropertyNames(this)
-                        .reduce((a, c) => {
-                        a[c] = this[c];
+        if (this.schemas[name])
+            throw new Error(`Cannot create schema ${name}, the schema already exists`);
+        this.schemas[name] = schema;
+        class Klass {
+            // CONSTRUCTOR //
+            constructor(props) {
+                Object.getOwnPropertyNames(props).forEach(k => this.constructor[k] = props[k]);
+            }
+            static get client() {
+                return self.client;
+            }
+            static get db() {
+                return self.db;
+            }
+            static get collection() {
+                return self.db.collection(name);
+            }
+            static onError(err) {
+                throw err;
+            }
+            static toObjectID(ids) {
+                const isArray = Array.isArray(ids);
+                if (!isArray)
+                    ids = [ids];
+                const result = ids.map(id => {
+                    if (typeof id === 'string' || typeof id === 'number')
+                        return new mongodb_1.ObjectID(id);
+                    return id;
+                });
+                if (isArray)
+                    return result;
+                return result[0];
+            }
+            static setHook(method, type, handler) {
+                this.hooks[method] = this.hooks[method] || {};
+                this.hooks[method][type] = handler;
+            }
+            static getHooks(method) {
+                return this.hooks[method] || {};
+            }
+            static getHook(method, type) {
+                this.hooks[method] = this.hooks[method] || {};
+                const hook = this.getHooks[method][type];
+                if (hook)
+                    return hook;
+                this.onError(new Error(`Failed to lookup hook type "${type}" for method "${method}"`));
+            }
+            static pre(method, handler) {
+                this.setHook(method, 'pre', handler);
+            }
+            static post(method, handler) {
+                this.setHook(method, 'post', handler);
+            }
+            static validate(doc, props) {
+                props = (this.schema.props || JOI.object());
+                return props.validate(doc);
+            }
+            static async populate(doc, key, join) {
+                let joins = key;
+                const isArray = Array.isArray(doc);
+                if (arguments.length === 3)
+                    joins = { [key]: join };
+                if (Array.isArray(key)) {
+                    joins = key.reduce((a, c) => {
+                        const j = this.schema.joins[c];
+                        if (j)
+                            a[c] = j;
                         return a;
                     }, {});
                 }
-                get id() {
-                    return this['_id'];
-                }
-                set id(id) {
-                    this['_id'] = id;
-                }
-                /**
-                 * Saves the exiting instance to the database.
-                 *
-                 * @param options MongoDB update options.
-                 */
-                async save(options) {
-                    options = options || {};
-                    options.upsert = false;
-                    const validation = this.constructor.validate(this.doc);
-                    let id = this['_id'];
-                    // Save must have an id.
-                    if (!this['_id'])
-                        validation.error = new Error(`Cannot save to collection "${name}" with missing id, did you mean ".create()"?`);
-                    id = new mongodb_1.ObjectID(id);
-                    delete validation.value._id;
-                    if (!validation.error) {
-                        this.doc.modified = Date.now();
-                        return await this.constructor.updateById(id, validation.value, options);
+                const docs = (!isArray ? [doc] : doc);
+                const result = await Promise.all(docs.map(async (d) => {
+                    for (const k in joins) {
+                        if (joins.hasOwnProperty(k)) {
+                            const conf = joins[k];
+                            const prop = d[k];
+                            const values = !Array.isArray(prop) ? [prop] : prop;
+                            const rel = await this.db
+                                .collection(conf.collection)
+                                .find({ [conf.key || '_id']: { '$in': values } }, conf.options)
+                                .toArray();
+                            d[k] = rel[0];
+                            if (Array.isArray(prop))
+                                d[k] = rel;
+                        }
                     }
-                    this.constructor.onError(validation.error);
+                    return d;
+                }));
+                if (!isArray)
+                    return result[0];
+                return result;
+            }
+            static async find(filter, options) {
+                const hooks = this.getHooks('find');
+                if (hooks.pre)
+                    await hooks.pre({ filter, options });
+                const data = await this.collection.find(filter, options).toArray();
+                if (!options.populate)
+                    return data;
+                if (typeof options.populate === 'string')
+                    options.populate = [options.populate];
+                return this.populate(data, options.populate);
+            }
+            static async findOne(filter, options) {
+                const hooks = this.getHooks('findOne');
+                if (hooks.pre)
+                    await hooks.pre({ filter, options });
+                return this.collection.findOne(filter, options);
+            }
+            static async findById(id, options) {
+                const hooks = this.getHooks('findById');
+                const filter = { _id: id };
+                if (hooks.pre)
+                    await hooks.pre({ filter, options });
+                return this.collection.findOne(filter, options);
+            }
+            static async create(doc, options) {
+                const hooks = this.getHooks('create');
+                if (hooks.pre)
+                    await hooks.pre({ doc, options });
+                const date = Date.now();
+                if (Array.isArray(doc)) {
+                    doc.reduce((a, c) => {
+                        c.created = c.created || date;
+                        c.modified = c.modified || date;
+                        a.push(c);
+                        return a;
+                    }, []);
+                    return this.collection.insertMany(doc, options);
                 }
-                async create(options) {
-                    const validation = this.constructor.validate(this.doc);
-                    if (this['_id'])
-                        validation.error = new Error(`Cannot create for collection with existing id "${name}", did you mean ".save()"?`);
-                    if (!validation.error) {
-                        this.doc.modified = Date.now();
-                        const result = await this.constructor.create(validation.value, options);
-                        // If successfully created set the generated ID
-                        if (!result.err && result.data.insertedId)
-                            this.id = result.data.insertedId;
-                        return result;
-                    }
-                    this.constructor.onError(validation.error);
+                else {
+                    doc.created = doc.created || date;
+                    doc.modified = date;
+                    return this.collection.insertOne(doc, options);
                 }
-                async delete(options) {
-                    return await this.constructor.deleteById(new mongodb_1.ObjectID(this['_id']), options);
-                }
-                async purge(options) {
-                    return await this.constructor.purgeById(new mongodb_1.ObjectID(this['_id']), options);
-                }
-                validate(schema) {
-                    return this.constructor.validate(this.doc, schema);
-                }
-            },
-            _a.dbname = self.dbname,
-            _a.collectionName = name,
-            _a.schema = schema,
-            _a.hooks = {},
-            _a;
-    }
-    /**
-     * Sets the custom error handler function globally.
-     *
-     * @param fn a custom error handler function.
-     */
-    onError(fn) {
-        this._onError = fn;
+            }
+            static async update(filter, update, options) {
+                const hooks = this.getHooks('update');
+                update = !update.$set ? update = { $set: update } : update;
+                const date = Date.now();
+                update.$set.modified = update.$set.modified || date;
+                if (hooks.pre)
+                    await hooks.pre({ filter, update, options });
+                return this.collection.updateMany(filter, update, options);
+            }
+            static async updateOne(filter, update, options) {
+                const hooks = this.getHooks('updateOne');
+                update = !update.$set ? update = { $set: update } : update;
+                const date = Date.now();
+                update.$set.modified = update.$set.modified || date;
+                if (hooks.pre)
+                    await hooks.pre({ filter, update, options });
+                return this.collection.updateOne(filter, update, options);
+            }
+            static async updateById(id, update, options) {
+                const hooks = this.getHooks('updateById');
+                const filter = { _id: id };
+                update = !update.$set ? update = { $set: update } : update;
+                const date = Date.now();
+                update.$set.modified = update.$set.modified || date;
+                if (hooks.pre)
+                    await hooks.pre({ filter, update, options });
+                return this.collection.updateOne(filter, update, options);
+            }
+            static async delete(filter, options) {
+                const hooks = this.getHooks('delete');
+                if (hooks.pre)
+                    await hooks.pre({ filter, options });
+                return this.collection.deleteMany(filter, options);
+            }
+            static async deleteOne(filter, options) {
+                const hooks = this.getHooks('deleteOne');
+                if (hooks.pre)
+                    await hooks.pre({ filter, options });
+                return this.collection.deleteOne(filter, options);
+            }
+            static async deleteById(id, options) {
+                const hooks = this.getHooks('deleteById');
+                const filter = { _id: id };
+                if (hooks.pre)
+                    await hooks.pre({ filter, options });
+                return this.collection.deleteOne(filter, options);
+            }
+            // CLASS GETTERS & SETTERS //
+            get _doc() {
+                return Object.getOwnPropertyNames(this)
+                    .reduce((a, c) => {
+                    a[c] = this[c];
+                    return a;
+                }, {});
+            }
+            get id() {
+                return this._id;
+            }
+            set id(id) {
+                this._id = id;
+            }
+            // CLASS METHODS //
+            /**
+             * Saves the exiting instance to the database.
+             *
+             * @param options MongoDB update options.
+             */
+            async save(options) {
+                options = options || {};
+                options.upsert = false;
+                this.modified = Date.now();
+                const doc = this._doc;
+                const validation = Klass.validate(doc);
+                let id;
+                let err;
+                // Save must have an id.
+                if (!this.id)
+                    err = new Error(`Cannot save to collection "${name}" with
+           missing id, did you mean ".create()"?`);
+                id = Klass.toObjectID(this.id);
+                return new Promise((resolve, reject) => {
+                    if (err)
+                        return reject(err);
+                    resolve(Klass.updateById(id, validation.value, options));
+                });
+            }
+            async create(options) {
+                const date = Date.now();
+                this.created = date;
+                this.modified = date;
+                let doc = this._doc;
+                const validation = Klass.validate(doc);
+                let err;
+                if (this.id)
+                    err = new Error(`Cannot create for collection with existing 
+          id "${name}", did you mean ".save()"?`);
+                return new Promise(async (resolve, reject) => {
+                    if (err)
+                        return reject(err);
+                    const result = await Klass.create(validation.value, options);
+                    doc = (result.ops && result.ops[0]) || {};
+                    Object.keys(doc).forEach(k => {
+                        if (k === '_id') {
+                            this.id = doc[k];
+                        }
+                        else if (typeof this[k] === 'undefined') {
+                            this[k] = doc[k];
+                        }
+                    });
+                    resolve(result);
+                });
+            }
+            async delete(options) {
+                return Klass.deleteById(Klass.toObjectID(this.id), options);
+            }
+            validate(props) {
+                return Klass.validate(this._doc, props);
+            }
+        }
+        Klass.dbname = self.dbname;
+        Klass.collectionName = name;
+        Klass.schema = schema;
+        Klass.hooks = {};
+        return Klass;
     }
 }
 exports.KnectMongo = KnectMongo;

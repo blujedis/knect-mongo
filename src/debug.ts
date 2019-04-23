@@ -1,24 +1,23 @@
 import KnectMongo from './';
 import * as JOI from 'joi';
 import { awaiter } from './utils';
+import { LikeObjectID } from './types';
 
 interface IUser {
-  id?: string;
   firstName: string;
   lastName: string;
-  created?: number;
-  modified?: number;
-  deleted?: number;
+  posts?: LikeObjectID[];
 }
 
-const UserSchema = JOI.object();
+const schema = {
+  props: JOI.object(),
+  joins: {
+    tags: { collection: 'tags', isArray: true },
+    apikey: { collection: 'keys', cascade: true },
+  }
+};
 
-const UserModel = KnectMongo.model<IUser>('user', UserSchema);
-
-// We can also create a mixin here to mixin perhaps
-// even more helpers that are common etc.
-// you could also call "UserModel" simply User and extend
-// nothing and just use statics to interact with DB.
+const UserModel = KnectMongo.model<IUser>('user', schema);
 
 class User extends UserModel {
 
@@ -26,17 +25,12 @@ class User extends UserModel {
   firstName: string;
   lastName: string;
 
-  // Allow setting defaults in constructor
-  // this could come from a base class.
-  constructor(props?: IUser) {
-    super();
-    for (const k in props) {
-      if (props.hasOwnProperty(k))
-        this[k] = props[k];
-    }
-  }
-
 }
+
+// We can also create a mixin here to mixin perhaps
+// even more helpers that are common etc.
+// you could also call "UserModel" simply User and extend
+// nothing and just use statics to interact with DB.
 
 (async function init() {
 
@@ -47,20 +41,17 @@ class User extends UserModel {
 
   console.log(`\nConnected to: ${data.databaseName}`);
 
-  const user = new User({ id: '5cb144ce2a4d90c837fd72b4', firstName: 'Carey', lastName: 'Hazelton' });
+  const user = new User({ firstName: 'Paula', lastName: 'Hazelton' });
 
   console.log('\nUser Instance:');
   console.log('  ', user);
   console.log();
 
-  const result = await awaiter(user.save());
+  const result = await user.create();
 
-  if (result.err)
-    console.log(result.err + '\n');
-  else
-    console.log('Results:\n  matched:', result.data.matchedCount, '\n  modified:', result.data.modifiedCount, '\n  upserted:', result.data.upsertedCount + '\n');
+  // console.log('Results:\n  matched:', result.matchedCount,
+  //   '\n  modified:', result.modifiedCount, '\n  upserted:', result.upsertedCount + '\n');
 
   KnectMongo.client.close();
 
 })();
-

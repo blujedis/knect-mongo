@@ -1,20 +1,30 @@
 {
   "name": "knect-mongo",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Mongodb connection and model helper.",
   "main": "src/index.ts",
   "scripts": {
-    "start": "tsc -w",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "tslint --config ./tslint.json --project ./tsconfig.json",
+    "typedoc": "typedoc ./src --options ./typedoc.json --out ./docs",
+    "docs": "npm run typedoc && touch ./docs/.nojekll",
+    "test": "mocha test/**/*.spec.ts* --require ./register.js --bail",
+    "prepare": "npm run lint && npm run test && npm run docs"
   },
   "author": "Blujedis <blujedicorp@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/chai": "^4.1.7",
     "@types/joi": "^14.3.2",
+    "@types/mocha": "^5.2.6",
     "@types/mongodb": "^3.1.22",
-    "@types/node": "^11.11.3"
+    "@types/node": "^11.11.3",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.4"
   },
   "dependencies": {
+    "joi": "^14.3.1",
     "mongodb": "^3.2.3"
   }
 }
