@@ -8,7 +8,7 @@ import {
   IHooks, HookTypes, HookHandler, IBaseProps, ISchema, ISchemas,
   LikeObjectID, IFindOneOptions, IJoin, IJoins, ICascadeResult
 } from './types';
-import * as JOI from 'joi';
+import { object, ObjectSchema } from 'yup';
 
 export const MONGO_CLIENT_DEFAULTS = {
   useNewUrlParser: true
@@ -151,9 +151,9 @@ export class KnectMongo {
         this.setHook(method, 'post', handler);
       }
 
-      static validate(doc: P, props?: JOI.ObjectSchema) {
-        props = (this.schema.props || JOI.object()) as JOI.ObjectSchema;
-        return props.validate<P>(doc);
+      static validate(doc: P, props?: ObjectSchema<any>) {
+        props = (this.schema.props || object()) as ObjectSchema<any>;
+        return props.validateSync(doc);
       }
 
       static async populate<T extends P>(doc: P, joins: string[] | IJoins): Promise<T>;
@@ -607,7 +607,7 @@ export class KnectMongo {
         return Klass.deleteById(Klass.toObjectID(this.id), options);
       }
 
-      validate(props?: JOI.ObjectSchema) {
+      validate(props?: ObjectSchema<any>) {
         return Klass.validate(this._doc, props);
       }
 

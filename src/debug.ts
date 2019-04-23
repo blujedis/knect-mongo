@@ -1,7 +1,7 @@
 import KnectMongo from './';
-import * as JOI from 'joi';
 import { awaiter } from './utils';
 import { LikeObjectID } from './types';
+import { object } from 'yup';
 
 interface IUser {
   firstName: string;
@@ -10,7 +10,7 @@ interface IUser {
 }
 
 const schema = {
-  props: JOI.object(),
+  props: object(),
   joins: {
     tags: { collection: 'tags', isArray: true },
     apikey: { collection: 'keys', cascade: true },
