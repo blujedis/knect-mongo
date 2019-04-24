@@ -1,6 +1,6 @@
 {
   "name": "knect-mongo",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Mongodb connection and model helper.",
   "main": "src/index.ts",
   "scripts": {
@@ -25,15 +25,10 @@
     "mocha": "^6.1.4",
     "rimraf": "^2.6.3",
     "ts-node": "^8.1.0",
-    "typescript": "^3.4.4",
-    "yup": "^0.27.0"
+    "typescript": "^3.4.4"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "mongodb": "^3.2.3"
-=======
     "mongodb": "^3.2.3",
     "yup": "^0.27.0"
->>>>>>> fa9e4c59dacbb6e3e83bd09e826ae94e0b3b10c1
   }
 }
