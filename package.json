@@ -29,6 +29,11 @@
     "yup": "^0.27.0"
   },
   "dependencies": {
+<<<<<<< HEAD
     "mongodb": "^3.2.3"
+=======
+    "mongodb": "^3.2.3",
+    "yup": "^0.27.0"
+>>>>>>> fa9e4c59dacbb6e3e83bd09e826ae94e0b3b10c1
   }
 }

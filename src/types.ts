@@ -1,5 +1,4 @@
 import { FilterQuery, UpdateQuery, ObjectID, FindOneOptions, DeleteWriteOpResultObject } from 'mongodb';
-
 import { ObjectSchema } from 'yup';
 
 export type LikeObjectID = string | number | ObjectID;
