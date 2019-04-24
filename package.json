@@ -1,8 +1,8 @@
 {
   "name": "knect-mongo",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Mongodb connection and model helper.",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "clean": "rimraf dist/*",
     "build": "tsc",
