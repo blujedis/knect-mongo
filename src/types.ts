@@ -1,5 +1,6 @@
 import { FilterQuery, UpdateQuery, ObjectID, FindOneOptions, DeleteWriteOpResultObject } from 'mongodb';
-import * as JOI from 'joi';
+
+import { ObjectSchema } from 'yup';
 
 export type LikeObjectID = string | number | ObjectID;
 
@@ -52,8 +53,8 @@ export interface IJoins {
   [key: string]: IJoin;
 }
 
-export interface ISchema {
-  props: JOI.ObjectSchema;
+export interface ISchema<T extends object = any> {
+  props: ObjectSchema<T>;
   joins: IJoins;
 }
 

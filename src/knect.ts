@@ -8,7 +8,8 @@ import {
   IHooks, HookTypes, HookHandler, IBaseProps, ISchema, ISchemas,
   LikeObjectID, IFindOneOptions, IJoin, IJoins, ICascadeResult
 } from './types';
-import * as JOI from 'joi';
+
+import { ObjectSchema, object, ValidateOptions, ValidationError } from 'yup';
 
 export const MONGO_CLIENT_DEFAULTS = {
   useNewUrlParser: true
@@ -61,26 +62,35 @@ export class KnectMongo {
    * Accepts a schema and creates model with static and instance convenience methods.
    * 
    * @param name the name of the collection
-   * @param schema the JOI Object Schema for validation.
+   * @param config the schema configuration containing document validation.
    */
-  model<S = any>(name: string, schema: ISchema) {
+  model<S extends object = any>(name: string, config: ISchema<Partial<S>>) {
 
     const self = this;
 
     if (this.schemas[name])
       throw new Error(`Cannot create schema ${name}, the schema already exists`);
 
-    this.schemas[name] = schema;
+    this.schemas[name] = config;
 
     type P = S & IBaseProps & { _id?: LikeObjectID };
 
-    class Klass {
+    let _id: LikeObjectID;
 
-      protected static hooks: IHooks = {};
+    const getDoc = <T>(context): T => {
+      return Object.getOwnPropertyNames(context)
+        .reduce((a, c) => {
+          a[c] = context[c];
+          return a;
+        }, <any>{});
+    };
+
+    return class Klass {
 
       static dbname = self.dbname;
       static collectionName = name;
-      static schema = schema;
+      static schema = config;
+      static hooks: IHooks = {};
 
       static get client() {
         return self.client;
@@ -94,17 +104,29 @@ export class KnectMongo {
         return self.db.collection<P>(name);
       }
 
-      protected static normalizeFilter(filter: FilterQuery<P>) {
+      /**
+       * Normalizes filter ensuring ObjectID type.
+       * 
+       * @param filter the Mongodb filter query.
+       */
+      static normalizeFilter(filter: FilterQuery<P>) {
         if (filter._id)
           filter._id = this.toObjectID(filter._id);
         return filter;
       }
 
-      static onError(err: Error) {
-        throw err;
-      }
-
+      /**
+       * Convert value to ObjectID.
+       * 
+       * @param id the Like id value to convert to Mongodb ObjectID.
+       */
       static toObjectID(id: LikeObjectID): ObjectID;
+
+      /**
+       * Convert values to ObjectIDs.
+       * 
+       * @param ids array of values to convert to Mongodb ObjectID.
+       */
       static toObjectID(ids: LikeObjectID[]): ObjectID[];
       static toObjectID(ids: LikeObjectID | LikeObjectID[]): ObjectID | ObjectID[] {
 
@@ -126,40 +148,116 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Sets a hook to be called for defined method.
+       * 
+       * @param method the method to set hook for.
+       * @param type the hook type.
+       * @param handler the handler for the hook.
+       */
       static setHook(method: string, type: HookTypes, handler: any) {
         this.hooks[method] = this.hooks[method] || {};
         this.hooks[method][type] = handler;
       }
 
+      /**
+       * Gets all hooks for a given method.
+       * 
+       * @param method the method to get hooks for.
+       */
       static getHooks(method: string) {
         return this.hooks[method] || {};
       }
 
+      /**
+       * Get a hook for a given method and type.
+       * 
+       * @param method the hook method.
+       * @param type the type of hook method to get.
+       */
       static getHook(method: string, type: HookTypes) {
         this.hooks[method] = this.hooks[method] || {};
-        const hook = this.getHooks[method][type];
-        if (hook)
-          return hook;
-        this.onError(new Error(`Failed to lookup hook type "${type}" for method "${method}"`));
+        /* tslint:disable */
+        return this.getHooks[method][type] || (() => { });
       }
 
+      /**
+       * Sets a pre hook for a given method.
+       * 
+       * @param method the method to set the pre hook for.
+       * @param handler the handler to be called.
+       */
       static pre(method: string, handler: HookHandler<P>) {
         this.setHook(method, 'pre', handler);
       }
 
+      /**
+       * Sets a post hook for a given method.
+       * 
+       * @param method the method to set the post hook for.
+       * @param handler the handler to be called.
+       */
       static post(method: string, handler: HookHandler<P>) {
         this.setHook(method, 'post', handler);
       }
 
-      static validate(doc: P, props?: JOI.ObjectSchema) {
-        props = (this.schema.props || JOI.object()) as JOI.ObjectSchema;
-        return props.validate<P>(doc);
+      /**
+       * Checks is document is valid against schema.
+       * 
+       * @param doc the document to be validated.
+       * @param schema the schema to validate against.
+       * @param options the validation options to be applied.
+       */
+      static isValid(doc: P, schema?: ObjectSchema<P>, options?: ValidateOptions) {
+        schema = (this.schema.props || object()) as ObjectSchema<P>;
+        return schema.isValidSync(doc, options);
       }
 
+      /**
+       * Validates a document against schema.
+       * 
+       * @param doc the document to be validated.
+       * @param schema the schema to validate against.
+       * @param options the validation options to be applied.
+       */
+      static validate(doc: P, schema?: ObjectSchema<P>, options?: ValidateOptions) {
+        schema = (this.schema.props || object()) as ObjectSchema<P>;
+        return schema.validateSync(doc, options);
+      }
+
+      /**
+       * Populates document with specified joins.
+       * 
+       * @param doc the document to populate joins for.
+       * @param joins an array or IJoins object of joins.
+       */
       static async populate<T extends P>(doc: P, joins: string[] | IJoins): Promise<T>;
-      static async populate<T extends P>(doc: P[], joins: string[] | IJoins): Promise<T[]>;
+
+      /**
+       * Populates documents with specified joins.
+       * 
+       * @param docs the documents to populate joins for.
+       * @param joins an array or IJoins object of joins.
+       */
+      static async populate<T extends P>(docs: P[], joins: string[] | IJoins): Promise<T[]>;
+
+      /**
+       * Populates document with specified joins.
+       * 
+       * @param doc the document to populate joins for.
+       * @param key the join key property name.
+       * @param join the join configuration object.
+       */
       static async populate<T extends P>(doc: P, key: string, join: IJoin): Promise<T>;
-      static async populate<T extends P>(doc: P[], key: string, join: IJoin): Promise<T[]>;
+
+      /**
+       * Populates documents with specified join.
+       * 
+       * @param docs the document to populate joins for.
+       * @param key the join key property name.
+       * @param join the join configuration object.
+       */
+      static async populate<T extends P>(docs: P[], key: string, join: IJoin): Promise<T[]>;
       static async populate<T extends P>(doc: P | P[], key: any, join?: IJoin): Promise<T | T[]> {
 
         let joins: IJoins = key;
@@ -219,9 +317,38 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Cascades delete with specified joins.
+       * 
+       * @param doc the document to populate joins for.
+       * @param joins an array or IJoins object of joins.
+       */
       static async cascade(doc: P, joins: string[] | IJoins): Promise<ICascadeResult<P>>;
+
+      /**
+       * Cascades deletes with specified joins.
+       * 
+       * @param docs the documents to populate joins for.
+       * @param joins an array or IJoins object of joins.
+       */
       static async cascade(doc: P[], joins: string[] | IJoins): Promise<ICascadeResult<P>[]>;
+
+      /**
+       * Cascades delete with specified join.
+       * 
+       * @param doc the document to populate joins for.
+       * @param key the join key property name.
+       * @param join the join configuration object.
+       */
       static async cascade(doc: P, key: string, join: IJoin): Promise<ICascadeResult<P>>;
+
+      /**
+       * Cascades deletes with specified join.
+       * 
+       * @param docs the document to populate joins for.
+       * @param key the join key property name.
+       * @param join the join configuration object.
+       */
       static async cascade(doc: P[], key: string, join: IJoin): Promise<ICascadeResult<P>[]>;
       static async cascade(doc: P | P[], key: any, join?: IJoin): Promise<ICascadeResult<P> | ICascadeResult<P>[]> {
 
@@ -301,6 +428,12 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Finds a collection of documents by query.
+       * 
+       * @param filter the Mongodb filter query.
+       * @param options Mongodb find options.
+       */
       static async find<T extends P>(filter?: FilterQuery<P>, options?: IFindOneOptions): Promise<T[]> {
 
         const hooks = this.getHooks('find');
@@ -324,6 +457,12 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Finds one document by query.
+       * 
+       * @param filter the Mongodb filter query.
+       * @param options Mongodb find options.
+       */
       static async findOne<T extends P>(filter: FilterQuery<P>, options?: IFindOneOptions): Promise<T> {
 
         const hooks = this.getHooks('findOne');
@@ -346,6 +485,12 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Finds one document by id.
+       * 
+       * @param filter the Mongodb filter query.
+       * @param options Mongodb find options.
+       */
       static async findById<T extends P>(id: LikeObjectID, options?: IFindOneOptions): Promise<T> {
 
         const hooks = this.getHooks('findById');
@@ -368,8 +513,21 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Creates document in database.
+       * 
+       * @param doc the document to be persisted to database.
+       * @param options Mongodb insert one options.
+       */
       static async create(doc: P, options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult>;
-      static async create(doc: P[], options?: CollectionInsertManyOptions): Promise<InsertWriteOpResult>;
+
+      /**
+       * Creates multiple documents in database.
+       * 
+       * @param docs the documents to be persisted to database.
+       * @param options Mongodb insert many options.
+       */
+      static async create(docs: P[], options?: CollectionInsertManyOptions): Promise<InsertWriteOpResult>;
       static async create(doc: P | P[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions) {
 
         const hooks = this.getHooks('create');
@@ -397,6 +555,13 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Updates multiple documents by query.
+       * 
+       * @param filter the Mongodb filter for finding the desired documents to update.
+       * @param update the update query to be applied.
+       * @param options Mongodb update options.
+       */
       static async update(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateManyOptions) {
 
         const hooks = this.getHooks('update');
@@ -416,6 +581,13 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Updates one document by query.
+       * 
+       * @param filter the Mongodb filter for finding the desired documents to update.
+       * @param update the update query to be applied.
+       * @param options Mongodb update options.
+       */
       static async updateOne(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
 
         const hooks = this.getHooks('updateOne');
@@ -435,6 +607,13 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Updates one document by id.
+       * 
+       * @param filter the Mongodb filter for finding the desired documents to update.
+       * @param update the update query to be applied.
+       * @param options Mongodb update options.
+       */
       static async updateById(id: LikeObjectID, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
 
         const hooks = this.getHooks('updateById');
@@ -454,6 +633,12 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Deletes multiple documents by query.
+       * 
+       * @param filter the Mongodb filter for finding the desired documents to update.
+       * @param options Mongodb update options.
+       */
       static async delete(filter: FilterQuery<P>, options?: CommonOptions) {
 
         const hooks = this.getHooks('delete');
@@ -467,6 +652,13 @@ export class KnectMongo {
 
       }
 
+
+      /**
+       * Deletes one document by query.
+       * 
+       * @param filter the Mongodb filter for finding the desired documents to update.
+       * @param options Mongodb update options.
+       */
       static async deleteOne(filter: FilterQuery<P>, options?: CommonOptions) {
 
         const hooks = this.getHooks('deleteOne');
@@ -480,6 +672,12 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Deletes one document by id.
+       * 
+       * @param filter the Mongodb filter for finding the desired documents to update.
+       * @param options Mongodb update options.
+       */
       static async deleteById(id: LikeObjectID, options?: CommonOptions) {
 
         const hooks = this.getHooks('deleteById');
@@ -495,8 +693,6 @@ export class KnectMongo {
 
       // CLASS PROPERTIES //
 
-      private _id: LikeObjectID;
-
       created: number;
       modified: number;
       deleted: number;
@@ -509,26 +705,18 @@ export class KnectMongo {
 
       // CLASS GETTERS & SETTERS //
 
-      private get _doc(): P {
-        return Object.getOwnPropertyNames(this)
-          .reduce((a, c) => {
-            a[c] = this[c];
-            return a;
-          }, <any>{});
-      }
-
       get id(): LikeObjectID {
-        return this._id;
+        return _id;
       }
 
       set id(id: LikeObjectID) {
-        this._id = id;
+        _id = id;
       }
 
       // CLASS METHODS //
 
       /**
-       * Saves the exiting instance to the database.
+       * Saves changes persisting instance in database.
        * 
        * @param options MongoDB update options.
        */
@@ -539,52 +727,44 @@ export class KnectMongo {
 
         this.modified = Date.now();
 
-        const doc = this._doc;
+        const doc = getDoc<P>(this);
 
-        const validation = Klass.validate(doc);
-
-        let id: ObjectID;
-        let err: Error;
-
-        // Save must have an id.
-        if (!this.id)
-          err = new Error(`Cannot save to collection "${name}" with
-           missing id, did you mean ".create()"?`);
-
-        id = Klass.toObjectID(this.id);
+        Klass.validate(doc);
 
         return new Promise<UpdateWriteOpResult>((resolve, reject) => {
 
-          if (err)
-            return reject(err);
+          if (!this.id)
+            return reject(new ValidationError([`Cannot save to collection "${name}" with
+          missing id, did you mean ".create()"?`], doc, 'id'));
 
-          resolve(Klass.updateById(id, validation.value, options));
+          resolve(Klass.updateById(Klass.toObjectID(this.id), doc, options));
 
         });
 
       }
 
+      /**
+       * Creates and persists instance to database.
+       * 
+       * @param options Mongodb create options.
+       */
       async create(options?: CollectionInsertOneOptions) {
 
         const date = Date.now();
         this.created = date;
         this.modified = date;
 
-        let doc = this._doc;
-        const validation = Klass.validate(doc);
+        let doc = getDoc<P>(this);
 
-        let err: Error;
-
-        if (this.id)
-          err = new Error(`Cannot create for collection with existing 
-          id "${name}", did you mean ".save()"?`);
+        Klass.validate(doc);
 
         return new Promise<InsertOneWriteOpResult>(async (resolve, reject) => {
 
-          if (err)
-            return reject(err);
+          if (this.id)
+            return reject(new ValidationError([`Cannot create for collection with existing 
+            id "${name}", did you mean ".save()"?`], doc, 'id'));
 
-          const result = await Klass.create(validation.value, options);
+          const result = await Klass.create(doc, options);
 
           doc = (result.ops && result.ops[0]) || {};
 
@@ -603,17 +783,34 @@ export class KnectMongo {
 
       }
 
+      /**
+       * Deletes document persisting in database.
+       * 
+       * @param options Mongodb delete options.
+       */
       async delete(options?: CommonOptions) {
         return Klass.deleteById(Klass.toObjectID(this.id), options);
       }
 
-      validate(props?: JOI.ObjectSchema) {
-        return Klass.validate(this._doc, props);
+      /**
+       * Validates instance against schema.
+       * 
+       * @param schema optional schema to verify by or uses defined.
+       */
+      validate(schema?: ObjectSchema<P>) {
+        return Klass.validate(getDoc<P>(this), schema);
       }
 
-    }
+      /**
+       * Checks if instance is valid against schema.
+       * 
+       * @param schema optional schema to verify by or uses defined.
+       */
+      isValid(schema?: ObjectSchema<P>) {
+        return Klass.isValid(getDoc<P>(this), schema);
+      }
 
-    return Klass;
+    };
 
   }
 

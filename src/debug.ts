@@ -1,5 +1,5 @@
 import KnectMongo from './';
-import * as JOI from 'joi';
+import { object, string } from 'yup';
 import { awaiter } from './utils';
 import { LikeObjectID } from './types';
 
@@ -10,7 +10,9 @@ interface IUser {
 }
 
 const schema = {
-  props: JOI.object(),
+  props: object().shape({
+    firstName: string().length(3)
+  }),
   joins: {
     tags: { collection: 'tags', isArray: true },
     apikey: { collection: 'keys', cascade: true },
@@ -34,12 +36,12 @@ class User extends UserModel {
 
 (async function init() {
 
-  const { err, data } = await awaiter(KnectMongo.connect('mongodb://10.10.20.10:32770/temp'));
+  let result: any = await awaiter(KnectMongo.connect('mongodb://10.10.20.10:32770/temp'));
 
-  if (err)
-    throw err;
+  if (result.err)
+    throw result.err;
 
-  console.log(`\nConnected to: ${data.databaseName}`);
+  console.log(`\nConnected to: ${result.data.databaseName}`);
 
   const user = new User({ firstName: 'Paula', lastName: 'Hazelton' });
 
@@ -47,10 +49,7 @@ class User extends UserModel {
   console.log('  ', user);
   console.log();
 
-  const result = await user.create();
-
-  // console.log('Results:\n  matched:', result.matchedCount,
-  //   '\n  modified:', result.modifiedCount, '\n  upserted:', result.upsertedCount + '\n');
+  result = await awaiter(user.create());
 
   KnectMongo.client.close();
 

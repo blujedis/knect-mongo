@@ -1,5 +1,5 @@
 import { IBaseProps, LikeObjectID } from '../src';
-import * as JOI from 'joi';
+import { object } from 'yup';
 
 // USER //
 
@@ -14,7 +14,7 @@ export interface IUserPopulated extends IUser {
 }
 
 export const UserSchema = {
-  props: JOI.object(),
+  props: object(),
   joins: {
     posts: { collection: 'post' }
   }
@@ -29,7 +29,7 @@ export interface IPost extends Partial<IBaseProps> {
 }
 
 export const PostSchema = {
-  props: JOI.object(),
+  props: object(),
   joins: {
     user: { collection: 'user' }
   }

@@ -1,30 +1,34 @@
 {
   "name": "knect-mongo",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Mongodb connection and model helper.",
   "main": "src/index.ts",
   "scripts": {
+    "clean": "rimraf dist/*",
+    "build": "tsc",
+    "watch": "npm run tsc -- -w",
     "lint": "tslint --config ./tslint.json --project ./tsconfig.json",
     "typedoc": "typedoc ./src --options ./typedoc.json --out ./docs",
     "docs": "npm run typedoc && touch ./docs/.nojekll",
     "test": "mocha test/**/*.spec.ts* --require ./register.js --bail",
-    "prepare": "npm run lint && npm run test && npm run docs"
+    "prep": "npm run clean && npm run lint && npm run test && npm run docs && npm run build"
   },
   "author": "Blujedis <blujedicorp@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/joi": "^14.3.2",
     "@types/mocha": "^5.2.6",
     "@types/mongodb": "^3.1.22",
     "@types/node": "^11.11.3",
+    "@types/yup": "^0.26.12",
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
+    "rimraf": "^2.6.3",
     "ts-node": "^8.1.0",
-    "typescript": "^3.4.4"
+    "typescript": "^3.4.4",
+    "yup": "^0.27.0"
   },
   "dependencies": {
-    "joi": "^14.3.1",
     "mongodb": "^3.2.3"
   }
 }
