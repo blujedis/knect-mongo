@@ -1,12 +1,12 @@
 {
   "name": "knect-mongo",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Mongodb connection and model helper.",
   "main": "dist/index.js",
   "scripts": {
     "clean": "rimraf dist/*",
     "build": "tsc",
-    "watch": "npm run tsc -- -w",
+    "watch": "npm run build -- -w",
     "lint": "tslint --config ./tslint.json --project ./tsconfig.json",
     "typedoc": "typedoc ./src --options ./typedoc.json --out ./docs",
     "docs": "npm run typedoc && touch ./docs/.nojekll",
@@ -14,7 +14,11 @@
     "prep": "npm run clean && npm run lint && npm run test && npm run docs && npm run build"
   },
   "author": "Blujedis <blujedicorp@gmail.com>",
-  "license": "MIT",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blujedis/knect-mongo.git"
+  },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.6",
