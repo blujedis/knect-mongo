@@ -8,19 +8,18 @@ Below example utilizes async/await you can also use promises if you wish.
 
 ```ts
 import KnectMongo from 'knect-mongo';
+import * as Yup from 'yup';
 
 async function init() {
 
-  await KnectMongo.connect('mongodb-uri', { options });
+  await KnectMongo.connect('mongodb://localhost:27017/myproject', { options });
 
   interface IUser {
     username: string;
     password: string;
   }
 
-  const UserSchema = JOI.object();
-
-  const User = KnectMongo.model('user', UserSchema);
+  const User = KnectMongo.model('user', Yup.object());
 
   const found = await User.findOne({ _id: 'some-id' }, { options });
 
@@ -28,3 +27,16 @@ async function init() {
 
 init();
 ```
+
+## Docs
+
+See [https://blujedis.github.io/knect-mongo/](https://blujedis.github.io/knect-mongo/)
+
+## Change
+
+See [CHANGE.md](CHANGE.md)
+
+## License
+
+See [LICENSE.md](LICENSE)
+

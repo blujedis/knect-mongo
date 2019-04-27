@@ -69,25 +69,30 @@
 				<h2 id="usage">Usage</h2>
 				<p>Below example utilizes async/await you can also use promises if you wish.</p>
 				<pre><code class="language-ts"><span class="hljs-keyword">import</span> KnectMongo <span class="hljs-keyword">from</span> <span class="hljs-string">'knect-mongo'</span>;
+<span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> Yup <span class="hljs-keyword">from</span> <span class="hljs-string">'yup'</span>;
 
 <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params"></span>) </span>{
 
-  <span class="hljs-keyword">await</span> KnectMongo.connect(<span class="hljs-string">'mongodb-uri'</span>, { options });
+  <span class="hljs-keyword">await</span> KnectMongo.connect(<span class="hljs-string">'mongodb://localhost:27017/myproject'</span>, { options });
 
   <span class="hljs-keyword">interface</span> IUser {
     username: <span class="hljs-built_in">string</span>;
     password: <span class="hljs-built_in">string</span>;
   }
 
-  <span class="hljs-keyword">const</span> UserSchema = JOI.object();
-
-  <span class="hljs-keyword">const</span> User = KnectMongo.model(<span class="hljs-string">'user'</span>, UserSchema);
+  <span class="hljs-keyword">const</span> User = KnectMongo.model(<span class="hljs-string">'user'</span>, Yup.object());
 
   <span class="hljs-keyword">const</span> found = <span class="hljs-keyword">await</span> User.findOne({ _id: <span class="hljs-string">'some-id'</span> }, { options });
 
 }
 
 init();</code></pre>
+				<h2 id="docs">Docs</h2>
+				<p>See <a href="https://blujedis.github.io/knect-mongo/">https://blujedis.github.io/knect-mongo/</a></p>
+				<h2 id="change">Change</h2>
+				<p>See <a href="CHANGE.md">CHANGE.md</a></p>
+				<h2 id="license">License</h2>
+				<p>See <a href="LICENSE">LICENSE.md</a></p>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">

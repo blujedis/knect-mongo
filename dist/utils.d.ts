@@ -3,7 +3,7 @@
  *
  * @param promise the promise to be wrapped.
  */
-export declare const awaiter: <T = any, K extends string = "data">(promise: Promise<T>) => Promise<{
+export declare const awaiter: <T, K extends string = "data">(promise: Promise<T>) => Promise<{
     err?: Error;
 } & Record<K, T>>;
 /**
