@@ -1,6 +1,6 @@
 {
   "name": "knect-mongo",
-  "version": "1.0.14",
+  "version": "1.1.0",
   "description": "Mongodb connection and model helper.",
   "main": "dist/index.js",
   "scripts": {
@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.6",
-    "@types/mongodb": "^3.1.22",
+    "@types/mongodb": "^3.1.25",
     "@types/node": "^11.11.3",
     "@types/yup": "^0.26.12",
     "chai": "^4.2.0",
