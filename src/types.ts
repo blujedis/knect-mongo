@@ -1,4 +1,7 @@
-import { FilterQuery, UpdateQuery, ObjectID, FindOneOptions, DeleteWriteOpResultObject } from 'mongodb';
+import {
+  FilterQuery, UpdateQuery, ObjectID, FindOneOptions, DeleteWriteOpResultObject,
+  Db, MongoClient, InsertWriteOpResult, UpdateWriteOpResult, InsertOneWriteOpResult
+} from 'mongodb';
 import { ObjectSchema } from 'yup';
 
 export type LikeObjectID = string | number | ObjectID;
@@ -53,8 +56,8 @@ export interface IJoins {
 }
 
 export interface ISchema<T extends object = any> {
-  props: ObjectSchema<T>;
-  joins: IJoins;
+  props?: ObjectSchema<T>;
+  joins?: IJoins;
 }
 
 export interface ISchemas {
@@ -64,3 +67,17 @@ export interface ISchemas {
 export interface IFindOneOptions extends FindOneOptions {
   populate?: string | string[];
 }
+
+export interface IInsertWriteOpResult<T> extends InsertWriteOpResult {
+  opts: T[];
+}
+
+export interface IInsertOneWriteOpResult<T> extends InsertOneWriteOpResult {
+  opts: T[];
+}
+
+// Re-export Mongodb Types.
+export {
+  Db,
+  MongoClient
+};

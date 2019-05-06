@@ -1,4 +1,4 @@
-import { FilterQuery, UpdateQuery, ObjectID, FindOneOptions, DeleteWriteOpResultObject } from 'mongodb';
+import { FilterQuery, UpdateQuery, ObjectID, FindOneOptions, DeleteWriteOpResultObject, Db, MongoClient, InsertWriteOpResult, InsertOneWriteOpResult } from 'mongodb';
 import { ObjectSchema } from 'yup';
 export declare type LikeObjectID = string | number | ObjectID;
 export declare type HookHandler<T = any> = (context: IHookContext<T>) => Promise<IHookContext<T>>;
@@ -42,8 +42,8 @@ export interface IJoins {
     [key: string]: IJoin;
 }
 export interface ISchema<T extends object = any> {
-    props: ObjectSchema<T>;
-    joins: IJoins;
+    props?: ObjectSchema<T>;
+    joins?: IJoins;
 }
 export interface ISchemas {
     [key: string]: ISchema;
@@ -51,3 +51,10 @@ export interface ISchemas {
 export interface IFindOneOptions extends FindOneOptions {
     populate?: string | string[];
 }
+export interface IInsertWriteOpResult<T> extends InsertWriteOpResult {
+    opts: T[];
+}
+export interface IInsertOneWriteOpResult<T> extends InsertOneWriteOpResult {
+    opts: T[];
+}
+export { Db, MongoClient };

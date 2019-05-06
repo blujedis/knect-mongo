@@ -1,12 +1,11 @@
 import {
   MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions,
-  UpdateWriteOpResult, CommonOptions, DeleteWriteOpResultObject, UpdateQuery,
-  UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions,
-  InsertWriteOpResult, InsertOneWriteOpResult, ObjectID,
+  CommonOptions, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions,
+  InsertWriteOpResult, InsertOneWriteOpResult, UpdateWriteOpResult, DeleteWriteOpResultObject, ObjectID,
 } from 'mongodb';
 import {
   IHooks, HookTypes, HookHandler, IBaseProps, ISchema, ISchemas,
-  LikeObjectID, IFindOneOptions, IJoin, IJoins, ICascadeResult
+  LikeObjectID, IFindOneOptions, IJoin, IJoins, ICascadeResult, IInsertWriteOpResult, IInsertOneWriteOpResult
 } from './types';
 
 import { ObjectSchema, object, ValidateOptions, ValidationError } from 'yup';
@@ -64,7 +63,7 @@ export class KnectMongo {
    * @param name the name of the collection
    * @param config the schema configuration containing document validation.
    */
-  model<S extends object = any>(name: string, config: ISchema<Partial<S>>) {
+  model<S extends object = any>(name: string, config: ISchema<Partial<S>> = {}) {
 
     const self = this;
 
@@ -102,6 +101,16 @@ export class KnectMongo {
 
       static get collection() {
         return self.db.collection<P>(name);
+      }
+
+      /**
+       * Sets the Model's validation schema.
+       * 
+       * @param schema the validation schema.
+       */
+      static setSchema(schema: ISchema<Partial<S>>) {
+        self.schemas[name] = config;
+        Klass.schema = config;
       }
 
       /**
@@ -434,7 +443,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter query.
        * @param options Mongodb find options.
        */
-      static async find<T extends P>(filter?: FilterQuery<P>, options?: IFindOneOptions): Promise<T[]> {
+      static async find<T extends P = P>(filter?: FilterQuery<P>, options?: IFindOneOptions): Promise<T[]> {
 
         const hooks = this.getHooks('find');
         filter = filter || {};
@@ -463,7 +472,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter query.
        * @param options Mongodb find options.
        */
-      static async findOne<T extends P>(filter: FilterQuery<P>, options?: IFindOneOptions): Promise<T> {
+      static async findOne<T extends P = P>(filter: FilterQuery<P>, options?: IFindOneOptions): Promise<T> {
 
         const hooks = this.getHooks('findOne');
         options = options || {};
@@ -491,7 +500,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter query.
        * @param options Mongodb find options.
        */
-      static async findById<T extends P>(id: LikeObjectID, options?: IFindOneOptions): Promise<T> {
+      static async findById<T extends P = P>(id: LikeObjectID, options?: IFindOneOptions): Promise<T> {
 
         const hooks = this.getHooks('findById');
         options = options || {};
@@ -519,7 +528,7 @@ export class KnectMongo {
        * @param doc the document to be persisted to database.
        * @param options Mongodb insert one options.
        */
-      static async create(doc: P, options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult>;
+      static async create<T extends P = P>(doc: P, options?: CollectionInsertOneOptions): Promise<IInsertOneWriteOpResult<T>>;
 
       /**
        * Creates multiple documents in database.
@@ -527,8 +536,8 @@ export class KnectMongo {
        * @param docs the documents to be persisted to database.
        * @param options Mongodb insert many options.
        */
-      static async create(docs: P[], options?: CollectionInsertManyOptions): Promise<InsertWriteOpResult>;
-      static async create(doc: P | P[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions) {
+      static async create<T extends P = P>(docs: P[], options?: CollectionInsertManyOptions): Promise<IInsertWriteOpResult<T>>;
+      static async create<T extends P = P>(doc: P | P[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions): Promise<IInsertWriteOpResult<T> | IInsertOneWriteOpResult<T>> {
 
         const hooks = this.getHooks('create');
 
@@ -544,13 +553,13 @@ export class KnectMongo {
             a.push(c);
             return a;
           }, []);
-          return this.collection.insertMany(doc, options);
+          return this.collection.insertMany(doc, options) as Promise<IInsertWriteOpResult<T>>;
         }
 
         else {
           doc.created = doc.created || date;
           doc.modified = date;
-          return this.collection.insertOne(doc, options);
+          return this.collection.insertOne(doc, options) as Promise<IInsertOneWriteOpResult<T>>
         }
 
       }
@@ -810,7 +819,7 @@ export class KnectMongo {
         return Klass.isValid(getDoc<P>(this), schema);
       }
 
-    };
+    }
 
   }
 

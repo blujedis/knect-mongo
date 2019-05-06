@@ -1,5 +1,5 @@
-import { MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions, UpdateWriteOpResult, CommonOptions, DeleteWriteOpResultObject, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions, InsertWriteOpResult, InsertOneWriteOpResult, ObjectID } from 'mongodb';
-import { IHooks, HookHandler, IBaseProps, ISchema, ISchemas, IFindOneOptions, IJoin, IJoins, ICascadeResult } from './types';
+import { MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions, CommonOptions, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions, InsertOneWriteOpResult, UpdateWriteOpResult, DeleteWriteOpResultObject, ObjectID } from 'mongodb';
+import { IHooks, HookHandler, IBaseProps, ISchema, ISchemas, IFindOneOptions, IJoin, IJoins, ICascadeResult, IInsertWriteOpResult, IInsertOneWriteOpResult } from './types';
 import { ObjectSchema, ValidateOptions } from 'yup';
 export declare const MONGO_CLIENT_DEFAULTS: {
     useNewUrlParser: boolean;
@@ -22,7 +22,7 @@ export declare class KnectMongo {
      * @param name the name of the collection
      * @param config the schema configuration containing document validation.
      */
-    model<S extends object = any>(name: string, config: ISchema<Partial<S>>): {
+    model<S extends object = any>(name: string, config?: ISchema<Partial<S>>): {
         new (props?: S): {
             created: number;
             modified: number;
@@ -74,6 +74,12 @@ export declare class KnectMongo {
         readonly collection: import("mongodb").Collection<S & IBaseProps & {
             _id?: string | number | ObjectID;
         }>;
+        /**
+         * Sets the Model's validation schema.
+         *
+         * @param schema the validation schema.
+         */
+        setSchema(schema: ISchema<Partial<S>>): void;
         /**
          * Normalizes filter ensuring ObjectID type.
          *
@@ -257,6 +263,8 @@ export declare class KnectMongo {
          */
         find<T extends S & IBaseProps & {
             _id?: string | number | ObjectID;
+        } = S & IBaseProps & {
+            _id?: string | number | ObjectID;
         }>(filter?: FilterQuery<S & IBaseProps & {
             _id?: string | number | ObjectID;
         }>, options?: IFindOneOptions): Promise<T[]>;
@@ -267,6 +275,8 @@ export declare class KnectMongo {
          * @param options Mongodb find options.
          */
         findOne<T extends S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        } = S & IBaseProps & {
             _id?: string | number | ObjectID;
         }>(filter: FilterQuery<S & IBaseProps & {
             _id?: string | number | ObjectID;
@@ -279,6 +289,8 @@ export declare class KnectMongo {
          */
         findById<T extends S & IBaseProps & {
             _id?: string | number | ObjectID;
+        } = S & IBaseProps & {
+            _id?: string | number | ObjectID;
         }>(id: string | number | ObjectID, options?: IFindOneOptions): Promise<T>;
         /**
          * Creates document in database.
@@ -286,18 +298,26 @@ export declare class KnectMongo {
          * @param doc the document to be persisted to database.
          * @param options Mongodb insert one options.
          */
-        create(doc: S & IBaseProps & {
+        create<T extends S & IBaseProps & {
             _id?: string | number | ObjectID;
-        }, options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult>;
+        } = S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        }>(doc: S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        }, options?: CollectionInsertOneOptions): Promise<IInsertOneWriteOpResult<T>>;
         /**
          * Creates document in database.
          *
          * @param doc the document to be persisted to database.
          * @param options Mongodb insert one options.
          */
-        create(docs: (S & IBaseProps & {
+        create<T extends S & IBaseProps & {
             _id?: string | number | ObjectID;
-        })[], options?: CollectionInsertManyOptions): Promise<InsertWriteOpResult>;
+        } = S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        }>(docs: (S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        })[], options?: CollectionInsertManyOptions): Promise<IInsertWriteOpResult<T>>;
         /**
          * Updates multiple documents by query.
          *

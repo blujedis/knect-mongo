@@ -42,7 +42,7 @@ class KnectMongo {
      * @param name the name of the collection
      * @param config the schema configuration containing document validation.
      */
-    model(name, config) {
+    model(name, config = {}) {
         var _a;
         const self = this;
         if (this.schemas[name])
@@ -70,6 +70,15 @@ class KnectMongo {
                 }
                 static get collection() {
                     return self.db.collection(name);
+                }
+                /**
+                 * Sets the Model's validation schema.
+                 *
+                 * @param schema the validation schema.
+                 */
+                static setSchema(schema) {
+                    self.schemas[name] = config;
+                    Klass.schema = config;
                 }
                 /**
                  * Normalizes filter ensuring ObjectID type.
