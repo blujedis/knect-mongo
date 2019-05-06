@@ -26,8 +26,6 @@ async function load() {
   // Reset schemas or you'll get dupe error.
   KnectMongo.schemas = {};
 
-  const DummyModel = KnectMongo.model();
-
   const UserModel = KnectMongo.model<IUser>('user', UserSchema);
 
   class User extends UserModel implements IUser {

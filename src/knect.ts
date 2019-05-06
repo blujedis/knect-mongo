@@ -63,15 +63,11 @@ export class KnectMongo {
    * @param name the name of the collection
    * @param config the schema configuration containing document validation.
    */
-  model<S extends object = any>(name?: string, config: ISchema<Partial<S>> = {}) {
+  private createModel<S extends object>(name: string, config: ISchema<Partial<S>>) {
 
     const self = this;
 
-    if (name) {
-      if (this.schemas[name])
-        throw new Error(`Cannot create schema ${name}, the schema already exists`);
-      this.schemas[name] = config;
-    }
+    this.schemas[name] = config;
 
     type P = S & IBaseProps & { _id?: LikeObjectID };
 
@@ -821,6 +817,21 @@ export class KnectMongo {
       }
 
     }
+
+  }
+
+  /**
+  * Accepts a schema and creates model with static and instance convenience methods.
+  * 
+  * @param name the name of the collection
+  * @param config the schema configuration containing document validation.
+  */
+  model<S extends object = any>(name: string, schema?: ISchema<Partial<S>>) {
+
+    if (!schema && this.schemas[name])
+      schema = this.schemas[name];
+
+    return this.createModel<S>(name, schema);
 
   }
 
