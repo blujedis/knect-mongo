@@ -45,9 +45,11 @@ class KnectMongo {
     model(name, config = {}) {
         var _a;
         const self = this;
-        if (this.schemas[name])
-            throw new Error(`Cannot create schema ${name}, the schema already exists`);
-        this.schemas[name] = config;
+        if (name) {
+            if (this.schemas[name])
+                throw new Error(`Cannot create schema ${name}, the schema already exists`);
+            this.schemas[name] = config;
+        }
         let _id;
         const getDoc = (context) => {
             return Object.getOwnPropertyNames(context)

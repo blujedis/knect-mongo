@@ -63,14 +63,15 @@ export class KnectMongo {
    * @param name the name of the collection
    * @param config the schema configuration containing document validation.
    */
-  model<S extends object = any>(name: string, config: ISchema<Partial<S>> = {}) {
+  model<S extends object = any>(name?: string, config: ISchema<Partial<S>> = {}) {
 
     const self = this;
 
-    if (this.schemas[name])
-      throw new Error(`Cannot create schema ${name}, the schema already exists`);
-
-    this.schemas[name] = config;
+    if (name) {
+      if (this.schemas[name])
+        throw new Error(`Cannot create schema ${name}, the schema already exists`);
+      this.schemas[name] = config;
+    }
 
     type P = S & IBaseProps & { _id?: LikeObjectID };
 

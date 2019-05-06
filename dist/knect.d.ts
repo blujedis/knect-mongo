@@ -22,7 +22,7 @@ export declare class KnectMongo {
      * @param name the name of the collection
      * @param config the schema configuration containing document validation.
      */
-    model<S extends object = any>(name: string, config?: ISchema<Partial<S>>): {
+    model<S extends object = any>(name?: string, config?: ISchema<Partial<S>>): {
         new (props?: S): {
             created: number;
             modified: number;
