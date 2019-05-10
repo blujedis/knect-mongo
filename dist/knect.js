@@ -42,11 +42,9 @@ class KnectMongo {
      * @param name the name of the collection
      * @param config the schema configuration containing document validation.
      */
-    model(name, config = {}) {
+    createModel(name, config) {
         var _a;
         const self = this;
-        if (this.schemas[name])
-            return this.model(name, this.schemas[name]);
         this.schemas[name] = config;
         let _id;
         const getDoc = (context) => {
@@ -56,11 +54,12 @@ class KnectMongo {
                 return a;
             }, {});
         };
-        return _a = class Klass {
+        const Model = (_a = class Klass {
                 // CONSTRUCTOR //
                 // May need to change this fine for now.
                 constructor(props) {
-                    Object.getOwnPropertyNames(props).forEach(k => this[k] = props[k]);
+                    if (props)
+                        Object.getOwnPropertyNames(props).forEach(k => this[k] = props[k]);
                 }
                 static get client() {
                     return self.client;
@@ -513,7 +512,21 @@ class KnectMongo {
             _a.collectionName = name,
             _a.schema = config,
             _a.hooks = {},
-            _a;
+            _a);
+        return Model;
+    }
+    /**
+   * Accepts a schema and creates model with static and instance convenience methods.
+   *
+   * @param name the name of the collection
+   * @param schema the schema configuration containing document validation.
+   */
+    model(name, schema) {
+        return this.createModel(name, schema);
+    }
+    modelAs(name, schema) {
+        const Model = this.createModel(name, schema);
+        return Model;
     }
 }
 exports.KnectMongo = KnectMongo;

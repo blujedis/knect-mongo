@@ -11,5 +11,12 @@ export declare const awaiter: <T, K extends string = "data">(promise: Promise<T>
  *
  * @param derivedCtor the derived constructor.
  * @param baseCtors based constructors.
+ * @param statics when true extends static methods.
  */
-export declare const mixin: (derivedCtor: any, baseCtors: any[]) => void;
+export declare const mixin: (derivedCtor: any, baseCtors: any[], statics?: boolean) => void;
+/**
+ * Checks if is a class
+ *
+ * @param fn the function or class with constructor to inspect.
+ */
+export declare function isClass(fn: any): boolean;

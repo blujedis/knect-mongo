@@ -1,11 +1,12 @@
 import {
   MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions,
   CommonOptions, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions,
-  InsertWriteOpResult, InsertOneWriteOpResult, UpdateWriteOpResult, DeleteWriteOpResultObject, ObjectID,
+  InsertOneWriteOpResult, UpdateWriteOpResult, DeleteWriteOpResultObject, ObjectID,
 } from 'mongodb';
 import {
-  IHooks, HookTypes, HookHandler, IBaseProps, ISchema, ISchemas,
-  LikeObjectID, IFindOneOptions, IJoin, IJoins, ICascadeResult, IInsertWriteOpResult, IInsertOneWriteOpResult
+  IHooks, HookTypes, HookHandler, ISchema, ISchemas,
+  LikeObjectID, IFindOneOptions, IJoin, IJoins, ICascadeResult, IInsertWriteOpResult,
+  IInsertOneWriteOpResult, IBaseProps, IConstructor
 } from './types';
 
 import { ObjectSchema, object, ValidateOptions, ValidationError } from 'yup';
@@ -81,7 +82,7 @@ export class KnectMongo {
         }, <any>{});
     };
 
-    return class Klass {
+    const Model = class Klass {
 
       static dbname = self.dbname;
       static collectionName = name;
@@ -706,7 +707,8 @@ export class KnectMongo {
       // CONSTRUCTOR //
       // May need to change this fine for now.
       constructor(props?: S) {
-        Object.getOwnPropertyNames(props).forEach(k => this[k] = props[k]);
+        if (props)
+          Object.getOwnPropertyNames(props).forEach(k => this[k] = props[k]);
       }
 
       // CLASS GETTERS & SETTERS //
@@ -818,21 +820,23 @@ export class KnectMongo {
 
     }
 
+    return Model;
+
   }
 
   /**
-  * Accepts a schema and creates model with static and instance convenience methods.
-  * 
-  * @param name the name of the collection
-  * @param config the schema configuration containing document validation.
-  */
-  model<S extends object = any>(name: string, schema?: ISchema<Partial<S>>) {
-
-    if (!schema && this.schemas[name])
-      schema = this.schemas[name];
-
+ * Accepts a schema and creates model with static and instance convenience methods.
+ * 
+ * @param name the name of the collection
+ * @param schema the schema configuration containing document validation.
+ */
+  model<S extends object>(name: string, schema: ISchema<Partial<S>>) {
     return this.createModel<S>(name, schema);
+  }
 
+  modelAs<S extends object>(name: string, schema: ISchema<Partial<S>>) {
+    const Model = this.createModel<S>(name, schema);
+    return Model as typeof Model & IConstructor<S>;
   }
 
 }

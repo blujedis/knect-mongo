@@ -1,7 +1,31 @@
-import { IBaseProps, LikeObjectID } from '../src';
+import { IBaseProps, LikeObjectID, ISchema } from '../src';
 import { object } from 'yup';
 
 // USER //
+
+export abstract class Base<T extends object> {
+
+  private _id?: LikeObjectID;
+
+  schema: ISchema<T>;
+  created?: number;
+  modified?: number;
+
+  get id() {
+    return this._id;
+  }
+
+  set id(id: LikeObjectID) {
+    this._id = id;
+  }
+
+}
+
+export class User2 extends Base<User2> {
+  firstName: string;
+  lastName: string;
+  posts?: (LikeObjectID | IPost)[];
+}
 
 export interface IUser extends Partial<IBaseProps> {
   firstName: string;

@@ -2,11 +2,14 @@ import { FilterQuery, UpdateQuery, ObjectID, FindOneOptions, DeleteWriteOpResult
 import { ObjectSchema } from 'yup';
 export declare type LikeObjectID = string | number | ObjectID;
 export declare type HookHandler<T = any> = (context: IHookContext<T>) => Promise<IHookContext<T>>;
-export declare type Constructor<T = {}> = new (...args: any[]) => T;
 export declare type HookTypes = keyof IHookConfig;
 export declare type AwaiterResponse<T = any, K extends string = 'data'> = Promise<{
     err?: Error;
 } & Record<K, T>>;
+export declare type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+export interface IConstructor<T = any> {
+    new (...args: any[]): T;
+}
 export interface ICascadeResult<T = any> {
     doc: T;
     ops: {
@@ -27,7 +30,6 @@ export interface IHooks {
     [key: string]: IHookConfig;
 }
 export interface IBaseProps {
-    id?: LikeObjectID;
     created?: number;
     modified?: number;
     deleted?: number;

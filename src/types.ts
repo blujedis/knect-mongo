@@ -8,11 +8,15 @@ export type LikeObjectID = string | number | ObjectID;
 
 export type HookHandler<T = any> = (context: IHookContext<T>) => Promise<IHookContext<T>>;
 
-export type Constructor<T = {}> = new (...args: any[]) => T;
-
 export type HookTypes = keyof IHookConfig;
 
 export type AwaiterResponse<T = any, K extends string = 'data'> = Promise<{ err?: Error } & Record<K, T>>;
+
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
+export interface IConstructor<T = any> {
+  new(...args: any[]): T;
+}
 
 export interface ICascadeResult<T = any> {
   doc: T,
@@ -38,7 +42,6 @@ export interface IHooks {
 }
 
 export interface IBaseProps {
-  id?: LikeObjectID;
   created?: number;
   modified?: number;
   deleted?: number;
