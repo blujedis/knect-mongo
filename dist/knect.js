@@ -20,12 +20,6 @@ function parseDbName(uri, def = '') {
 class KnectMongo {
     constructor() {
         this.schemas = {};
-        // modelAs<S extends object>(name: string, collectionName: string, schema: ISchema<Partial<S>>) {
-        //   // Default collection name to schema name.
-        //   schema.collectionName = schema.collectionName || name;
-        //   const Model = this.createModel<S>(name, schema);
-        //   return Model as typeof Model & IConstructor<S>;
-        // }
     }
     /**
      * Connects to Mongodb instance.
@@ -532,14 +526,9 @@ class KnectMongo {
         const _schema = this.schemas[name];
         // Return the existing schema/model by name.
         if (!schema) {
-            if (!_schema)
-                throw new Error(`Failed to lookup schema ${name}`);
-            const Model = this.createModel(name, _schema);
+            const Model = this.createModel(name, _schema || {});
             return Model;
         }
-        // Schema already exists.
-        if (_schema)
-            throw new Error(`Duplicate schema ${name} detected, schema names must be unique`);
         // Default collection name to schema name.
         schema = schema || {};
         schema.collectionName = collectionName || schema.collectionName || name;

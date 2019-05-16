@@ -34,8 +34,6 @@ async function load() {
     posts = [];
   }
 
-  const UserCopy = KnectMongo.model<IUser>('user');
-
   const PostModel = KnectMongo.model<IPost>('post', PostSchema);
 
   class Post extends PostModel implements IPost {

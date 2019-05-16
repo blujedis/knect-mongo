@@ -837,15 +837,9 @@ export class KnectMongo {
 
     // Return the existing schema/model by name.
     if (!schema) {
-      if (!_schema)
-        throw new Error(`Failed to lookup schema ${name}`);
-      const Model = this.createModel<S>(name, _schema);
+      const Model = this.createModel<S>(name, _schema || {});
       return Model as typeof Model & IConstructor<S>;
     }
-
-    // Schema already exists.
-    if (_schema)
-      throw new Error(`Duplicate schema ${name} detected, schema names must be unique`);
 
     // Default collection name to schema name.
     schema = schema || {};
