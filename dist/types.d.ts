@@ -44,6 +44,7 @@ export interface IJoins {
     [key: string]: IJoin;
 }
 export interface ISchema<T extends object = any> {
+    collectionName?: string;
     props?: ObjectSchema<T>;
     joins?: IJoins;
 }
