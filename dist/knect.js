@@ -340,6 +340,23 @@ class KnectMongo {
                     }
                 }
                 /**
+                 * Normalizes update query so that $set is always present.
+                 *
+                 * @param update the update query to be applied.
+                 */
+                static normalizeUpdate(update) {
+                    const hasSpecial = Object.keys(update).reduce((a, c) => {
+                        if (a === true)
+                            return a;
+                        a = c.charAt(0) === '$';
+                    }, false);
+                    if (hasSpecial)
+                        update.$set = update.$set || {};
+                    else
+                        update = { $set: update };
+                    return update;
+                }
+                /**
                  * Updates multiple documents by query.
                  *
                  * @param filter the Mongodb filter for finding the desired documents to update.
@@ -349,7 +366,8 @@ class KnectMongo {
                 static async update(filter, update, options) {
                     const hooks = this.getHooks('update');
                     filter = this.normalizeFilter(filter);
-                    update = !update.$set ? update = { $set: update } : update;
+                    // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
+                    update = this.normalizeUpdate(update);
                     const date = Date.now();
                     update.$set.modified = update.$set.modified || date;
                     if (hooks.pre)
@@ -366,7 +384,8 @@ class KnectMongo {
                 static async updateOne(filter, update, options) {
                     const hooks = this.getHooks('updateOne');
                     filter = this.normalizeFilter(filter);
-                    update = !update.$set ? update = { $set: update } : update;
+                    // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
+                    update = this.normalizeUpdate(update);
                     const date = Date.now();
                     update.$set.modified = update.$set.modified || date;
                     if (hooks.pre)
@@ -383,7 +402,8 @@ class KnectMongo {
                 static async updateById(id, update, options) {
                     const hooks = this.getHooks('updateById');
                     const filter = { _id: this.toObjectID(id) };
-                    update = !update.$set ? update = { $set: update } : update;
+                    // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
+                    update = this.normalizeUpdate(update);
                     const date = Date.now();
                     update.$set.modified = update.$set.modified || date;
                     if (hooks.pre)

@@ -328,6 +328,18 @@ export declare class KnectMongo {
             _id?: string | number | ObjectID;
         })[], options?: CollectionInsertManyOptions): Promise<IInsertWriteOpResult<T>>;
         /**
+         * Normalizes update query so that $set is always present.
+         *
+         * @param update the update query to be applied.
+         */
+        normalizeUpdate(update: Partial<S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        }> | UpdateQuery<Partial<S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        }>>): UpdateQuery<Partial<S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        }>>;
+        /**
          * Updates multiple documents by query.
          *
          * @param filter the Mongodb filter for finding the desired documents to update.

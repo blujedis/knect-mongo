@@ -564,6 +564,24 @@ export class KnectMongo {
       }
 
       /**
+       * Normalizes update query so that $set is always present.
+       * 
+       * @param update the update query to be applied.
+       */
+      static normalizeUpdate(update: UpdateQuery<Partial<P>> | Partial<P>): UpdateQuery<Partial<P>> {
+        const hasSpecial = Object.keys(update).reduce((a, c) => {
+          if (a === true)
+            return a;
+          a = c.charAt(0) === '$';
+        }, false);
+        if (hasSpecial)
+          (update as any).$set = (update as any).$set || {};
+        else
+          update = { $set: update };
+        return update as any;
+      }
+
+      /**
        * Updates multiple documents by query.
        * 
        * @param filter the Mongodb filter for finding the desired documents to update.
@@ -576,7 +594,8 @@ export class KnectMongo {
 
         filter = this.normalizeFilter(filter);
 
-        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
+        // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
+        update = this.normalizeUpdate(update);
 
         const date = Date.now();
 
@@ -602,7 +621,8 @@ export class KnectMongo {
 
         filter = this.normalizeFilter(filter);
 
-        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
+        // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
+        update = this.normalizeUpdate(update);
 
         const date = Date.now();
 
@@ -628,7 +648,8 @@ export class KnectMongo {
 
         const filter = { _id: this.toObjectID(id) };
 
-        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
+        // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
+        update = this.normalizeUpdate(update);
 
         const date = Date.now();
 
