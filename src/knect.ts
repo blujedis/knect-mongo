@@ -98,7 +98,7 @@ export class KnectMongo {
       }
 
       static get collection() {
-        return self.db.collection<P>(name);
+        return self.db.collection<P>(config.collectionName);
       }
 
       /**
