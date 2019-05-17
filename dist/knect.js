@@ -89,6 +89,24 @@ class KnectMongo {
                         filter._id = this.toObjectID(filter._id);
                     return filter;
                 }
+                /**
+                 * Normalizes update query so that $set is always present.
+                 *
+                 * @param update the update query to be applied.
+                 */
+                static normalizeUpdate(update) {
+                    const hasSpecial = Object.keys(update).reduce((a, c) => {
+                        if (a === true)
+                            return a;
+                        a = c.charAt(0) === '$';
+                        return a;
+                    }, false);
+                    if (hasSpecial)
+                        update.$set = update.$set || {};
+                    else
+                        update = { $set: update };
+                    return update;
+                }
                 static toObjectID(ids) {
                     const isArray = Array.isArray(ids);
                     if (!isArray)
@@ -338,23 +356,6 @@ class KnectMongo {
                         doc.modified = date;
                         return this.collection.insertOne(doc, options);
                     }
-                }
-                /**
-                 * Normalizes update query so that $set is always present.
-                 *
-                 * @param update the update query to be applied.
-                 */
-                static normalizeUpdate(update) {
-                    const hasSpecial = Object.keys(update).reduce((a, c) => {
-                        if (a === true)
-                            return a;
-                        a = c.charAt(0) === '$';
-                    }, false);
-                    if (hasSpecial)
-                        update.$set = update.$set || {};
-                    else
-                        update = { $set: update };
-                    return update;
                 }
                 /**
                  * Updates multiple documents by query.

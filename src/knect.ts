@@ -124,6 +124,25 @@ export class KnectMongo {
       }
 
       /**
+       * Normalizes update query so that $set is always present.
+       * 
+       * @param update the update query to be applied.
+       */
+      static normalizeUpdate(update: UpdateQuery<Partial<P>> | Partial<P>): UpdateQuery<Partial<P>> {
+        const hasSpecial = Object.keys(update).reduce((a, c) => {
+          if (a === true)
+            return a;
+          a = c.charAt(0) === '$';
+          return a;
+        }, false);
+        if (hasSpecial)
+          (update as any).$set = (update as any).$set || {};
+        else
+          update = { $set: update };
+        return update as any;
+      }
+
+      /**
        * Convert value to ObjectID.
        * 
        * @param id the Like id value to convert to Mongodb ObjectID.
@@ -561,24 +580,6 @@ export class KnectMongo {
           return this.collection.insertOne(doc, options) as Promise<IInsertOneWriteOpResult<T>>
         }
 
-      }
-
-      /**
-       * Normalizes update query so that $set is always present.
-       * 
-       * @param update the update query to be applied.
-       */
-      static normalizeUpdate(update: UpdateQuery<Partial<P>> | Partial<P>): UpdateQuery<Partial<P>> {
-        const hasSpecial = Object.keys(update).reduce((a, c) => {
-          if (a === true)
-            return a;
-          a = c.charAt(0) === '$';
-        }, false);
-        if (hasSpecial)
-          (update as any).$set = (update as any).$set || {};
-        else
-          update = { $set: update };
-        return update as any;
       }
 
       /**

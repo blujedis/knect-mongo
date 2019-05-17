@@ -100,6 +100,18 @@ export declare class KnectMongo {
             _id?: string | number | ObjectID;
         }>;
         /**
+         * Normalizes update query so that $set is always present.
+         *
+         * @param update the update query to be applied.
+         */
+        normalizeUpdate(update: Partial<S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        }> | UpdateQuery<Partial<S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        }>>): UpdateQuery<Partial<S & IBaseProps & {
+            _id?: string | number | ObjectID;
+        }>>;
+        /**
          * Convert value to ObjectID.
          *
          * @param id the Like id value to convert to Mongodb ObjectID.
@@ -327,18 +339,6 @@ export declare class KnectMongo {
         }>(docs: (S & IBaseProps & {
             _id?: string | number | ObjectID;
         })[], options?: CollectionInsertManyOptions): Promise<IInsertWriteOpResult<T>>;
-        /**
-         * Normalizes update query so that $set is always present.
-         *
-         * @param update the update query to be applied.
-         */
-        normalizeUpdate(update: Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }> | UpdateQuery<Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>>): UpdateQuery<Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>>;
         /**
          * Updates multiple documents by query.
          *
