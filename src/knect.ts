@@ -570,13 +570,13 @@ export class KnectMongo {
        * @param update the update query to be applied.
        * @param options Mongodb update options.
        */
-      static async update<T extends P = P>(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateManyOptions) {
+      static async update(filter: FilterQuery<P>, update: UpdateQuery<Partial<P>> | Partial<P>, options?: UpdateManyOptions) {
 
         const hooks = this.getHooks('update');
 
         filter = this.normalizeFilter(filter);
 
-        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<P>;
+        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
 
         const date = Date.now();
 
@@ -585,7 +585,7 @@ export class KnectMongo {
         if (hooks.pre)
           await hooks.pre({ filter, update, options });
 
-        return this.collection.updateMany(filter, update, options);
+        return this.collection.updateMany(filter, update as any, options);
 
       }
 
@@ -596,13 +596,13 @@ export class KnectMongo {
        * @param update the update query to be applied.
        * @param options Mongodb update options.
        */
-      static async updateOne<T extends P = P>(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
+      static async updateOne(filter: FilterQuery<P>, update: UpdateQuery<Partial<P>> | Partial<P>, options?: UpdateOneOptions) {
 
         const hooks = this.getHooks('updateOne');
 
         filter = this.normalizeFilter(filter);
 
-        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<P>;
+        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
 
         const date = Date.now();
 
@@ -611,7 +611,7 @@ export class KnectMongo {
         if (hooks.pre)
           await hooks.pre({ filter, update, options });
 
-        return this.collection.updateOne(filter, update, options);
+        return this.collection.updateOne(filter, update as any, options);
 
       }
 
@@ -622,13 +622,13 @@ export class KnectMongo {
        * @param update the update query to be applied.
        * @param options Mongodb update options.
        */
-      static async updateById<T extends P = P>(id: LikeObjectID, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
+      static async updateById(id: LikeObjectID, update: UpdateQuery<Partial<P>> | Partial<P>, options?: UpdateOneOptions) {
 
         const hooks = this.getHooks('updateById');
 
         const filter = { _id: this.toObjectID(id) };
 
-        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<P>;
+        update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
 
         const date = Date.now();
 
@@ -637,7 +637,7 @@ export class KnectMongo {
         if (hooks.pre)
           await hooks.pre({ filter, update, options });
 
-        return this.collection.updateOne(filter, update, options);
+        return this.collection.updateOne(filter, update as any, options);
 
       }
 
@@ -647,7 +647,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter for finding the desired documents to update.
        * @param options Mongodb update options.
        */
-      static async delete<T extends P = P>(filter: FilterQuery<P>, options?: CommonOptions) {
+      static async delete(filter: FilterQuery<P>, options?: CommonOptions) {
 
         const hooks = this.getHooks('delete');
 
@@ -667,7 +667,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter for finding the desired documents to update.
        * @param options Mongodb update options.
        */
-      static async deleteOne<T extends P = P>(filter: FilterQuery<P>, options?: CommonOptions) {
+      static async deleteOne(filter: FilterQuery<P>, options?: CommonOptions) {
 
         const hooks = this.getHooks('deleteOne');
 
@@ -686,7 +686,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter for finding the desired documents to update.
        * @param options Mongodb update options.
        */
-      static async deleteById<T extends P = P>(id: LikeObjectID, options?: CommonOptions) {
+      static async deleteById(id: LikeObjectID, options?: CommonOptions) {
 
         const hooks = this.getHooks('deleteById');
 
