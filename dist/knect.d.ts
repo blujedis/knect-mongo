@@ -334,17 +334,13 @@ export declare class KnectMongo {
          * @param update the update query to be applied.
          * @param options Mongodb update options.
          */
-        update<T extends S & IBaseProps & {
+        update(filter: FilterQuery<S & IBaseProps & {
             _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
+        }>, update: Partial<S & IBaseProps & {
             _id?: string | number | ObjectID;
-        }>(filter: FilterQuery<S & IBaseProps & {
+        }> | UpdateQuery<Partial<S & IBaseProps & {
             _id?: string | number | ObjectID;
-        }>, update: (S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }) | UpdateQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>, options?: UpdateManyOptions): Promise<UpdateWriteOpResult>;
+        }>>, options?: UpdateManyOptions): Promise<UpdateWriteOpResult>;
         /**
          * Updates one document by query.
          *
@@ -352,17 +348,13 @@ export declare class KnectMongo {
          * @param update the update query to be applied.
          * @param options Mongodb update options.
          */
-        updateOne<T extends S & IBaseProps & {
+        updateOne(filter: FilterQuery<S & IBaseProps & {
             _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
+        }>, update: Partial<S & IBaseProps & {
             _id?: string | number | ObjectID;
-        }>(filter: FilterQuery<S & IBaseProps & {
+        }> | UpdateQuery<Partial<S & IBaseProps & {
             _id?: string | number | ObjectID;
-        }>, update: (S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }) | UpdateQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
+        }>>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
         /**
          * Updates one document by id.
          *
@@ -370,26 +362,18 @@ export declare class KnectMongo {
          * @param update the update query to be applied.
          * @param options Mongodb update options.
          */
-        updateById<T extends S & IBaseProps & {
+        updateById(id: string | number | ObjectID, update: Partial<S & IBaseProps & {
             _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
+        }> | UpdateQuery<Partial<S & IBaseProps & {
             _id?: string | number | ObjectID;
-        }>(id: string | number | ObjectID, update: (S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }) | UpdateQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
+        }>>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
         /**
          * Deletes multiple documents by query.
          *
          * @param filter the Mongodb filter for finding the desired documents to update.
          * @param options Mongodb update options.
          */
-        delete<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(filter: FilterQuery<S & IBaseProps & {
+        delete(filter: FilterQuery<S & IBaseProps & {
             _id?: string | number | ObjectID;
         }>, options?: CommonOptions): Promise<DeleteWriteOpResultObject>;
         /**
@@ -398,11 +382,7 @@ export declare class KnectMongo {
          * @param filter the Mongodb filter for finding the desired documents to update.
          * @param options Mongodb update options.
          */
-        deleteOne<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(filter: FilterQuery<S & IBaseProps & {
+        deleteOne(filter: FilterQuery<S & IBaseProps & {
             _id?: string | number | ObjectID;
         }>, options?: CommonOptions): Promise<DeleteWriteOpResultObject>;
         /**
@@ -411,11 +391,7 @@ export declare class KnectMongo {
          * @param filter the Mongodb filter for finding the desired documents to update.
          * @param options Mongodb update options.
          */
-        deleteById<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(id: string | number | ObjectID, options?: CommonOptions): Promise<DeleteWriteOpResultObject>;
+        deleteById(id: string | number | ObjectID, options?: CommonOptions): Promise<DeleteWriteOpResultObject>;
     } & IConstructor<S>;
 }
 declare const _default: KnectMongo;
