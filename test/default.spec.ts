@@ -34,6 +34,8 @@ async function load() {
     posts = [];
   }
 
+  const UserCopy = KnectMongo.model<IUser>('user:copy', {}, 'user');
+
   const PostModel = KnectMongo.model<IPost>('post', PostSchema);
 
   class Post extends PostModel implements IPost {
@@ -44,23 +46,28 @@ async function load() {
 
   let milton: User;
   let peter: User;
+  let miltonCopy: any;
 
   if (!models) {
     models = {};
     milton = models.milton = new User({ firstName: 'Milton', lastName: 'Waddams' });
     peter = models.peter = new User({ firstName: 'Peter', lastName: 'Gibbons' });
+    miltonCopy = models.miltonCopy = new UserCopy({ firstName: 'MiltonCopy', lastName: 'Waddams' });
   }
   else {
     milton = models.milton;
     peter = models.peter;
+    miltonCopy = models.miltonCopy;
   }
 
   return {
     UserModel,
     User,
+    UserCopy,
     Post,
     milton,
-    peter
+    peter,
+    miltonCopy
   };
 
 }
@@ -101,6 +108,18 @@ describe('Knect-Mongo', () => {
     const op = await milton.create();
     assert.equal(op.insertedCount, 1);
     assert.equal(op.ops[0].created, milton.created);
+  });
+
+  it('should get user copy', async () => {
+    const Models = await load();
+    const milton = Models.miltonCopy;
+    let op: any = await Models.UserCopy.find();
+    assert.equal(op[0].firstName, 'Milton');
+    op = await milton.create();
+    assert.equal(op.insertedCount, 1);
+    assert.equal(op.ops[0].created, milton.created);
+    op = await Models.UserCopy.find();
+    assert.equal(op.length, 2);
   });
 
   it('should create post for "Milton Waddams".', async () => {

@@ -84,6 +84,7 @@ export class KnectMongo {
 
     const Model = class Klass {
 
+      static schemaName = name;
       static dbname = self.dbname;
       static collectionName = config.collectionName;
       static schema = config;

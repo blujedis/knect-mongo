@@ -73,6 +73,7 @@ export declare class KnectMongo {
                 _id?: string | number | ObjectID;
             }>): boolean;
         };
+        schemaName: string;
         dbname: string;
         collectionName: string;
         schema: ISchema<Partial<S>>;

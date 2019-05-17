@@ -68,7 +68,7 @@ class KnectMongo {
                     return self.db;
                 }
                 static get collection() {
-                    return self.db.collection(name);
+                    return self.db.collection(config.collectionName);
                 }
                 /**
                  * Sets the Model's validation schema.
@@ -508,6 +508,7 @@ class KnectMongo {
                     return Klass.isValid(getDoc(this), schema);
                 }
             },
+            _a.schemaName = name,
             _a.dbname = self.dbname,
             _a.collectionName = config.collectionName,
             _a.schema = config,
