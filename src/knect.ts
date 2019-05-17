@@ -570,7 +570,7 @@ export class KnectMongo {
        * @param update the update query to be applied.
        * @param options Mongodb update options.
        */
-      static async update(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateManyOptions) {
+      static async update<T extends P = P>(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateManyOptions) {
 
         const hooks = this.getHooks('update');
 
@@ -596,7 +596,7 @@ export class KnectMongo {
        * @param update the update query to be applied.
        * @param options Mongodb update options.
        */
-      static async updateOne(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
+      static async updateOne<T extends P = P>(filter: FilterQuery<P>, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
 
         const hooks = this.getHooks('updateOne');
 
@@ -622,7 +622,7 @@ export class KnectMongo {
        * @param update the update query to be applied.
        * @param options Mongodb update options.
        */
-      static async updateById(id: LikeObjectID, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
+      static async updateById<T extends P = P>(id: LikeObjectID, update: UpdateQuery<P> | P, options?: UpdateOneOptions) {
 
         const hooks = this.getHooks('updateById');
 
@@ -647,7 +647,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter for finding the desired documents to update.
        * @param options Mongodb update options.
        */
-      static async delete(filter: FilterQuery<P>, options?: CommonOptions) {
+      static async delete<T extends P = P>(filter: FilterQuery<P>, options?: CommonOptions) {
 
         const hooks = this.getHooks('delete');
 
@@ -667,7 +667,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter for finding the desired documents to update.
        * @param options Mongodb update options.
        */
-      static async deleteOne(filter: FilterQuery<P>, options?: CommonOptions) {
+      static async deleteOne<T extends P = P>(filter: FilterQuery<P>, options?: CommonOptions) {
 
         const hooks = this.getHooks('deleteOne');
 
@@ -686,7 +686,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter for finding the desired documents to update.
        * @param options Mongodb update options.
        */
-      static async deleteById(id: LikeObjectID, options?: CommonOptions) {
+      static async deleteById<T extends P = P>(id: LikeObjectID, options?: CommonOptions) {
 
         const hooks = this.getHooks('deleteById');
 
