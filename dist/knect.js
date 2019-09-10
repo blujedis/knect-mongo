@@ -464,6 +464,9 @@ class KnectMongo {
                  * @param options MongoDB update options.
                  */
                 async save(options) {
+                    // If no id try create.
+                    if (!this.id)
+                        return this.create(options);
                     options = options || {};
                     options.upsert = false;
                     this.modified = Date.now();

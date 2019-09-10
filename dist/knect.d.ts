@@ -41,7 +41,7 @@ export declare class KnectMongo {
              *
              * @param options MongoDB update options.
              */
-            save(options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
+            save(options?: CollectionInsertOneOptions | UpdateOneOptions): Promise<InsertOneWriteOpResult | UpdateWriteOpResult>;
             /**
              * Creates and persists instance to database.
              *

@@ -751,10 +751,14 @@ export class KnectMongo {
        * 
        * @param options MongoDB update options.
        */
-      async save(options?: UpdateOneOptions) {
+      async save(options?: UpdateOneOptions | CollectionInsertOneOptions) {
+
+        // If no id try create.
+        if (!this.id)
+          return this.create(options);
 
         options = options || {};
-        options.upsert = false;
+        (options as UpdateOneOptions).upsert = false;
 
         this.modified = Date.now();
 
