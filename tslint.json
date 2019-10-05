@@ -21,6 +21,7 @@
       "no-unused-expression" : false,
       "arrow-parens": false,
       "array-type": false,
+      "unified-signatures": false,
       "comment-format": [
         true,
         "check-space"

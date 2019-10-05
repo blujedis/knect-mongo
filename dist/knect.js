@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const yup_1 = require("yup");
 exports.MONGO_CLIENT_DEFAULTS = {
-    useNewUrlParser: true
+    useNewUrlParser: true,
+    useUnifiedTopology: true
 };
 /**
  * Parses database name from Mongodb connection string.
@@ -17,24 +18,46 @@ function parseDbName(uri, def = '') {
         return def;
     return str.split('/').pop();
 }
+/**
+ * Converts a collection name and name/alias into a namespace.
+ *
+ * @param collection the collection name.
+ * @param name the name to concat to collection name.
+ */
+function toNamespace(collection, name) {
+    if (!name)
+        return collection;
+    return collection + this.delimiter + name;
+}
+/**
+ * Breaks out a namespace to object with collection, name and original namespace.
+ *
+ * @param ns the namespace to be parsed.
+ */
+function fromNamespace(ns, delimiter = '.') {
+    const segments = ns.split(delimiter);
+    return {
+        collection: segments[0],
+        name: segments[1] || segments[0],
+        ns
+    };
+}
+/**
+ *
+ * @param context
+ */
+function getDoc(context) {
+    return Object.getOwnPropertyNames(context)
+        .reduce((a, c) => {
+        a[c] = context[c];
+        return a;
+    }, {});
+}
 class KnectMongo {
     constructor() {
         this.schemas = {};
-    }
-    /**
-     * Connects to Mongodb instance.
-     *
-     * @param uri the Mongodb connection uri.
-     * @param options Mongodb client connection options.
-     */
-    async connect(uri, options) {
-        if (this.db)
-            return this.db;
-        options = { ...exports.MONGO_CLIENT_DEFAULTS, ...options };
-        this.dbname = parseDbName(uri);
-        this.client = await mongodb_1.MongoClient.connect(uri, options);
-        this.db = this.client.db(this.dbname);
-        return this.db;
+        this.models = {};
+        this.delimiter = '.'; // used for defining schema names.
     }
     /**
      * Accepts a schema and creates model with static and instance convenience methods.
@@ -46,17 +69,8 @@ class KnectMongo {
         var _a;
         const self = this;
         this.schemas[name] = config;
-        let _id;
-        const getDoc = (context) => {
-            return Object.getOwnPropertyNames(context)
-                .reduce((a, c) => {
-                a[c] = context[c];
-                return a;
-            }, {});
-        };
-        const Model = (_a = class Klass {
+        const Wrapper = (_a = class Model {
                 // CONSTRUCTOR //
-                // May need to change this fine for now.
                 constructor(props) {
                     if (props)
                         Object.getOwnPropertyNames(props).forEach(k => this[k] = props[k]);
@@ -77,7 +91,7 @@ class KnectMongo {
                  */
                 static setSchema(schema) {
                     self.schemas[name] = config;
-                    Klass.schema = config;
+                    Model.schema = config;
                 }
                 /**
                  * Normalizes filter ensuring ObjectID type.
@@ -341,19 +355,19 @@ class KnectMongo {
                     const hooks = this.getHooks('create');
                     if (hooks.pre)
                         await hooks.pre({ doc, options });
-                    const date = Date.now();
+                    // const date = Date.now();
                     if (Array.isArray(doc)) {
                         doc.reduce((a, c) => {
-                            c.created = c.created || date;
-                            c.modified = c.modified || date;
+                            // c.created = c.created || date;
+                            // c.modified = c.modified || date;
                             a.push(c);
                             return a;
                         }, []);
                         return this.collection.insertMany(doc, options);
                     }
                     else {
-                        doc.created = doc.created || date;
-                        doc.modified = date;
+                        // doc.created = doc.created || date;
+                        // doc.modified = date;
                         return this.collection.insertOne(doc, options);
                     }
                 }
@@ -369,8 +383,8 @@ class KnectMongo {
                     filter = this.normalizeFilter(filter);
                     // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
                     update = this.normalizeUpdate(update);
-                    const date = Date.now();
-                    update.$set.modified = update.$set.modified || date;
+                    // const date = Date.now();
+                    // update.$set.modified = update.$set.modified || date;
                     if (hooks.pre)
                         await hooks.pre({ filter, update, options });
                     return this.collection.updateMany(filter, update, options);
@@ -387,8 +401,8 @@ class KnectMongo {
                     filter = this.normalizeFilter(filter);
                     // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
                     update = this.normalizeUpdate(update);
-                    const date = Date.now();
-                    update.$set.modified = update.$set.modified || date;
+                    // const date = Date.now();
+                    //  update.$set.modified = update.$set.modified || date;
                     if (hooks.pre)
                         await hooks.pre({ filter, update, options });
                     return this.collection.updateOne(filter, update, options);
@@ -405,8 +419,8 @@ class KnectMongo {
                     const filter = { _id: this.toObjectID(id) };
                     // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
                     update = this.normalizeUpdate(update);
-                    const date = Date.now();
-                    update.$set.modified = update.$set.modified || date;
+                    // const date = Date.now();
+                    // update.$set.modified = update.$set.modified || date;
                     if (hooks.pre)
                         await hooks.pre({ filter, update, options });
                     return this.collection.updateOne(filter, update, options);
@@ -452,12 +466,47 @@ class KnectMongo {
                 }
                 // CLASS GETTERS & SETTERS //
                 get id() {
-                    return _id;
+                    return this._id;
                 }
                 set id(id) {
-                    _id = id;
+                    this._id = id;
                 }
                 // CLASS METHODS //
+                /**
+                 * Updates a single record by id.
+                 *
+                 * @param options the update options.
+                 */
+                async update(options) {
+                    options = options || {};
+                    options.upsert = false;
+                    const doc = getDoc(this);
+                    Model.validate(doc);
+                    return Model.updateById(this.id, doc, options);
+                }
+                /**
+                 * Creates and persists instance to database.
+                 *
+                 * @param options Mongodb create options.
+                 */
+                async create(options) {
+                    let doc = getDoc(this);
+                    Model.validate(doc);
+                    if (this.id)
+                        throw new yup_1.ValidationError([`Cannot create for collection with existing 
+            id "${name}", did you mean ".save()"?`], doc, 'id');
+                    const result = await Model.create(doc, options);
+                    doc = ((result.ops && result.ops[0]) || {});
+                    Object.keys(doc).forEach(k => {
+                        if (k === '_id') {
+                            this.id = doc[k];
+                        }
+                        else if (typeof this[k] === 'undefined') {
+                            this[k] = doc[k];
+                        }
+                    });
+                    return result;
+                }
                 /**
                  * Saves changes persisting instance in database.
                  *
@@ -467,45 +516,7 @@ class KnectMongo {
                     // If no id try create.
                     if (!this.id)
                         return this.create(options);
-                    options = options || {};
-                    options.upsert = false;
-                    this.modified = Date.now();
-                    const doc = getDoc(this);
-                    Klass.validate(doc);
-                    return new Promise((resolve, reject) => {
-                        if (!this.id)
-                            return reject(new yup_1.ValidationError([`Cannot save to collection "${name}" with
-          missing id, did you mean ".create()"?`], doc, 'id'));
-                        resolve(Klass.updateById(Klass.toObjectID(this.id), doc, options));
-                    });
-                }
-                /**
-                 * Creates and persists instance to database.
-                 *
-                 * @param options Mongodb create options.
-                 */
-                async create(options) {
-                    const date = Date.now();
-                    this.created = date;
-                    this.modified = date;
-                    let doc = getDoc(this);
-                    Klass.validate(doc);
-                    return new Promise(async (resolve, reject) => {
-                        if (this.id)
-                            return reject(new yup_1.ValidationError([`Cannot create for collection with existing 
-            id "${name}", did you mean ".save()"?`], doc, 'id'));
-                        const result = await Klass.create(doc, options);
-                        doc = (result.ops && result.ops[0]) || {};
-                        Object.keys(doc).forEach(k => {
-                            if (k === '_id') {
-                                this.id = doc[k];
-                            }
-                            else if (typeof this[k] === 'undefined') {
-                                this[k] = doc[k];
-                            }
-                        });
-                        resolve(result);
-                    });
+                    return this.update(options);
                 }
                 /**
                  * Deletes document persisting in database.
@@ -513,7 +524,7 @@ class KnectMongo {
                  * @param options Mongodb delete options.
                  */
                 async delete(options) {
-                    return Klass.deleteById(Klass.toObjectID(this.id), options);
+                    return Model.deleteById(Model.toObjectID(this.id), options);
                 }
                 /**
                  * Validates instance against schema.
@@ -521,7 +532,7 @@ class KnectMongo {
                  * @param schema optional schema to verify by or uses defined.
                  */
                 validate(schema) {
-                    return Klass.validate(getDoc(this), schema);
+                    return Model.validate(getDoc(this), schema);
                 }
                 /**
                  * Checks if instance is valid against schema.
@@ -529,7 +540,7 @@ class KnectMongo {
                  * @param schema optional schema to verify by or uses defined.
                  */
                 isValid(schema) {
-                    return Klass.isValid(getDoc(this), schema);
+                    return Model.isValid(getDoc(this), schema);
                 }
             },
             _a.schemaName = name,
@@ -538,26 +549,44 @@ class KnectMongo {
             _a.schema = config,
             _a.hooks = {},
             _a);
-        return Model;
+        return Wrapper;
+    }
+    /**
+       * Connects to Mongodb instance.
+       *
+       * @param uri the Mongodb connection uri.
+       * @param options Mongodb client connection options.
+       */
+    async connect(uri, options) {
+        if (this.db)
+            return this.db;
+        options = { ...exports.MONGO_CLIENT_DEFAULTS, ...options };
+        this.dbname = parseDbName(uri);
+        this.client = await mongodb_1.MongoClient.connect(uri, options);
+        this.db = this.client.db(this.dbname);
+        return this.db;
     }
     /**
      * Accepts a schema and creates model with static and instance convenience methods.
      *
-     * @param name the name of the schema.
+     * @param ns the namespace for the schema.
      * @param schema the schema configuration containing document validation.
      * @param collectionName specify the collection name otherwise schema name is used.
      */
-    model(name, schema, collectionName) {
-        const _schema = this.schemas[name];
+    model(ns, schema, collectionName) {
+        if (collectionName) {
+            console.error(`"collectionName" has been deprecated use namespace for name or define in schema.`);
+            ns = toNamespace(collectionName, ns);
+            collectionName = undefined;
+        }
+        const parsedNs = fromNamespace(ns, this.delimiter);
         // Return the existing schema/model by name.
-        if (!schema) {
-            const Model = this.createModel(name, _schema || {});
+        if (!schema && this.schemas[parsedNs.ns]) {
+            const Model = this.createModel(ns, this.schemas[parsedNs.ns]);
             return Model;
         }
-        // Default collection name to schema name.
-        schema = schema || {};
-        schema.collectionName = collectionName || schema.collectionName || name;
-        const Model = this.createModel(name, schema);
+        schema.collectionName = schema.collectionName || parsedNs.collection;
+        const Model = this.createModel(parsedNs.ns, schema);
         return Model;
     }
 }

@@ -1,21 +1,17 @@
-import { MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions, CommonOptions, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions, InsertOneWriteOpResult, UpdateWriteOpResult, DeleteWriteOpResultObject, ObjectID } from 'mongodb';
-import { IHooks, HookHandler, ISchema, ISchemas, IFindOneOptions, IJoin, IJoins, ICascadeResult, IInsertWriteOpResult, IInsertOneWriteOpResult, IBaseProps, IConstructor } from './types';
+import { MongoClient, MongoClientOptions, Db, FilterQuery, UpdateOneOptions, CommonOptions, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions, UpdateWriteOpResult, DeleteWriteOpResultObject, ObjectID } from 'mongodb';
+import { IHooks, HookHandler, ISchema, ISchemas, IFindOneOptions, IJoin, IJoins, ICascadeResult, IInsertWriteOpResult, IInsertOneWriteOpResult, Constructor } from './types';
 import { ObjectSchema, ValidateOptions } from 'yup';
 export declare const MONGO_CLIENT_DEFAULTS: {
     useNewUrlParser: boolean;
+    useUnifiedTopology: boolean;
 };
 export declare class KnectMongo {
     dbname: string;
     db: Db;
     client: MongoClient;
     schemas: ISchemas;
-    /**
-     * Connects to Mongodb instance.
-     *
-     * @param uri the Mongodb connection uri.
-     * @param options Mongodb client connection options.
-     */
-    connect(uri: string, options?: MongoClientOptions): Promise<Db>;
+    models: any;
+    delimiter: string;
     /**
      * Accepts a schema and creates model with static and instance convenience methods.
      *
@@ -24,30 +20,47 @@ export declare class KnectMongo {
      */
     private createModel;
     /**
+       * Connects to Mongodb instance.
+       *
+       * @param uri the Mongodb connection uri.
+       * @param options Mongodb client connection options.
+       */
+    connect(uri: string, options?: MongoClientOptions): Promise<Db>;
+    /**
      * Accepts a schema and creates model with static and instance convenience methods.
      *
-     * @param name the name of the schema.
+     * @param ns the namespace for the schema.
      * @param schema the schema configuration containing document validation.
      * @param collectionName specify the collection name otherwise schema name is used.
      */
-    model<S extends object>(name: string, schema?: ISchema<Partial<S>>, collectionName?: string): {
-        new (props?: S): {
-            created: number;
-            modified: number;
-            deleted: number;
+    model<S extends object>(ns: string, schema?: ISchema<S>, collectionName?: string): {
+        new (props?: S & {
+            _id?: ObjectID;
+        }): {
+            _id?: ObjectID;
             id: string | number | ObjectID;
             /**
-             * Saves changes persisting instance in database.
+             * Updates a single record by id.
              *
-             * @param options MongoDB update options.
+             * @param options the update options.
              */
-            save(options?: CollectionInsertOneOptions | UpdateOneOptions): Promise<InsertOneWriteOpResult | UpdateWriteOpResult>;
+            update(options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
             /**
              * Creates and persists instance to database.
              *
              * @param options Mongodb create options.
              */
-            create(options?: CollectionInsertOneOptions): Promise<InsertOneWriteOpResult>;
+            create(options?: CollectionInsertOneOptions): Promise<IInsertOneWriteOpResult<S & {
+                _id?: ObjectID;
+            }>>;
+            /**
+             * Saves changes persisting instance in database.
+             *
+             * @param options MongoDB update options.
+             */
+            save(options?: CollectionInsertOneOptions | UpdateOneOptions): Promise<UpdateWriteOpResult | IInsertOneWriteOpResult<S & {
+                _id?: ObjectID;
+            }>>;
             /**
              * Deletes document persisting in database.
              *
@@ -59,29 +72,29 @@ export declare class KnectMongo {
              *
              * @param schema optional schema to verify by or uses defined.
              */
-            validate(schema?: ObjectSchema<S & IBaseProps & {
-                _id?: string | number | ObjectID;
-            }>): S & IBaseProps & {
-                _id?: string | number | ObjectID;
+            validate(schema?: ObjectSchema<S & {
+                _id?: ObjectID;
+            }>): S & {
+                _id?: ObjectID;
             };
             /**
              * Checks if instance is valid against schema.
              *
              * @param schema optional schema to verify by or uses defined.
              */
-            isValid(schema?: ObjectSchema<S & IBaseProps & {
-                _id?: string | number | ObjectID;
+            isValid(schema?: ObjectSchema<S & {
+                _id?: ObjectID;
             }>): boolean;
         };
         schemaName: string;
         dbname: string;
         collectionName: string;
-        schema: ISchema<Partial<S>>;
+        schema: ISchema<S>;
         hooks: IHooks;
         readonly client: MongoClient;
         readonly db: Db;
-        readonly collection: import("mongodb").Collection<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        readonly collection: import("mongodb").Collection<S & {
+            _id?: ObjectID;
         }>;
         /**
          * Sets the Model's validation schema.
@@ -94,22 +107,22 @@ export declare class KnectMongo {
          *
          * @param filter the Mongodb filter query.
          */
-        normalizeFilter(filter: FilterQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>): FilterQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        normalizeFilter(filter: FilterQuery<S & {
+            _id?: ObjectID;
+        }>): FilterQuery<S & {
+            _id?: ObjectID;
         }>;
         /**
          * Normalizes update query so that $set is always present.
          *
          * @param update the update query to be applied.
          */
-        normalizeUpdate(update: Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }> | UpdateQuery<Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>>): UpdateQuery<Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        normalizeUpdate(update: Partial<S & {
+            _id?: ObjectID;
+        }> | UpdateQuery<Partial<S & {
+            _id?: ObjectID;
+        }>>): UpdateQuery<Partial<S & {
+            _id?: ObjectID;
         }>>;
         /**
          * Convert value to ObjectID.
@@ -150,8 +163,8 @@ export declare class KnectMongo {
          * @param method the method to set the pre hook for.
          * @param handler the handler to be called.
          */
-        pre(method: string, handler: HookHandler<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        pre(method: string, handler: HookHandler<S & {
+            _id?: ObjectID;
         }>): void;
         /**
          * Sets a post hook for a given method.
@@ -159,8 +172,8 @@ export declare class KnectMongo {
          * @param method the method to set the post hook for.
          * @param handler the handler to be called.
          */
-        post(method: string, handler: HookHandler<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        post(method: string, handler: HookHandler<S & {
+            _id?: ObjectID;
         }>): void;
         /**
          * Checks is document is valid against schema.
@@ -169,10 +182,10 @@ export declare class KnectMongo {
          * @param schema the schema to validate against.
          * @param options the validation options to be applied.
          */
-        isValid(doc: S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }, schema?: ObjectSchema<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        isValid(doc: S & {
+            _id?: ObjectID;
+        }, schema?: ObjectSchema<S & {
+            _id?: ObjectID;
         }>, options?: ValidateOptions): boolean;
         /**
          * Validates a document against schema.
@@ -181,12 +194,12 @@ export declare class KnectMongo {
          * @param schema the schema to validate against.
          * @param options the validation options to be applied.
          */
-        validate(doc: S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }, schema?: ObjectSchema<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>, options?: ValidateOptions): S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        validate(doc: S & {
+            _id?: ObjectID;
+        }, schema?: ObjectSchema<S & {
+            _id?: ObjectID;
+        }>, options?: ValidateOptions): S & {
+            _id?: ObjectID;
         };
         /**
          * Populates document with specified joins.
@@ -194,54 +207,54 @@ export declare class KnectMongo {
          * @param doc the document to populate joins for.
          * @param joins an array or IJoins object of joins.
          */
-        populate<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(doc: S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }, joins: string[] | IJoins): Promise<T>;
+        populate(doc: S & {
+            _id?: ObjectID;
+        }, joins: string[] | IJoins): Promise<S & {
+            _id?: ObjectID;
+        }>;
         /**
          * Populates document with specified joins.
          *
          * @param doc the document to populate joins for.
          * @param joins an array or IJoins object of joins.
          */
-        populate<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(docs: (S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        })[], joins: string[] | IJoins): Promise<T[]>;
+        populate(docs: (S & {
+            _id?: ObjectID;
+        })[], joins: string[] | IJoins): Promise<(S & {
+            _id?: ObjectID;
+        })[]>;
         /**
          * Populates document with specified joins.
          *
          * @param doc the document to populate joins for.
          * @param joins an array or IJoins object of joins.
          */
-        populate<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(doc: S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }, key: string, join: IJoin): Promise<T>;
+        populate(doc: S & {
+            _id?: ObjectID;
+        }, key: string, join: IJoin): Promise<S & {
+            _id?: ObjectID;
+        }>;
         /**
          * Populates document with specified joins.
          *
          * @param doc the document to populate joins for.
          * @param joins an array or IJoins object of joins.
          */
-        populate<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(docs: (S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        })[], key: string, join: IJoin): Promise<T[]>;
+        populate(docs: (S & {
+            _id?: ObjectID;
+        })[], key: string, join: IJoin): Promise<(S & {
+            _id?: ObjectID;
+        })[]>;
         /**
          * Cascades delete with specified joins.
          *
          * @param doc the document to populate joins for.
          * @param joins an array or IJoins object of joins.
          */
-        cascade(doc: S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }, joins: string[] | IJoins): Promise<ICascadeResult<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        cascade(doc: S & {
+            _id?: ObjectID;
+        }, joins: string[] | IJoins): Promise<ICascadeResult<S & {
+            _id?: ObjectID;
         }>>;
         /**
          * Cascades delete with specified joins.
@@ -249,10 +262,10 @@ export declare class KnectMongo {
          * @param doc the document to populate joins for.
          * @param joins an array or IJoins object of joins.
          */
-        cascade(doc: (S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        })[], joins: string[] | IJoins): Promise<ICascadeResult<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        cascade(doc: (S & {
+            _id?: ObjectID;
+        })[], joins: string[] | IJoins): Promise<ICascadeResult<S & {
+            _id?: ObjectID;
         }>[]>;
         /**
          * Cascades delete with specified joins.
@@ -260,10 +273,10 @@ export declare class KnectMongo {
          * @param doc the document to populate joins for.
          * @param joins an array or IJoins object of joins.
          */
-        cascade(doc: S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }, key: string, join: IJoin): Promise<ICascadeResult<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        cascade(doc: S & {
+            _id?: ObjectID;
+        }, key: string, join: IJoin): Promise<ICascadeResult<S & {
+            _id?: ObjectID;
         }>>;
         /**
          * Cascades delete with specified joins.
@@ -271,10 +284,10 @@ export declare class KnectMongo {
          * @param doc the document to populate joins for.
          * @param joins an array or IJoins object of joins.
          */
-        cascade(doc: (S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        })[], key: string, join: IJoin): Promise<ICascadeResult<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        cascade(doc: (S & {
+            _id?: ObjectID;
+        })[], key: string, join: IJoin): Promise<ICascadeResult<S & {
+            _id?: ObjectID;
         }>[]>;
         /**
          * Finds a collection of documents by query.
@@ -282,63 +295,53 @@ export declare class KnectMongo {
          * @param filter the Mongodb filter query.
          * @param options Mongodb find options.
          */
-        find<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(filter?: FilterQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>, options?: IFindOneOptions): Promise<T[]>;
+        find(filter?: FilterQuery<S & {
+            _id?: ObjectID;
+        }>, options?: IFindOneOptions): Promise<(S & {
+            _id?: ObjectID;
+        })[]>;
         /**
          * Finds one document by query.
          *
          * @param filter the Mongodb filter query.
          * @param options Mongodb find options.
          */
-        findOne<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(filter: FilterQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>, options?: IFindOneOptions): Promise<T>;
+        findOne(filter: FilterQuery<S & {
+            _id?: ObjectID;
+        }>, options?: IFindOneOptions): Promise<S & {
+            _id?: ObjectID;
+        }>;
         /**
          * Finds one document by id.
          *
          * @param filter the Mongodb filter query.
          * @param options Mongodb find options.
          */
-        findById<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(id: string | number | ObjectID, options?: IFindOneOptions): Promise<T>;
+        findById(id: string | number | ObjectID, options?: IFindOneOptions): Promise<S & {
+            _id?: ObjectID;
+        }>;
         /**
          * Creates document in database.
          *
          * @param doc the document to be persisted to database.
          * @param options Mongodb insert one options.
          */
-        create<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(doc: S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }, options?: CollectionInsertOneOptions): Promise<IInsertOneWriteOpResult<T>>;
+        create(doc: S & {
+            _id?: ObjectID;
+        }, options?: CollectionInsertOneOptions): Promise<IInsertOneWriteOpResult<S & {
+            _id?: ObjectID;
+        }>>;
         /**
          * Creates document in database.
          *
          * @param doc the document to be persisted to database.
          * @param options Mongodb insert one options.
          */
-        create<T extends S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        } = S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>(docs: (S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        })[], options?: CollectionInsertManyOptions): Promise<IInsertWriteOpResult<T>>;
+        create(docs: (S & {
+            _id?: ObjectID;
+        })[], options?: CollectionInsertManyOptions): Promise<IInsertWriteOpResult<S & {
+            _id?: ObjectID;
+        }>>;
         /**
          * Updates multiple documents by query.
          *
@@ -346,12 +349,12 @@ export declare class KnectMongo {
          * @param update the update query to be applied.
          * @param options Mongodb update options.
          */
-        update(filter: FilterQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>, update: Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }> | UpdateQuery<Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        update(filter: FilterQuery<S & {
+            _id?: ObjectID;
+        }>, update: Partial<S & {
+            _id?: ObjectID;
+        }> | UpdateQuery<Partial<S & {
+            _id?: ObjectID;
         }>>, options?: UpdateManyOptions): Promise<UpdateWriteOpResult>;
         /**
          * Updates one document by query.
@@ -360,12 +363,12 @@ export declare class KnectMongo {
          * @param update the update query to be applied.
          * @param options Mongodb update options.
          */
-        updateOne(filter: FilterQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }>, update: Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }> | UpdateQuery<Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        updateOne(filter: FilterQuery<S & {
+            _id?: ObjectID;
+        }>, update: Partial<S & {
+            _id?: ObjectID;
+        }> | UpdateQuery<Partial<S & {
+            _id?: ObjectID;
         }>>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
         /**
          * Updates one document by id.
@@ -374,10 +377,10 @@ export declare class KnectMongo {
          * @param update the update query to be applied.
          * @param options Mongodb update options.
          */
-        updateById(id: string | number | ObjectID, update: Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
-        }> | UpdateQuery<Partial<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        updateById(id: string | number | ObjectID, update: Partial<S & {
+            _id?: ObjectID;
+        }> | UpdateQuery<Partial<S & {
+            _id?: ObjectID;
         }>>, options?: UpdateOneOptions): Promise<UpdateWriteOpResult>;
         /**
          * Deletes multiple documents by query.
@@ -385,8 +388,8 @@ export declare class KnectMongo {
          * @param filter the Mongodb filter for finding the desired documents to update.
          * @param options Mongodb update options.
          */
-        delete(filter: FilterQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        delete(filter: FilterQuery<S & {
+            _id?: ObjectID;
         }>, options?: CommonOptions): Promise<DeleteWriteOpResultObject>;
         /**
          * Deletes one document by query.
@@ -394,8 +397,8 @@ export declare class KnectMongo {
          * @param filter the Mongodb filter for finding the desired documents to update.
          * @param options Mongodb update options.
          */
-        deleteOne(filter: FilterQuery<S & IBaseProps & {
-            _id?: string | number | ObjectID;
+        deleteOne(filter: FilterQuery<S & {
+            _id?: ObjectID;
         }>, options?: CommonOptions): Promise<DeleteWriteOpResultObject>;
         /**
          * Deletes one document by id.
@@ -404,7 +407,7 @@ export declare class KnectMongo {
          * @param options Mongodb update options.
          */
         deleteById(id: string | number | ObjectID, options?: CommonOptions): Promise<DeleteWriteOpResultObject>;
-    } & IConstructor<S>;
+    } & Constructor<S>;
 }
 declare const _default: KnectMongo;
 export default _default;

@@ -1,17 +1,18 @@
 import KnectMongo from './';
 import { object, string } from 'yup';
-import { awaiter } from './utils';
-import { LikeObjectID } from './types';
+import { me } from './utils';
+import { LikeObjectId } from './types';
 
 interface IUser {
   firstName: string;
   lastName: string;
-  posts?: LikeObjectID[];
+  posts?: LikeObjectId[];
 }
 
 const schema = {
-  props: object().shape({
-    firstName: string().length(3)
+  props: object<IUser>({
+    firstName: string(),
+    lastName: string()
   }),
   joins: {
     tags: { collection: 'tags', isArray: true },
@@ -29,6 +30,8 @@ class User extends UserModel {
 
 }
 
+User.
+
 // We can also create a mixin here to mixin perhaps
 // even more helpers that are common etc.
 // you could also call "UserModel" simply User and extend
@@ -36,12 +39,12 @@ class User extends UserModel {
 
 (async function init() {
 
-  let result: any = await awaiter(KnectMongo.connect('mongodb://10.10.20.10:32770/temp'));
+  const { err, data } = await me(KnectMongo.connect('mongodb://10.10.20.10:32770/temp'));
 
-  if (result.err)
-    throw result.err;
+  if (err)
+    throw err;
 
-  console.log(`\nConnected to: ${result.data.databaseName}`);
+  console.log(`\nConnected to: ${data.databaseName}`);
 
   const user = new User({ firstName: 'Paula', lastName: 'Hazelton' });
 
@@ -49,7 +52,7 @@ class User extends UserModel {
   console.log('  ', user);
   console.log();
 
-  result = await awaiter(user.create());
+  await me(user.create());
 
   KnectMongo.client.close();
 

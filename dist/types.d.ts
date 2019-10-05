@@ -3,13 +3,7 @@ import { ObjectSchema } from 'yup';
 export declare type LikeObjectID = string | number | ObjectID;
 export declare type HookHandler<T = any> = (context: IHookContext<T>) => Promise<IHookContext<T>>;
 export declare type HookTypes = keyof IHookConfig;
-export declare type AwaiterResponse<T = any, K extends string = 'data'> = Promise<{
-    err?: Error;
-} & Record<K, T>>;
-export declare type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-export interface IConstructor<T = any> {
-    new (...args: any[]): T;
-}
+export declare type Constructor<T = any> = new (...args: any[]) => T;
 export interface ICascadeResult<T = any> {
     doc: T;
     ops: {
@@ -55,9 +49,9 @@ export interface IFindOneOptions extends FindOneOptions {
     populate?: string | string[];
 }
 export interface IInsertWriteOpResult<T> extends InsertWriteOpResult {
-    opts: T[];
+    ops: T[];
 }
 export interface IInsertOneWriteOpResult<T> extends InsertOneWriteOpResult {
-    opts: T[];
+    ops: T[];
 }
 export { Db, MongoClient };

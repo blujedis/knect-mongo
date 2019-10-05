@@ -3,16 +3,20 @@ import {
   CommonOptions, UpdateQuery, UpdateManyOptions, CollectionInsertOneOptions, CollectionInsertManyOptions,
   InsertOneWriteOpResult, UpdateWriteOpResult, DeleteWriteOpResultObject, ObjectID,
 } from 'mongodb';
+
 import {
   IHooks, HookTypes, HookHandler, ISchema, ISchemas,
-  LikeObjectID, IFindOneOptions, IJoin, IJoins, ICascadeResult, IInsertWriteOpResult,
-  IInsertOneWriteOpResult, IBaseProps, IConstructor
+  LikeObjectId, IFindOneOptions, IJoin, IJoins, ICascadeResult, IInsertWriteOpResult,
+  IInsertOneWriteOpResult, Constructor
 } from './types';
 
 import { ObjectSchema, object, ValidateOptions, ValidationError } from 'yup';
 
+import { Document } from './document';
+
 export const MONGO_CLIENT_DEFAULTS = {
-  useNewUrlParser: true
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 };
 
 /**
@@ -28,35 +32,52 @@ function parseDbName(uri: string, def: string = '') {
   return str.split('/').pop();
 }
 
+/**
+ * Converts a collection name and name/alias into a namespace.
+ * 
+ * @param collection the collection name.
+ * @param name the name to concat to collection name.
+ */
+function toNamespace(collection: string, name?: string) {
+  if (!name)
+    return collection;
+  return collection + this.delimiter + name;
+}
+
+/**
+ * Breaks out a namespace to object with collection, name and original namespace.
+ * 
+ * @param ns the namespace to be parsed.
+ */
+function fromNamespace(ns: string, delimiter: string = '.') {
+  const segments = ns.split(delimiter);
+  return {
+    collection: segments[0],
+    name: segments[1] || segments[0],
+    ns
+  };
+}
+
+/**
+ * 
+ * @param context 
+ */
+function getDoc<T>(context: Partial<T>): T {
+  return Object.getOwnPropertyNames(context)
+    .reduce((a, c) => {
+      a[c] = context[c];
+      return a;
+    }, {} as T);
+}
+
 export class KnectMongo {
 
   dbname: string;
   db: Db;
   client: MongoClient;
-
   schemas: ISchemas = {};
-
-  /**
-   * Connects to Mongodb instance.
-   * 
-   * @param uri the Mongodb connection uri.
-   * @param options Mongodb client connection options.
-   */
-  async connect(uri: string, options?: MongoClientOptions) {
-
-    if (this.db) return this.db;
-
-    options = { ...MONGO_CLIENT_DEFAULTS, ...options };
-
-    this.dbname = parseDbName(uri);
-
-    this.client = await MongoClient.connect(uri, options);
-
-    this.db = this.client.db(this.dbname);
-
-    return this.db;
-
-  }
+  models: any = {};
+  delimiter: string = '.'; // used for defining schema names.
 
   /**
    * Accepts a schema and creates model with static and instance convenience methods.
@@ -64,25 +85,15 @@ export class KnectMongo {
    * @param name the name of the collection
    * @param config the schema configuration containing document validation.
    */
-  private createModel<S extends object>(name: string, config: ISchema<Partial<S>>) {
+  private createModel<S extends object>(name: string, config: ISchema<S>) {
 
     const self = this;
 
     this.schemas[name] = config;
 
-    type P = S & IBaseProps & { _id?: LikeObjectID };
+    type P = S & { _id?: ObjectID };
 
-    let _id: LikeObjectID;
-
-    const getDoc = <T>(context): T => {
-      return Object.getOwnPropertyNames(context)
-        .reduce((a, c) => {
-          a[c] = context[c];
-          return a;
-        }, <any>{});
-    };
-
-    const Model = class Klass {
+    const Wrapper = class Model {
 
       static schemaName = name;
       static dbname = self.dbname;
@@ -109,7 +120,7 @@ export class KnectMongo {
        */
       static setSchema(schema: ISchema<Partial<S>>) {
         self.schemas[name] = config;
-        Klass.schema = config;
+        Model.schema = config;
       }
 
       /**
@@ -119,7 +130,7 @@ export class KnectMongo {
        */
       static normalizeFilter(filter: FilterQuery<P>) {
         if (filter._id)
-          filter._id = this.toObjectID(filter._id);
+          filter._id = this.toObjectID(filter._id as any) as any;
         return filter;
       }
 
@@ -147,15 +158,15 @@ export class KnectMongo {
        * 
        * @param id the Like id value to convert to Mongodb ObjectID.
        */
-      static toObjectID(id: LikeObjectID): ObjectID;
+      static toObjectID(id: LikeObjectId): ObjectID;
 
       /**
        * Convert values to ObjectIDs.
        * 
        * @param ids array of values to convert to Mongodb ObjectID.
        */
-      static toObjectID(ids: LikeObjectID[]): ObjectID[];
-      static toObjectID(ids: LikeObjectID | LikeObjectID[]): ObjectID | ObjectID[] {
+      static toObjectID(ids: LikeObjectId[]): ObjectID[];
+      static toObjectID(ids: LikeObjectId | LikeObjectId[]): ObjectID | ObjectID[] {
 
         const isArray = Array.isArray(ids);
 
@@ -258,7 +269,7 @@ export class KnectMongo {
        * @param doc the document to populate joins for.
        * @param joins an array or IJoins object of joins.
        */
-      static async populate<T extends P>(doc: P, joins: string[] | IJoins): Promise<T>;
+      static async populate(doc: P, joins: string[] | IJoins): Promise<P>;
 
       /**
        * Populates documents with specified joins.
@@ -266,7 +277,7 @@ export class KnectMongo {
        * @param docs the documents to populate joins for.
        * @param joins an array or IJoins object of joins.
        */
-      static async populate<T extends P>(docs: P[], joins: string[] | IJoins): Promise<T[]>;
+      static async populate(docs: P[], joins: string[] | IJoins): Promise<P[]>;
 
       /**
        * Populates document with specified joins.
@@ -275,7 +286,7 @@ export class KnectMongo {
        * @param key the join key property name.
        * @param join the join configuration object.
        */
-      static async populate<T extends P>(doc: P, key: string, join: IJoin): Promise<T>;
+      static async populate(doc: P, key: string, join: IJoin): Promise<P>;
 
       /**
        * Populates documents with specified join.
@@ -284,8 +295,8 @@ export class KnectMongo {
        * @param key the join key property name.
        * @param join the join configuration object.
        */
-      static async populate<T extends P>(docs: P[], key: string, join: IJoin): Promise<T[]>;
-      static async populate<T extends P>(doc: P | P[], key: any, join?: IJoin): Promise<T | T[]> {
+      static async populate(docs: P[], key: string, join: IJoin): Promise<P[]>;
+      static async populate(doc: P | P[], key: any, join?: IJoin): Promise<P | P[]> {
 
         let joins: IJoins = key;
         const isArray = Array.isArray(doc);
@@ -461,7 +472,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter query.
        * @param options Mongodb find options.
        */
-      static async find<T extends P = P>(filter?: FilterQuery<P>, options?: IFindOneOptions): Promise<T[]> {
+      static async find(filter?: FilterQuery<P>, options?: IFindOneOptions): Promise<P[]> {
 
         const hooks = this.getHooks('find');
         filter = filter || {};
@@ -490,7 +501,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter query.
        * @param options Mongodb find options.
        */
-      static async findOne<T extends P = P>(filter: FilterQuery<P>, options?: IFindOneOptions): Promise<T> {
+      static async findOne(filter: FilterQuery<P>, options?: IFindOneOptions): Promise<P> {
 
         const hooks = this.getHooks('findOne');
         options = options || {};
@@ -518,17 +529,17 @@ export class KnectMongo {
        * @param filter the Mongodb filter query.
        * @param options Mongodb find options.
        */
-      static async findById<T extends P = P>(id: LikeObjectID, options?: IFindOneOptions): Promise<T> {
+      static async findById(id: LikeObjectId, options?: IFindOneOptions): Promise<P> {
 
         const hooks = this.getHooks('findById');
         options = options || {};
 
-        const filter = { _id: this.toObjectID(id) };
+        const filter = { _id: this.toObjectID(id) } as FilterQuery<P>;
 
         if (hooks.pre)
           await hooks.pre({ filter, options });
 
-        const data = await this.collection.findOne<T>(filter, options);
+        const data = await this.collection.findOne(filter, options);
 
         if (!options.populate)
           return data;
@@ -546,7 +557,7 @@ export class KnectMongo {
        * @param doc the document to be persisted to database.
        * @param options Mongodb insert one options.
        */
-      static async create<T extends P = P>(doc: P, options?: CollectionInsertOneOptions): Promise<IInsertOneWriteOpResult<T>>;
+      static async create(doc: P, options?: CollectionInsertOneOptions): Promise<IInsertOneWriteOpResult<P>>;
 
       /**
        * Creates multiple documents in database.
@@ -554,30 +565,30 @@ export class KnectMongo {
        * @param docs the documents to be persisted to database.
        * @param options Mongodb insert many options.
        */
-      static async create<T extends P = P>(docs: P[], options?: CollectionInsertManyOptions): Promise<IInsertWriteOpResult<T>>;
-      static async create<T extends P = P>(doc: P | P[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions): Promise<IInsertWriteOpResult<T> | IInsertOneWriteOpResult<T>> {
+      static async create(docs: P[], options?: CollectionInsertManyOptions): Promise<IInsertWriteOpResult<P>>;
+      static async create(doc: P | P[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions): Promise<IInsertWriteOpResult<P> | IInsertOneWriteOpResult<P>> {
 
         const hooks = this.getHooks('create');
 
         if (hooks.pre)
           await hooks.pre({ doc, options });
 
-        const date = Date.now();
+        // const date = Date.now();
 
         if (Array.isArray(doc)) {
           doc.reduce((a, c) => {
-            c.created = c.created || date;
-            c.modified = c.modified || date;
+            // c.created = c.created || date;
+            // c.modified = c.modified || date;
             a.push(c);
             return a;
           }, []);
-          return this.collection.insertMany(doc, options) as Promise<IInsertWriteOpResult<T>>;
+          return this.collection.insertMany(doc as any, options) as Promise<IInsertWriteOpResult<P>>;
         }
 
         else {
-          doc.created = doc.created || date;
-          doc.modified = date;
-          return this.collection.insertOne(doc, options) as Promise<IInsertOneWriteOpResult<T>>
+          // doc.created = doc.created || date;
+          // doc.modified = date;
+          return this.collection.insertOne(doc as any, options) as Promise<IInsertOneWriteOpResult<P>>
         }
 
       }
@@ -598,9 +609,9 @@ export class KnectMongo {
         // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
         update = this.normalizeUpdate(update);
 
-        const date = Date.now();
+        // const date = Date.now();
 
-        update.$set.modified = update.$set.modified || date;
+        // update.$set.modified = update.$set.modified || date;
 
         if (hooks.pre)
           await hooks.pre({ filter, update, options });
@@ -625,9 +636,9 @@ export class KnectMongo {
         // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
         update = this.normalizeUpdate(update);
 
-        const date = Date.now();
+        // const date = Date.now();
 
-        update.$set.modified = update.$set.modified || date;
+        //  update.$set.modified = update.$set.modified || date;
 
         if (hooks.pre)
           await hooks.pre({ filter, update, options });
@@ -643,7 +654,7 @@ export class KnectMongo {
        * @param update the update query to be applied.
        * @param options Mongodb update options.
        */
-      static async updateById(id: LikeObjectID, update: UpdateQuery<Partial<P>> | Partial<P>, options?: UpdateOneOptions) {
+      static async updateById(id: LikeObjectId, update: UpdateQuery<Partial<P>> | Partial<P>, options?: UpdateOneOptions) {
 
         const hooks = this.getHooks('updateById');
 
@@ -652,14 +663,14 @@ export class KnectMongo {
         // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
         update = this.normalizeUpdate(update);
 
-        const date = Date.now();
+        // const date = Date.now();
 
-        update.$set.modified = update.$set.modified || date;
+        // update.$set.modified = update.$set.modified || date;
 
         if (hooks.pre)
           await hooks.pre({ filter, update, options });
 
-        return this.collection.updateOne(filter, update as any, options);
+        return this.collection.updateOne(filter as any, update as any, options);
 
       }
 
@@ -708,7 +719,7 @@ export class KnectMongo {
        * @param filter the Mongodb filter for finding the desired documents to update.
        * @param options Mongodb update options.
        */
-      static async deleteById(id: LikeObjectID, options?: CommonOptions) {
+      static async deleteById(id: LikeObjectId, options?: CommonOptions) {
 
         const hooks = this.getHooks('deleteById');
 
@@ -717,34 +728,83 @@ export class KnectMongo {
         if (hooks.pre)
           await hooks.pre({ filter, options });
 
-        return this.collection.deleteOne(filter, options);
+        return this.collection.deleteOne(filter as any, options);
 
       }
 
       // CLASS PROPERTIES //
 
-      created: number;
-      modified: number;
-      deleted: number;
+      _id?: ObjectID;
 
       // CONSTRUCTOR //
-      // May need to change this fine for now.
-      constructor(props?: S) {
+
+      constructor(props?: P) {
         if (props)
           Object.getOwnPropertyNames(props).forEach(k => this[k] = props[k]);
+        
       }
 
       // CLASS GETTERS & SETTERS //
 
-      get id(): LikeObjectID {
-        return _id;
+      get id(): LikeObjectId {
+        return this._id;
       }
 
-      set id(id: LikeObjectID) {
-        _id = id;
+      set id(id: LikeObjectId) {
+        this._id = id as any;
       }
 
       // CLASS METHODS //
+
+      /**
+       * Updates a single record by id.
+       * 
+       * @param options the update options.
+       */
+      async update(options?: UpdateOneOptions) {
+
+        options = options || {};
+        (options as UpdateOneOptions).upsert = false;
+
+        const doc = getDoc<P>(this);
+
+        Model.validate(doc);
+
+        return Model.updateById(this.id, doc, options);
+
+      }
+
+      /**
+       * Creates and persists instance to database.
+       * 
+       * @param options Mongodb create options.
+       */
+      async create(options?: CollectionInsertOneOptions) {
+
+        let doc = getDoc<P>(this);
+
+        Model.validate(doc);
+
+        if (this.id)
+          throw new ValidationError([`Cannot create for collection with existing 
+            id "${name}", did you mean ".save()"?`], doc, 'id');
+
+        const result = await Model.create(doc, options);
+
+        doc = ((result.ops && result.ops[0]) || {}) as P;
+
+        Object.keys(doc).forEach(k => {
+          if (k === '_id') {
+            this.id = doc[k];
+          }
+          else if (typeof this[k] === 'undefined') {
+            this[k] = doc[k];
+          }
+        });
+
+        return result;
+
+      }
 
       /**
        * Saves changes persisting instance in database.
@@ -757,64 +817,7 @@ export class KnectMongo {
         if (!this.id)
           return this.create(options);
 
-        options = options || {};
-        (options as UpdateOneOptions).upsert = false;
-
-        this.modified = Date.now();
-
-        const doc = getDoc<P>(this);
-
-        Klass.validate(doc);
-
-        return new Promise<UpdateWriteOpResult>((resolve, reject) => {
-
-          if (!this.id)
-            return reject(new ValidationError([`Cannot save to collection "${name}" with
-          missing id, did you mean ".create()"?`], doc, 'id'));
-
-          resolve(Klass.updateById(Klass.toObjectID(this.id), doc, options));
-
-        });
-
-      }
-
-      /**
-       * Creates and persists instance to database.
-       * 
-       * @param options Mongodb create options.
-       */
-      async create(options?: CollectionInsertOneOptions) {
-
-        const date = Date.now();
-        this.created = date;
-        this.modified = date;
-
-        let doc = getDoc<P>(this);
-
-        Klass.validate(doc);
-
-        return new Promise<InsertOneWriteOpResult>(async (resolve, reject) => {
-
-          if (this.id)
-            return reject(new ValidationError([`Cannot create for collection with existing 
-            id "${name}", did you mean ".save()"?`], doc, 'id'));
-
-          const result = await Klass.create(doc, options);
-
-          doc = (result.ops && result.ops[0]) || {};
-
-          Object.keys(doc).forEach(k => {
-            if (k === '_id') {
-              this.id = doc[k];
-            }
-            else if (typeof this[k] === 'undefined') {
-              this[k] = doc[k];
-            }
-          });
-
-          resolve(result);
-
-        });
+        return this.update(options);
 
       }
 
@@ -824,7 +827,7 @@ export class KnectMongo {
        * @param options Mongodb delete options.
        */
       async delete(options?: CommonOptions) {
-        return Klass.deleteById(Klass.toObjectID(this.id), options);
+        return Model.deleteById(Model.toObjectID(this.id), options);
       }
 
       /**
@@ -833,7 +836,7 @@ export class KnectMongo {
        * @param schema optional schema to verify by or uses defined.
        */
       validate(schema?: ObjectSchema<P>) {
-        return Klass.validate(getDoc<P>(this), schema);
+        return Model.validate(getDoc<P>(this), schema);
       }
 
       /**
@@ -842,38 +845,67 @@ export class KnectMongo {
        * @param schema optional schema to verify by or uses defined.
        */
       isValid(schema?: ObjectSchema<P>) {
-        return Klass.isValid(getDoc<P>(this), schema);
+        return Model.isValid(getDoc<P>(this), schema);
       }
 
     }
 
-    return Model;
+    return Wrapper;
+
+  }
+
+  /**
+     * Connects to Mongodb instance.
+     * 
+     * @param uri the Mongodb connection uri.
+     * @param options Mongodb client connection options.
+     */
+  async connect(uri: string, options?: MongoClientOptions) {
+
+    if (this.db) return this.db;
+
+    options = { ...MONGO_CLIENT_DEFAULTS, ...options };
+
+    this.dbname = parseDbName(uri);
+
+    this.client = await MongoClient.connect(uri, options);
+
+    this.db = this.client.db(this.dbname);
+
+    return this.db;
 
   }
 
   /**
    * Accepts a schema and creates model with static and instance convenience methods.
    * 
-   * @param name the name of the schema.
+   * @param ns the namespace for the schema.
    * @param schema the schema configuration containing document validation.
    * @param collectionName specify the collection name otherwise schema name is used.
    */
-  model<S extends object>(name: string, schema?: ISchema<Partial<S>>, collectionName?: string) {
+  model<S extends object>(ns: string, schema?: ISchema<S>, collectionName?: string) {
 
-    const _schema = this.schemas[name];
-
-    // Return the existing schema/model by name.
-    if (!schema) {
-      const Model = this.createModel<S>(name, _schema || {});
-      return Model as typeof Model & IConstructor<S>;
+    if (collectionName) {
+      console.error(`"collectionName" has been deprecated use namespace for name or define in schema.`);
+      ns = toNamespace(collectionName, ns);
+      collectionName = undefined;
     }
 
-    // Default collection name to schema name.
-    schema = schema || {};
-    schema.collectionName = collectionName || schema.collectionName || name;
+    const parsedNs = fromNamespace(ns, this.delimiter);
 
-    const Model = this.createModel<S>(name, schema);
-    return Model as typeof Model & IConstructor<S>;
+    // Return the existing schema/model by name.
+    if (!schema && this.schemas[parsedNs.ns]) {
+
+      const Model = this.createModel<S>(ns, this.schemas[parsedNs.ns]);
+      return Model as typeof Model & Constructor<S>;
+
+    }
+
+    schema.collectionName = schema.collectionName || parsedNs.collection;
+
+    const Model = this.createModel<S>(parsedNs.ns, schema);
+
+    return Model as typeof Model & Constructor<S>;
 
   }
 

@@ -1,12 +1,9 @@
 import * as chai from 'chai';
-import * as mocha from 'mocha';
 
-const expect = chai.expect;
-const should = chai.should;
 const assert = chai.assert;
 
-import KnectMongo, { LikeObjectID } from '../src';
-import { IUser, IUserPopulated, UserSchema, IPost, PostSchema } from './models';
+import KnectMongo, { LikeObjectId } from '../src';
+import { IUser, UserSchema, IUserPopulated, IPost, PostSchema } from './models';
 
 let dbname: string;
 let models: any;
@@ -21,7 +18,7 @@ async function load() {
 
   dbname = 'temp';
 
-  await KnectMongo.connect(`mongodb://10.10.20.10:32770/${dbname}`);
+  await KnectMongo.connect(`mongodb://10.10.20.5:32768/${dbname}`);
 
   // Reset schemas or you'll get dupe error.
   KnectMongo.schemas = {};
@@ -34,7 +31,7 @@ async function load() {
     posts = [];
   }
 
-  const UserCopy = KnectMongo.model<IUser>('user:copy', {}, 'user');
+  const UserCopy = KnectMongo.model<IUser>('user.copy', {});
 
   const PostModel = KnectMongo.model<IPost>('post', PostSchema);
 
@@ -95,11 +92,9 @@ async function drop(close?: boolean) {
 describe('Knect-Mongo', () => {
 
   it('should create model and initialize', async () => {
-
     const Models = await load();
     assert.equal(Models.UserModel.dbname, dbname);
     assert.instanceOf(Models.milton, Models.User);
-
   });
 
   it('should create user "Milton Waddams".', async () => {
@@ -130,7 +125,7 @@ describe('Knect-Mongo', () => {
     assert.equal(opc.insertedCount, 1);
     milton.posts.push(opc.insertedId);
     const ops = await milton.save();
-    assert.equal(ops.modifiedCount, 1);
+    assert.equal((ops as any).modifiedCount, 1);
   });
 
   it('should find user "Milton Waddams" and populate posts.', async () => {
