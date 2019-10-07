@@ -1,32 +1,13 @@
-import { FilterQuery, UpdateQuery, ObjectID, FindOneOptions, DeleteWriteOpResultObject, Db, MongoClient, InsertWriteOpResult, InsertOneWriteOpResult } from 'mongodb';
+import { ObjectId, FindOneOptions, DeleteWriteOpResultObject, InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FilterQuery, CollectionInsertOneOptions, UpdateQuery, UpdateManyOptions, UpdateOneOptions, CommonOptions } from 'mongodb';
+import { IHookHandler } from 'mustad';
 import { ObjectSchema } from 'yup';
-export declare type LikeObjectID = string | number | ObjectID;
-export declare type HookHandler<T = any> = (context: IHookContext<T>) => Promise<IHookContext<T>>;
-export declare type HookTypes = keyof IHookConfig;
+export declare type LikeObjectId = string | number | ObjectId;
 export declare type Constructor<T = any> = new (...args: any[]) => T;
 export interface ICascadeResult<T = any> {
     doc: T;
     ops: {
         [key: string]: DeleteWriteOpResultObject[];
     };
-}
-export interface IHookContext<T = any> {
-    filter?: FilterQuery<T>;
-    doc?: T | T[];
-    update?: UpdateQuery<T> | T;
-    options?: any;
-}
-export interface IHookConfig {
-    pre?: HookHandler;
-    post?: HookHandler;
-}
-export interface IHooks {
-    [key: string]: IHookConfig;
-}
-export interface IBaseProps {
-    created?: number;
-    modified?: number;
-    deleted?: number;
 }
 export interface IJoin {
     collection: string;
@@ -37,21 +18,28 @@ export interface IJoin {
 export interface IJoins {
     [key: string]: IJoin;
 }
-export interface ISchema<T extends object = any> {
+export interface ISchema<T extends object> {
     collectionName?: string;
     props?: ObjectSchema<T>;
     joins?: IJoins;
 }
-export interface ISchemas {
-    [key: string]: ISchema;
+export interface IDoc {
+    _id?: ObjectId;
 }
 export interface IFindOneOptions extends FindOneOptions {
     populate?: string | string[];
 }
-export interface IInsertWriteOpResult<T> extends InsertWriteOpResult {
-    ops: T[];
+export interface IModelSaveResult<S extends IDoc> {
+    insertId: LikeObjectId;
+    ok: number;
+    doc: S;
+    response: InsertOneWriteOpResult<S> | FindAndModifyWriteOpResultObject<S>;
 }
-export interface IInsertOneWriteOpResult<T> extends InsertOneWriteOpResult {
-    ops: T[];
+export interface IPreHook<S> {
+    (next: IHookHandler, queryOrId: LikeObjectId | FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, options?: UpdateOneOptions | UpdateManyOptions, ...args: any[]): any;
+    (next: IHookHandler, doc: S | S[], options?: CollectionInsertOneOptions, ...args: any[]): any;
+    (next: IHookHandler, queryOrId: LikeObjectId | FilterQuery<S>, options?: IFindOneOptions | CommonOptions & {
+        bypassDocumentValidation?: boolean;
+    }, ...args: any[]): any;
+    (next: IHookHandler, ...args: any[]): any;
 }
-export { Db, MongoClient };

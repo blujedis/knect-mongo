@@ -1,567 +1,41 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
-const yup_1 = require("yup");
+const utils_1 = require("./utils");
+const model_1 = require("./model");
+const document_1 = require("./document");
 exports.MONGO_CLIENT_DEFAULTS = {
     useNewUrlParser: true,
     useUnifiedTopology: true
 };
-/**
- * Parses database name from Mongodb connection string.
- *
- * @param uri the Mongodb uri connection string.
- * @param def the default database name when not found in uri.
- */
-function parseDbName(uri, def = '') {
-    const str = uri.split('?')[0];
-    if (!~str.indexOf('/'))
-        return def;
-    return str.split('/').pop();
-}
-/**
- * Converts a collection name and name/alias into a namespace.
- *
- * @param collection the collection name.
- * @param name the name to concat to collection name.
- */
-function toNamespace(collection, name) {
-    if (!name)
-        return collection;
-    return collection + this.delimiter + name;
-}
-/**
- * Breaks out a namespace to object with collection, name and original namespace.
- *
- * @param ns the namespace to be parsed.
- */
-function fromNamespace(ns, delimiter = '.') {
-    const segments = ns.split(delimiter);
-    return {
-        collection: segments[0],
-        name: segments[1] || segments[0],
-        ns
-    };
-}
-/**
- *
- * @param context
- */
-function getDoc(context) {
-    return Object.getOwnPropertyNames(context)
-        .reduce((a, c) => {
-        a[c] = context[c];
-        return a;
-    }, {});
-}
 class KnectMongo {
     constructor() {
-        this.schemas = {};
-        this.models = {};
+        this.schemas = new Map();
         this.delimiter = '.'; // used for defining schema names.
     }
     /**
      * Accepts a schema and creates model with static and instance convenience methods.
      *
      * @param name the name of the collection
-     * @param config the schema configuration containing document validation.
+     * @param schema the schema configuration containing document validation.
      */
-    createModel(name, config) {
-        var _a;
-        const self = this;
-        this.schemas[name] = config;
-        const Wrapper = (_a = class Model {
-                // CONSTRUCTOR //
-                constructor(props) {
-                    if (props)
-                        Object.getOwnPropertyNames(props).forEach(k => this[k] = props[k]);
-                }
-                static get client() {
-                    return self.client;
-                }
-                static get db() {
-                    return self.db;
-                }
-                static get collection() {
-                    return self.db.collection(config.collectionName);
-                }
-                /**
-                 * Sets the Model's validation schema.
-                 *
-                 * @param schema the validation schema.
-                 */
-                static setSchema(schema) {
-                    self.schemas[name] = config;
-                    Model.schema = config;
-                }
-                /**
-                 * Normalizes filter ensuring ObjectID type.
-                 *
-                 * @param filter the Mongodb filter query.
-                 */
-                static normalizeFilter(filter) {
-                    if (filter._id)
-                        filter._id = this.toObjectID(filter._id);
-                    return filter;
-                }
-                /**
-                 * Normalizes update query so that $set is always present.
-                 *
-                 * @param update the update query to be applied.
-                 */
-                static normalizeUpdate(update) {
-                    const hasSpecial = Object.keys(update).reduce((a, c) => {
-                        if (a === true)
-                            return a;
-                        a = c.charAt(0) === '$';
-                        return a;
-                    }, false);
-                    if (hasSpecial)
-                        update.$set = update.$set || {};
-                    else
-                        update = { $set: update };
-                    return update;
-                }
-                static toObjectID(ids) {
-                    const isArray = Array.isArray(ids);
-                    if (!isArray)
-                        ids = [ids];
-                    const result = ids.map(id => {
-                        if (typeof id === 'string' || typeof id === 'number')
-                            return new mongodb_1.ObjectID(id);
-                        return id;
-                    });
-                    if (isArray)
-                        return result;
-                    return result[0];
-                }
-                /**
-                 * Sets a hook to be called for defined method.
-                 *
-                 * @param method the method to set hook for.
-                 * @param type the hook type.
-                 * @param handler the handler for the hook.
-                 */
-                static setHook(method, type, handler) {
-                    this.hooks[method] = this.hooks[method] || {};
-                    this.hooks[method][type] = handler;
-                }
-                /**
-                 * Gets all hooks for a given method.
-                 *
-                 * @param method the method to get hooks for.
-                 */
-                static getHooks(method) {
-                    return this.hooks[method] || {};
-                }
-                /**
-                 * Get a hook for a given method and type.
-                 *
-                 * @param method the hook method.
-                 * @param type the type of hook method to get.
-                 */
-                static getHook(method, type) {
-                    this.hooks[method] = this.hooks[method] || {};
-                    /* tslint:disable */
-                    return this.getHooks[method][type] || (() => { });
-                }
-                /**
-                 * Sets a pre hook for a given method.
-                 *
-                 * @param method the method to set the pre hook for.
-                 * @param handler the handler to be called.
-                 */
-                static pre(method, handler) {
-                    this.setHook(method, 'pre', handler);
-                }
-                /**
-                 * Sets a post hook for a given method.
-                 *
-                 * @param method the method to set the post hook for.
-                 * @param handler the handler to be called.
-                 */
-                static post(method, handler) {
-                    this.setHook(method, 'post', handler);
-                }
-                /**
-                 * Checks is document is valid against schema.
-                 *
-                 * @param doc the document to be validated.
-                 * @param schema the schema to validate against.
-                 * @param options the validation options to be applied.
-                 */
-                static isValid(doc, schema, options) {
-                    schema = (this.schema.props || yup_1.object());
-                    return schema.isValidSync(doc, options);
-                }
-                /**
-                 * Validates a document against schema.
-                 *
-                 * @param doc the document to be validated.
-                 * @param schema the schema to validate against.
-                 * @param options the validation options to be applied.
-                 */
-                static validate(doc, schema, options) {
-                    schema = (this.schema.props || yup_1.object());
-                    return schema.validateSync(doc, options);
-                }
-                static async populate(doc, key, join) {
-                    let joins = key;
-                    const isArray = Array.isArray(doc);
-                    if (arguments.length === 3)
-                        joins = { [key]: join };
-                    if (Array.isArray(key)) {
-                        joins = key.reduce((a, c) => {
-                            const j = this.schema.joins[c];
-                            if (j)
-                                a[c] = j;
-                            return a;
-                        }, {});
-                    }
-                    const docs = (!isArray ? [doc] : doc);
-                    const result = await Promise.all(docs.map(async (d) => {
-                        for (const k in joins) {
-                            if (joins.hasOwnProperty(k)) {
-                                const conf = joins[k];
-                                const prop = d[k];
-                                const filterKey = conf.key || '_id';
-                                let values = !Array.isArray(prop) ? [prop] : prop;
-                                if (filterKey === '_id')
-                                    values = this.toObjectID(values);
-                                const filter = { [filterKey]: { '$in': values } };
-                                const rel = await this.db
-                                    .collection(conf.collection)
-                                    .find(filter, conf.options)
-                                    .toArray();
-                                d[k] = rel[0];
-                                if (Array.isArray(prop))
-                                    d[k] = rel;
-                            }
-                        }
-                        return d;
-                    }));
-                    if (!isArray)
-                        return result[0];
-                    return result;
-                }
-                static async cascade(doc, key, join) {
-                    let joins = key;
-                    const isArray = Array.isArray(doc);
-                    if (arguments.length === 3)
-                        joins = { [key]: join };
-                    if (Array.isArray(key)) {
-                        joins = key.reduce((a, c) => {
-                            const j = this.schema.joins[c];
-                            if (j)
-                                a[c] = j;
-                            return a;
-                        }, {});
-                    }
-                    const docs = (!isArray ? [doc] : doc);
-                    const session = this.client.startSession();
-                    session.startTransaction();
-                    try {
-                        const result = await Promise.all(docs.map(async (d) => {
-                            let optKey;
-                            const ops = [];
-                            for (const k in joins) {
-                                if (joins.hasOwnProperty(k)) {
-                                    optKey = k;
-                                    const conf = joins[k];
-                                    const prop = d[k];
-                                    const filterKey = conf.key || '_id';
-                                    let values = !Array.isArray(prop) ? [prop] : prop;
-                                    if (filterKey === '_id')
-                                        values = this.toObjectID(values);
-                                    const filter = { [filterKey]: { '$in': values } };
-                                    const op = await this.db
-                                        .collection(conf.collection)
-                                        .deleteMany(filter, conf.options);
-                                    ops.push(op);
-                                }
-                            }
-                            return { doc: d, ops: { [optKey]: ops } };
-                        }));
-                        await session.commitTransaction();
-                        session.endSession();
-                        if (!isArray)
-                            return result[0];
-                        return result;
-                    }
-                    catch (err) {
-                        await session.abortTransaction();
-                        session.endSession();
-                        throw err;
-                    }
-                }
-                /**
-                 * Finds a collection of documents by query.
-                 *
-                 * @param filter the Mongodb filter query.
-                 * @param options Mongodb find options.
-                 */
-                static async find(filter, options) {
-                    const hooks = this.getHooks('find');
-                    filter = filter || {};
-                    options = options || {};
-                    filter = this.normalizeFilter(filter);
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const data = await this.collection.find(filter, options).toArray();
-                    if (!options.populate)
-                        return data;
-                    if (typeof options.populate === 'string')
-                        options.populate = [options.populate];
-                    return this.populate(data, options.populate);
-                }
-                /**
-                 * Finds one document by query.
-                 *
-                 * @param filter the Mongodb filter query.
-                 * @param options Mongodb find options.
-                 */
-                static async findOne(filter, options) {
-                    const hooks = this.getHooks('findOne');
-                    options = options || {};
-                    filter = this.normalizeFilter(filter);
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const data = await this.collection.findOne(filter, options);
-                    if (!options.populate)
-                        return data;
-                    if (typeof options.populate === 'string')
-                        options.populate = [options.populate];
-                    return this.populate(data, options.populate);
-                }
-                /**
-                 * Finds one document by id.
-                 *
-                 * @param filter the Mongodb filter query.
-                 * @param options Mongodb find options.
-                 */
-                static async findById(id, options) {
-                    const hooks = this.getHooks('findById');
-                    options = options || {};
-                    const filter = { _id: this.toObjectID(id) };
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    const data = await this.collection.findOne(filter, options);
-                    if (!options.populate)
-                        return data;
-                    if (typeof options.populate === 'string')
-                        options.populate = [options.populate];
-                    return this.populate(data, options.populate);
-                }
-                static async create(doc, options) {
-                    const hooks = this.getHooks('create');
-                    if (hooks.pre)
-                        await hooks.pre({ doc, options });
-                    // const date = Date.now();
-                    if (Array.isArray(doc)) {
-                        doc.reduce((a, c) => {
-                            // c.created = c.created || date;
-                            // c.modified = c.modified || date;
-                            a.push(c);
-                            return a;
-                        }, []);
-                        return this.collection.insertMany(doc, options);
-                    }
-                    else {
-                        // doc.created = doc.created || date;
-                        // doc.modified = date;
-                        return this.collection.insertOne(doc, options);
-                    }
-                }
-                /**
-                 * Updates multiple documents by query.
-                 *
-                 * @param filter the Mongodb filter for finding the desired documents to update.
-                 * @param update the update query to be applied.
-                 * @param options Mongodb update options.
-                 */
-                static async update(filter, update, options) {
-                    const hooks = this.getHooks('update');
-                    filter = this.normalizeFilter(filter);
-                    // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
-                    update = this.normalizeUpdate(update);
-                    // const date = Date.now();
-                    // update.$set.modified = update.$set.modified || date;
-                    if (hooks.pre)
-                        await hooks.pre({ filter, update, options });
-                    return this.collection.updateMany(filter, update, options);
-                }
-                /**
-                 * Updates one document by query.
-                 *
-                 * @param filter the Mongodb filter for finding the desired documents to update.
-                 * @param update the update query to be applied.
-                 * @param options Mongodb update options.
-                 */
-                static async updateOne(filter, update, options) {
-                    const hooks = this.getHooks('updateOne');
-                    filter = this.normalizeFilter(filter);
-                    // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
-                    update = this.normalizeUpdate(update);
-                    // const date = Date.now();
-                    //  update.$set.modified = update.$set.modified || date;
-                    if (hooks.pre)
-                        await hooks.pre({ filter, update, options });
-                    return this.collection.updateOne(filter, update, options);
-                }
-                /**
-                 * Updates one document by id.
-                 *
-                 * @param filter the Mongodb filter for finding the desired documents to update.
-                 * @param update the update query to be applied.
-                 * @param options Mongodb update options.
-                 */
-                static async updateById(id, update, options) {
-                    const hooks = this.getHooks('updateById');
-                    const filter = { _id: this.toObjectID(id) };
-                    // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
-                    update = this.normalizeUpdate(update);
-                    // const date = Date.now();
-                    // update.$set.modified = update.$set.modified || date;
-                    if (hooks.pre)
-                        await hooks.pre({ filter, update, options });
-                    return this.collection.updateOne(filter, update, options);
-                }
-                /**
-                 * Deletes multiple documents by query.
-                 *
-                 * @param filter the Mongodb filter for finding the desired documents to update.
-                 * @param options Mongodb update options.
-                 */
-                static async delete(filter, options) {
-                    const hooks = this.getHooks('delete');
-                    filter = this.normalizeFilter(filter);
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    return this.collection.deleteMany(filter, options);
-                }
-                /**
-                 * Deletes one document by query.
-                 *
-                 * @param filter the Mongodb filter for finding the desired documents to update.
-                 * @param options Mongodb update options.
-                 */
-                static async deleteOne(filter, options) {
-                    const hooks = this.getHooks('deleteOne');
-                    filter = this.normalizeFilter(filter);
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    return this.collection.deleteOne(filter, options);
-                }
-                /**
-                 * Deletes one document by id.
-                 *
-                 * @param filter the Mongodb filter for finding the desired documents to update.
-                 * @param options Mongodb update options.
-                 */
-                static async deleteById(id, options) {
-                    const hooks = this.getHooks('deleteById');
-                    const filter = { _id: this.toObjectID(id) };
-                    if (hooks.pre)
-                        await hooks.pre({ filter, options });
-                    return this.collection.deleteOne(filter, options);
-                }
-                // CLASS GETTERS & SETTERS //
-                get id() {
-                    return this._id;
-                }
-                set id(id) {
-                    this._id = id;
-                }
-                // CLASS METHODS //
-                /**
-                 * Updates a single record by id.
-                 *
-                 * @param options the update options.
-                 */
-                async update(options) {
-                    options = options || {};
-                    options.upsert = false;
-                    const doc = getDoc(this);
-                    Model.validate(doc);
-                    return Model.updateById(this.id, doc, options);
-                }
-                /**
-                 * Creates and persists instance to database.
-                 *
-                 * @param options Mongodb create options.
-                 */
-                async create(options) {
-                    let doc = getDoc(this);
-                    Model.validate(doc);
-                    if (this.id)
-                        throw new yup_1.ValidationError([`Cannot create for collection with existing 
-            id "${name}", did you mean ".save()"?`], doc, 'id');
-                    const result = await Model.create(doc, options);
-                    doc = ((result.ops && result.ops[0]) || {});
-                    Object.keys(doc).forEach(k => {
-                        if (k === '_id') {
-                            this.id = doc[k];
-                        }
-                        else if (typeof this[k] === 'undefined') {
-                            this[k] = doc[k];
-                        }
-                    });
-                    return result;
-                }
-                /**
-                 * Saves changes persisting instance in database.
-                 *
-                 * @param options MongoDB update options.
-                 */
-                async save(options) {
-                    // If no id try create.
-                    if (!this.id)
-                        return this.create(options);
-                    return this.update(options);
-                }
-                /**
-                 * Deletes document persisting in database.
-                 *
-                 * @param options Mongodb delete options.
-                 */
-                async delete(options) {
-                    return Model.deleteById(Model.toObjectID(this.id), options);
-                }
-                /**
-                 * Validates instance against schema.
-                 *
-                 * @param schema optional schema to verify by or uses defined.
-                 */
-                validate(schema) {
-                    return Model.validate(getDoc(this), schema);
-                }
-                /**
-                 * Checks if instance is valid against schema.
-                 *
-                 * @param schema optional schema to verify by or uses defined.
-                 */
-                isValid(schema) {
-                    return Model.isValid(getDoc(this), schema);
-                }
-            },
-            _a.schemaName = name,
-            _a.dbname = self.dbname,
-            _a.collectionName = config.collectionName,
-            _a.schema = config,
-            _a.hooks = {},
-            _a);
-        return Wrapper;
+    createModel(name, schema) {
+        const knect = this;
+        this.schemas.set(name, schema);
+        const Document = document_1.initDocument(schema, knect.client, knect.db, model_1.Model);
+        return Document;
     }
     /**
-       * Connects to Mongodb instance.
-       *
-       * @param uri the Mongodb connection uri.
-       * @param options Mongodb client connection options.
-       */
+     * Connects to Mongodb instance.
+     *
+     * @param uri the Mongodb connection uri.
+     * @param options Mongodb client connection options.
+     */
     async connect(uri, options) {
         if (this.db)
             return this.db;
         options = { ...exports.MONGO_CLIENT_DEFAULTS, ...options };
-        this.dbname = parseDbName(uri);
+        this.dbname = utils_1.parseDbName(uri);
         this.client = await mongodb_1.MongoClient.connect(uri, options);
         this.db = this.client.db(this.dbname);
         return this.db;
@@ -573,21 +47,20 @@ class KnectMongo {
      * @param schema the schema configuration containing document validation.
      * @param collectionName specify the collection name otherwise schema name is used.
      */
-    model(ns, schema, collectionName) {
-        if (collectionName) {
-            console.error(`"collectionName" has been deprecated use namespace for name or define in schema.`);
-            ns = toNamespace(collectionName, ns);
-            collectionName = undefined;
-        }
-        const parsedNs = fromNamespace(ns, this.delimiter);
+    model(ns, schema) {
+        const parsedNs = utils_1.fromNamespace(ns, this.delimiter);
+        let _ns = ns;
+        let _schema = schema;
         // Return the existing schema/model by name.
         if (!schema && this.schemas[parsedNs.ns]) {
-            const Model = this.createModel(ns, this.schemas[parsedNs.ns]);
-            return Model;
+            _schema = this.schemas.get(parsedNs.ns);
         }
-        schema.collectionName = schema.collectionName || parsedNs.collection;
-        const Model = this.createModel(parsedNs.ns, schema);
-        return Model;
+        else {
+            _ns = parsedNs.ns;
+            schema.collectionName = schema.collectionName || parsedNs.collection;
+        }
+        const DocumentModel = this.createModel(_ns, _schema);
+        return DocumentModel;
     }
 }
 exports.KnectMongo = KnectMongo;

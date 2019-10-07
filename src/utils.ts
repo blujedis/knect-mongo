@@ -11,41 +11,40 @@ export const me = <T>(promise: Promise<T>) => {
 };
 
 /**
- * Mixes in constructors.
+ * Parses database name from Mongodb connection string.
  * 
- * @param derivedCtor the derived constructor.
- * @param baseCtors based constructors.
- * @param statics when true extends static methods.
+ * @param uri the Mongodb uri connection string.
+ * @param def the default database name when not found in uri.
  */
-export const mixin = (derivedCtor: any, baseCtors: any[], statics: boolean = false) => {
-  baseCtors.forEach(baseCtor => {
-    Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
-      if (name !== 'constructor') {
-        derivedCtor.prototype[name] = baseCtor.prototype[name];
-      }
-    });
-    Object.getOwnPropertyNames(baseCtor).forEach(name => {
-      if (name !== 'prototype' && name !== 'length' && name !== 'name') {
-        derivedCtor[name] = baseCtor[name];
-      }
-    });
-  });
-};
-
-const toString = Function.prototype.toString;
-
-function fnBody(fn) {
-  return toString.call(fn).replace(/^[^{]*{\s*/, '').replace(/\s*}[^}]*$/, '');
+export function parseDbName(uri: string, def: string = '') {
+  const str = uri.split('?')[0];
+  if (!~str.indexOf('/'))
+    return def;
+  return str.split('/').pop();
 }
 
 /**
- * Checks if is a class
+ * Converts a collection name and name/alias into a namespace.
  * 
- * @param fn the function or class with constructor to inspect.
+ * @param collection the collection name.
+ * @param name the name to concat to collection name.
  */
-export function isClass(fn) {
-  return (typeof fn === 'function' &&
-    (/^class[\s{]/.test(toString.call(fn)) ||
-      (/classCallCheck\(/.test(fnBody(fn)))) // babel.js
-  );
+export function toNamespace(collection: string, name?: string, delimiter: string = '.') {
+  if (!name)
+    return collection;
+  return collection + delimiter + name;
+}
+
+/**
+ * Breaks out a namespace to object with collection, name and original namespace.
+ * 
+ * @param ns the namespace to be parsed.
+ */
+export function fromNamespace(ns: string, delimiter: string = '.') {
+  const segments = ns.split(delimiter);
+  return {
+    collection: segments[0],
+    name: segments[1] || segments[0],
+    ns
+  };
 }

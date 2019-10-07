@@ -22,6 +22,7 @@
       "arrow-parens": false,
       "array-type": false,
       "unified-signatures": false,
+      "forin": false,
       "comment-format": [
         true,
         "check-space"

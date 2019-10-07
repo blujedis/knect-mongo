@@ -1,59 +1,62 @@
-import { IBaseProps, LikeObjectID, ISchema } from '../src';
-import { object } from 'yup';
+import { LikeObjectId, ISchema } from '../src';
+import yup, { object, string, array, number, mixed, InferType } from 'yup';
 
-// USER //
+// export interface IUser extends IBase {
+//   firstName: string;
+//   lastName: string;
+//   posts?: (LikeObjectId | IPost)[];
+// }
 
-export abstract class Base<T extends object> {
+// export interface IUserPopulated extends IUser {
+//   posts?: IPost[];
+// }
 
-  private _id?: LikeObjectID;
+// INTERFACES //
 
-  schema: ISchema<T>;
+export interface IBase {
+  _id?: LikeObjectId;
   created?: number;
   modified?: number;
-
-  get id() {
-    return this._id;
-  }
-
-  set id(id: LikeObjectID) {
-    this._id = id;
-  }
-
 }
 
-export class User2 extends Base<User2> {
-  firstName: string;
-  lastName: string;
-  posts?: (LikeObjectID | IPost)[];
+export interface IPost extends IBase {
+  title: string;
+  body: string;
+  user: LikeObjectId;
 }
 
-export interface IUser extends Partial<IBaseProps> {
-  firstName: string;
-  lastName: string;
-  posts?: (LikeObjectID | IPost)[];
-}
+// SCHEMAS //
 
-export interface IUserPopulated extends IUser {
-  posts?: IPost[];
-}
+const baseSchema = object({
+  _id: mixed<LikeObjectId>(),
+  created: number(),
+  modified: number()
+});
 
-export const UserSchema = {
-  props: object(),
+const userSchema = baseSchema.shape({
+  firstName: string(),
+  lastName: string(),
+  posts: array<LikeObjectId | IPost>()
+});
+
+const postSchema = baseSchema.shape({
+  title: string(),
+  body: string(),
+  user: mixed<LikeObjectId>()
+});
+
+type IUserSchema = InferType<typeof userSchema>;
+type IPostSchema = InferType<typeof postSchema>;
+
+export const UserSchema: ISchema<IUserSchema> = {
+  props: userSchema,
   joins: {
     posts: { collection: 'post' }
   }
 };
 
-// POSTS //
-
-export interface IPost extends Partial<IBaseProps> {
-  title: string;
-  body: string;
-  user: LikeObjectID;
-}
-
-export const PostSchema = {
-  props: object(),
+export const PostSchema: ISchema<IPostSchema> = {
+  props: postSchema,
   joins: {
     user: { collection: 'user' }
   }

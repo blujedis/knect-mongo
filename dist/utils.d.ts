@@ -3,21 +3,31 @@
  *
  * @param promise the promise to be wrapped.
  */
-export declare const awaiter: <T>(promise: Promise<T>) => Promise<{
+export declare const me: <T>(promise: Promise<T>) => Promise<{
     err?: Error;
     data?: T;
 }>;
 /**
- * Mixes in constructors.
+ * Parses database name from Mongodb connection string.
  *
- * @param derivedCtor the derived constructor.
- * @param baseCtors based constructors.
- * @param statics when true extends static methods.
+ * @param uri the Mongodb uri connection string.
+ * @param def the default database name when not found in uri.
  */
-export declare const mixin: (derivedCtor: any, baseCtors: any[], statics?: boolean) => void;
+export declare function parseDbName(uri: string, def?: string): string;
 /**
- * Checks if is a class
+ * Converts a collection name and name/alias into a namespace.
  *
- * @param fn the function or class with constructor to inspect.
+ * @param collection the collection name.
+ * @param name the name to concat to collection name.
  */
-export declare function isClass(fn: any): boolean;
+export declare function toNamespace(collection: string, name?: string, delimiter?: string): string;
+/**
+ * Breaks out a namespace to object with collection, name and original namespace.
+ *
+ * @param ns the namespace to be parsed.
+ */
+export declare function fromNamespace(ns: string, delimiter?: string): {
+    collection: string;
+    name: string;
+    ns: string;
+};

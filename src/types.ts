@@ -1,13 +1,15 @@
 import {
   ObjectId, FindOneOptions, DeleteWriteOpResultObject,
-  Db, MongoClient
+  Db, MongoClient, InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FilterQuery, CollectionInsertOneOptions, UpdateQuery, UpdateManyOptions, UpdateOneOptions, CommonOptions
 } from 'mongodb';
+
+import { IHookHandler } from 'mustad';
 
 import { ObjectSchema } from 'yup';
 
 export type LikeObjectId = string | number | ObjectId;
 
-export type Constructor<T = any> = new(...args: any[]) => T;
+export type Constructor<T = any> = new (...args: any[]) => T;
 
 export interface ICascadeResult<T = any> {
   doc: T,
@@ -27,45 +29,44 @@ export interface IJoins {
   [key: string]: IJoin;
 }
 
-export interface ISchema<T extends object = any> {
+export interface ISchema<T extends object> {
   collectionName?: string;
   props?: ObjectSchema<T>;
   joins?: IJoins;
 }
 
-export interface ISchemas {
-  [key: string]: ISchema;
+export interface IDoc {
+  _id?: ObjectId;
 }
 
 export interface IFindOneOptions extends FindOneOptions {
   populate?: string | string[];
 }
 
-// Re-export Mongodb Types.
-export {
-  Db,
-  MongoClient
-};
+export interface IModelSaveResult<S extends IDoc> {
+  insertId: LikeObjectId,
+  ok: number;
+  doc: S;
+  response: InsertOneWriteOpResult<S> | FindAndModifyWriteOpResultObject<S>;
+}
 
+// IFindOneOptions, 
+// CollectionInsertOneOptions | CollectionInsertManyOptions 
+// UpdateOneOptions | UpdateManyOptions,
+// CommonOptions & { bypassDocumentValidation?: boolean }
 
-// export type HookHandler<T = any> = (context: IHookContext<T>) => Promise<IHookContext<T>>;
-
-// export type HookTypes = keyof IHookConfig;
-
-// export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
-// export interface IHookContext<T = any> {
-//   filter?: FilterQuery<T>;
-//   doc?: T | T[];
-//   update?: UpdateQuery<T> | T;
-//   options?: any;
-// }
-
-// export interface IHookConfig {
-//   pre?: HookHandler;
-//   post?: HookHandler;
-// }
-
-// export interface IHooks {
-//   [key: string]: IHookConfig;
-// }
+export interface IPreHook<S> {
+  (
+    next: IHookHandler,
+    queryOrId: LikeObjectId | FilterQuery<S>,
+    update: UpdateQuery<Partial<S>> | Partial<S>,
+    options?: UpdateOneOptions | UpdateManyOptions,
+    ...args: any[]): any;
+  (next: IHookHandler, doc: S | S[], options?: CollectionInsertOneOptions, ...args: any[]): any;
+  (
+    next: IHookHandler, 
+    queryOrId: LikeObjectId | FilterQuery<S>, 
+    options?: IFindOneOptions | CommonOptions & { bypassDocumentValidation?: boolean },
+    ...args: any[]): any;
+  (next: IHookHandler, ...args: any[]): any;
+}

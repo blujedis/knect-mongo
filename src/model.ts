@@ -1,0 +1,136 @@
+import {
+  ObjectId, UpdateOneOptions, CollectionInsertOneOptions,
+  FindOneAndDeleteOption,
+  FindOneAndUpdateOption
+} from 'mongodb';
+import { IDoc, IModelSaveResult } from './types';
+import { initDocument } from './document';
+import { ValidationError, ObjectSchema } from 'yup';
+import { me } from './utils';
+
+export class Model<S extends IDoc> {
+
+  private _doc: S;
+  private _Document: ReturnType<typeof initDocument>;
+
+  _id: ObjectId;
+
+  constructor(doc: S, document: ReturnType<typeof initDocument>) {
+
+    const model = this;
+    this._doc = doc || {} as S;
+    this._Document = document;
+    const fields = (this._Document.schema.props as any).fields || {};
+
+    for (const k in fields) {
+      Object.defineProperty(this, k, {
+        get() {
+          return model._doc[k];
+        },
+        set(v) {
+          model._doc[k] = v;
+        }
+      });
+    }
+
+  }
+
+  /**
+   * Creates and persists instance to database.
+   * 
+   * @param options Mongodb create options.
+   */
+  private async create(options?: CollectionInsertOneOptions): Promise<IModelSaveResult<S>> {
+
+    const doc = this._doc;
+    this._Document.validate(doc);
+
+    if (this._id)
+      throw new ValidationError([`Cannot create for collection "${this._Document.collection.namespace}" with existing 
+            id, did you mean ".save()"?`], doc, 'id');
+
+    const { err, data } = await me(this._Document.createOne(doc, options));
+
+    if (err)
+      throw err;
+
+    this._doc = ((data.ops && data.ops[0]) || {}) as S;
+
+    return {
+      ok: data.result.ok,
+      insertId: data.insertedId,
+      doc: this._doc,
+      response: data as any
+    };
+
+  }
+
+  /**
+   * Updates a single record by id.
+   * 
+   * @param options the update options.
+   */
+  private async update(options?: FindOneAndUpdateOption): Promise<IModelSaveResult<S>> {
+
+    options = options || {};
+    (options as FindOneAndUpdateOption).upsert = false;
+
+    this._Document.validate(this._doc);
+
+    const { err, data } = await me(this._Document.findUpdate(this._id, this._doc, options));
+
+    if (err)
+      throw err;
+
+    return {
+      ok: data.ok,
+      insertId: null,
+      doc: this._doc,
+      response: data as any
+    };
+
+  }
+
+  /**
+   * Saves changes persisting instance in database.
+   * 
+   * @param options MongoDB update options.
+   */
+  async save(options?: UpdateOneOptions | CollectionInsertOneOptions) {
+
+    // If no id try create.
+    if (!this._id)
+      return this.create(options);
+
+    return this.update(options);
+
+  }
+
+  /**
+   * Deletes document persisting in database.
+   * 
+   * @param options Mongodb delete options.
+   */
+  async delete(options?: FindOneAndDeleteOption) {
+    return this._Document.findDelete(this._id, options);
+  }
+
+  /**
+   * Validates instance against schema.
+   * 
+   * @param schema optional schema to verify by or uses defined.
+   */
+  validate(schema?: ObjectSchema<S>) {
+    return this._Document.validate(this._doc, schema);
+  }
+
+  /**
+   * Checks if instance is valid against schema.
+   * 
+   * @param schema optional schema to verify by or uses defined.
+   */
+  isValid(schema?: ObjectSchema<S>) {
+    return this._Document.isValid(this._doc, schema);
+  }
+
+}

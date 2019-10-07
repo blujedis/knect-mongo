@@ -5,46 +5,48 @@ Object.defineProperty(exports, "__esModule", { value: true });
  *
  * @param promise the promise to be wrapped.
  */
-exports.awaiter = (promise) => {
+exports.me = (promise) => {
     return promise
         .then(data => ({ err: null, data }))
         .catch(err => ({ err }));
 };
 /**
- * Mixes in constructors.
+ * Parses database name from Mongodb connection string.
  *
- * @param derivedCtor the derived constructor.
- * @param baseCtors based constructors.
- * @param statics when true extends static methods.
+ * @param uri the Mongodb uri connection string.
+ * @param def the default database name when not found in uri.
  */
-exports.mixin = (derivedCtor, baseCtors, statics = false) => {
-    baseCtors.forEach(baseCtor => {
-        Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
-            if (name !== 'constructor') {
-                derivedCtor.prototype[name] = baseCtor.prototype[name];
-            }
-        });
-        Object.getOwnPropertyNames(baseCtor).forEach(name => {
-            if (name !== 'prototype' && name !== 'length' && name !== 'name') {
-                derivedCtor[name] = baseCtor[name];
-            }
-        });
-    });
-};
-const toString = Function.prototype.toString;
-function fnBody(fn) {
-    return toString.call(fn).replace(/^[^{]*{\s*/, '').replace(/\s*}[^}]*$/, '');
+function parseDbName(uri, def = '') {
+    const str = uri.split('?')[0];
+    if (!~str.indexOf('/'))
+        return def;
+    return str.split('/').pop();
 }
+exports.parseDbName = parseDbName;
 /**
- * Checks if is a class
+ * Converts a collection name and name/alias into a namespace.
  *
- * @param fn the function or class with constructor to inspect.
+ * @param collection the collection name.
+ * @param name the name to concat to collection name.
  */
-function isClass(fn) {
-    return (typeof fn === 'function' &&
-        (/^class[\s{]/.test(toString.call(fn)) ||
-            (/classCallCheck\(/.test(fnBody(fn)))) // babel.js
-    );
+function toNamespace(collection, name, delimiter = '.') {
+    if (!name)
+        return collection;
+    return collection + delimiter + name;
 }
-exports.isClass = isClass;
+exports.toNamespace = toNamespace;
+/**
+ * Breaks out a namespace to object with collection, name and original namespace.
+ *
+ * @param ns the namespace to be parsed.
+ */
+function fromNamespace(ns, delimiter = '.') {
+    const segments = ns.split(delimiter);
+    return {
+        collection: segments[0],
+        name: segments[1] || segments[0],
+        ns
+    };
+}
+exports.fromNamespace = fromNamespace;
 //# sourceMappingURL=utils.js.map
