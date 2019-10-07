@@ -8,19 +8,35 @@ import { initDocument } from './document';
 import { ValidationError, ObjectSchema } from 'yup';
 import { me } from './utils';
 
-export class Model<S extends IDoc> {
+const doctype = (false as true) && initDocument();
+type Document = typeof doctype;
 
-  private _doc: S;
-  private _Document: ReturnType<typeof initDocument>;
+export class BaseModel<S extends IDoc> {
 
+  private _Document: Document;
+  
   _id: ObjectId;
+  _doc: S;
 
-  constructor(doc: S, document: ReturnType<typeof initDocument>) {
+  constructor(doc: S, document: Document) {
 
     const model = this;
-    this._doc = doc || {} as S;
-    this._Document = document;
-    const fields = (this._Document.schema.props as any).fields || {};
+  
+    Object.defineProperties(this, {
+      _Document: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: document
+      },
+      _doc: {
+        enumerable: false,
+        writable: true,
+        value: doc || {}
+      }
+    });
+
+    const fields = (document.schema.props as any).fields || {};
 
     for (const k in fields) {
       Object.defineProperty(this, k, {
@@ -113,6 +129,19 @@ export class Model<S extends IDoc> {
    */
   async delete(options?: FindOneAndDeleteOption) {
     return this._Document.findDelete(this._id, options);
+  }
+
+  /**
+   * Propulates child values based on join configurations.
+   * 
+   * @param names the names of joins that should be populated.
+   */
+  async populate(...names: string[]) {
+    const { err, data } = await me(this._Document.populate(this._doc, names));
+    if (err)
+      return Promise.reject(err);
+    this._doc = data as S;
+    return Promise.resolve(data);
   }
 
   /**

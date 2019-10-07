@@ -136,7 +136,7 @@ function initDocument(config = {}, client, db, Model) {
                             .find(filter, conf.options)
                             .toArray());
                         if (pErr)
-                            throw pErr;
+                            return Promise.reject(pErr);
                         doc[k] = pData[0];
                         if (Array.isArray(prop))
                             doc[k] = pData;
@@ -144,10 +144,10 @@ function initDocument(config = {}, client, db, Model) {
                     return doc;
                 })));
                 if (err)
-                    throw err;
+                    return Promise.reject(err);
                 if (!isArray)
-                    return data[0];
-                return data;
+                    return Promise.resolve(data[0]);
+                return Promise.resolve(data);
             }
             static async cascade(doc, key, join) {
                 let joins = key;
@@ -209,7 +209,8 @@ function initDocument(config = {}, client, db, Model) {
              * @param cb an optional callback to be called with error or data.
              */
             static async _handleResponse(promise, cb) {
-                return promise.then(res => {
+                const prom = (!utils_1.isPromise(promise) ? Promise.resolve(promise) : promise);
+                return prom.then(res => {
                     if (cb)
                         cb(null, res);
                     return res;
@@ -237,15 +238,15 @@ function initDocument(config = {}, client, db, Model) {
                 else
                     result = await utils_1.me(this.collection.findOne(query, options));
                 if (result.err)
-                    throw result.err;
-                // if (!options.populate) {
-                if (isMany)
+                    return Promise.reject(result.err);
+                if (!options.populate) {
+                    if (isMany)
+                        return result.data;
                     return result.data;
-                return result.data;
-                // }
-                // if (isMany)
-                //   return this.populate(result.data as S[], options.populate);
-                // return this.populate(result.data as S, options.populate);
+                }
+                if (isMany)
+                    return this.populate(result.data, options.populate);
+                return this.populate(result.data, options.populate);
             }
             /**
              * Common handler to create single or multiple documents in database.
@@ -254,19 +255,14 @@ function initDocument(config = {}, client, db, Model) {
              * @param options Mongodb insert many options.
              */
             static _create(doc, options = {}) {
-                // const date = Date.now();
                 if (Array.isArray(doc)) {
                     doc.reduce((a, c) => {
-                        // c.created = c.created || date;
-                        // c.modified = c.modified || date;
                         a.push(c);
                         return a;
                     }, []);
                     return this.collection.insertMany(doc, options);
                 }
                 else {
-                    // doc.created = doc.created || date;
-                    // doc.modified = date;
                     return this.collection.insertOne(doc, options);
                 }
             }
@@ -311,6 +307,17 @@ function initDocument(config = {}, client, db, Model) {
                 }
                 const _query = this.toQuery(query);
                 return this._handleResponse(this._find(_query, options, false), cb);
+            }
+            static async findModel(query, FindModel, options, cb) {
+                if (typeof options === 'function') {
+                    cb = options;
+                    options = undefined;
+                }
+                const _query = this.toQuery(query);
+                const { err, data } = await utils_1.me(this._find(_query, options, false));
+                if (err)
+                    return Promise.reject(err);
+                return this._handleResponse(new FindModel(data), cb);
             }
             /**
              * Finds a document and then updates.
@@ -370,10 +377,7 @@ function initDocument(config = {}, client, db, Model) {
                     options = undefined;
                 }
                 query = this.toQuery(query);
-                // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
                 update = this.toUpdate(update);
-                // const date = Date.now();
-                // update.$set.modified = update.$set.modified || date;
                 return this._handleResponse(this._update(query, update, options, true), cb);
             }
             static updateOne(query, update, options, cb) {
@@ -382,10 +386,7 @@ function initDocument(config = {}, client, db, Model) {
                     options = undefined;
                 }
                 const _query = this.toQuery(query);
-                // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
                 update = this.toUpdate(update);
-                // const date = Date.now();
-                //  update.$set.modified = update.$set.modified || date;
                 return this._handleResponse(this._update(_query, update, options, false), cb);
             }
             static delete(filter, options, cb) {
@@ -404,20 +405,20 @@ function initDocument(config = {}, client, db, Model) {
                 const _query = this.toQuery(query);
                 return this._handleResponse(this._delete(_query, options, false), cb);
             }
-            static pre(type, handlers) {
+            static pre(type, handler) {
                 const methods = hookMap[type];
                 if (!methods)
                     throw new Error(`Cannot create hook for "${type}" using methods of undefined.`);
                 // Bind each handler.
-                mustad.pre(methods, handlers);
+                mustad.pre(methods, handler);
                 return this;
             }
-            static post(type, handlers) {
+            static post(type, handler) {
                 const methods = hookMap[type];
                 if (!methods)
                     throw new Error(`Cannot create hook for "${type}" using methods of undefined.`);
                 // Bind each handler.
-                mustad.post(methods, handlers);
+                mustad.post(methods, handler);
                 return this;
             }
         },

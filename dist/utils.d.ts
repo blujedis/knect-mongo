@@ -31,3 +31,4 @@ export declare function fromNamespace(ns: string, delimiter?: string): {
     name: string;
     ns: string;
 };
+export declare const isPromise: (val: any) => boolean;

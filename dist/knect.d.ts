@@ -1,6 +1,6 @@
 import { MongoClient, MongoClientOptions, Db } from 'mongodb';
 import { ISchema, Constructor } from './types';
-import { Model } from './model';
+import { BaseModel } from './model';
 export declare const MONGO_CLIENT_DEFAULTS: {
     useNewUrlParser: boolean;
     useUnifiedTopology: boolean;
@@ -52,7 +52,7 @@ export declare class KnectMongo {
         cascade(doc: S[], joins: string[] | import("./types").IJoins): Promise<import("./types").ICascadeResult<S>[]>;
         cascade(doc: S, key: string, join: import("./types").IJoin): Promise<import("./types").ICascadeResult<S>>;
         cascade(doc: S[], key: string, join: import("./types").IJoin): Promise<import("./types").ICascadeResult<S>[]>;
-        _handleResponse<T, E>(promise: Promise<T>, cb?: (err: E, data: T) => void): Promise<T>;
+        _handleResponse<T, E>(promise: T | Promise<T>, cb?: (err: E, data: T) => void): Promise<T>;
         _find(query?: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions, isMany?: boolean): Promise<S | S[]>;
         _create(doc: S | S[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<Pick<S, Exclude<keyof S, "_id">> & {
             _id: S extends {
@@ -72,6 +72,10 @@ export declare class KnectMongo {
         findOne(id: import("./types").LikeObjectId, cb?: import("mongodb").MongoCallback<S>): Promise<S>;
         findOne(query: import("mongodb").FilterQuery<S>, options: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<S>): Promise<S>;
         findOne(query: import("mongodb").FilterQuery<S>, cb?: import("mongodb").MongoCallback<S>): Promise<S>;
+        findModel<L extends BaseModel<S>>(id: import("./types").LikeObjectId, FindModel: Constructor<L>, options: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<L>): Promise<L>;
+        findModel<L_1 extends BaseModel<S>>(query: import("mongodb").FilterQuery<S>, FindModel: Constructor<L_1>, options: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<L_1>): Promise<L_1>;
+        findModel<L_2 extends BaseModel<S>>(id: import("./types").LikeObjectId, FindModel: Constructor<L_2>, cb?: import("mongodb").MongoCallback<L_2>): Promise<L_2>;
+        findModel<L_3 extends BaseModel<S>>(query: import("mongodb").FilterQuery<S>, FindModel: Constructor<L_3>, cb?: import("mongodb").MongoCallback<L_3>): Promise<L_3>;
         findUpdate(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
         findDelete(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, options?: import("mongodb").FindOneAndDeleteOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
         findReplace(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, doc: S, options?: import("mongodb").FindOneAndReplaceOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
@@ -95,9 +99,9 @@ export declare class KnectMongo {
             bypassDocumentValidation?: boolean;
         }, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
         deleteOne(query: import("mongodb").FilterQuery<S>, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
-        pre(type: import("./document").HookType, handlers: any): any;
-        post(type: import("./document").HookType, handlers: any): any;
-    } & Constructor<Model<S> & S>;
+        pre<A1 = any, A2 = any, A3 = any>(type: import("./document").HookType, handler: import("./types").DocumentHook<A1, A2, A3>): any;
+        post<A1_1 = any, A2_1 = any, A3_1 = any>(type: import("./document").HookType, handler: import("./types").DocumentHook<A1_1, A2_1, A3_1>): any;
+    } & Constructor<BaseModel<S> & S>;
 }
 declare const _default: KnectMongo;
 export default _default;

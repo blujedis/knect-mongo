@@ -4,12 +4,15 @@ import {
   CollectionInsertOneOptions, CollectionInsertManyOptions, UpdateManyOptions, UpdateOneOptions,
   CommonOptions, Db, MongoClient, FindOneAndUpdateOption, FindOneAndDeleteOption,
   FindOneAndReplaceOption, MongoCallback, FindAndModifyWriteOpResultObject, InsertOneWriteOpResult,
-  InsertWriteOpResult, UpdateWriteOpResult
+  InsertWriteOpResult, UpdateWriteOpResult, MongoError
 } from 'mongodb';
-import { ISchema, LikeObjectId, IJoins, IJoin, ICascadeResult, IFindOneOptions, Constructor, IDoc } from './types';
-import { me } from './utils';
-import { Model as DefaultModel } from './model';
-import { Mustad, NextHandler } from 'mustad';
+import {
+  ISchema, LikeObjectId, IJoins, IJoin, ICascadeResult, IFindOneOptions,
+  Constructor, IDoc, DocumentHook
+} from './types';
+import { me, isPromise } from './utils';
+import { BaseModel as BaseModel } from './model';
+import { Mustad } from 'mustad';
 import { ObjectSchema, ValidateOptions, object } from 'yup';
 
 export type HookType = 'find' | 'create' | 'update' | 'delete';
@@ -25,7 +28,7 @@ const includeKeys = Object.keys(hookMap).reduce((a, c) => {
   return [...a, ...hookMap[c]];
 }, []);
 
-export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
+export function initDocument<S extends IDoc, M extends BaseModel<S>>(
   config: ISchema<S> = {},
   client?: MongoClient,
   db?: Db,
@@ -217,7 +220,7 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
             .toArray());
 
           if (pErr)
-            throw pErr;
+            return Promise.reject(pErr);
 
           doc[k] = pData[0];
 
@@ -231,12 +234,12 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
       })));
 
       if (err)
-        throw err;
+        return Promise.reject(err);
 
       if (!isArray)
-        return data[0];
+        return Promise.resolve(data[0]);
 
-      return data;
+      return Promise.resolve(data);
 
     }
 
@@ -362,9 +365,10 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
      * @param cb an optional callback to be called with error or data.
      */
     static async _handleResponse<T, E>(
-      promise: Promise<T>,
+      promise: T | Promise<T>,
       cb?: (err: E, data: T) => void): Promise<T> {
-      return promise.then(res => {
+      const prom = (!isPromise(promise) ? Promise.resolve(promise) : promise) as Promise<T>;
+      return prom.then(res => {
         if (cb)
           cb(null, res);
         return res;
@@ -400,20 +404,20 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
         result = await me(this.collection.findOne(query, options));
 
       if (result.err)
-        throw result.err;
+        return Promise.reject(result.err);
 
-      // if (!options.populate) {
+      if (!options.populate) {
+        if (isMany)
+          return result.data as S[];
+        return result.data as S;
+      }
+
       if (isMany)
-        return result.data as S[];
-      return result.data as S;
-      // }
-
-      // if (isMany)
-      //   return this.populate(result.data as S[], options.populate);
-      // return this.populate(result.data as S, options.populate);
+        return this.populate(result.data as S[], options.populate);
+      return this.populate(result.data as S, options.populate);
 
     }
-    
+
     /**
      * Common handler to create single or multiple documents in database.
      * 
@@ -424,12 +428,8 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
       doc: S | S[],
       options: CollectionInsertOneOptions | CollectionInsertManyOptions = {}) {
 
-      // const date = Date.now();
-
       if (Array.isArray(doc)) {
         doc.reduce((a, c) => {
-          // c.created = c.created || date;
-          // c.modified = c.modified || date;
           a.push(c);
           return a;
         }, []);
@@ -437,11 +437,7 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
       }
 
       else {
-        // doc.created = doc.created || date;
-        // doc.modified = date;
-
         return this.collection.insertOne(doc as any, options);
-
       }
 
     }
@@ -546,6 +542,79 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
       }
       const _query = this.toQuery(query);
       return this._handleResponse(this._find(_query, options as IFindOneOptions, false) as Promise<S>, cb);
+    }
+
+    /**
+     * Finds one document by query then converts to Model.
+     * 
+     * @param id the id of the document to find.
+     * @param FindModel the model to convert result to.
+     * @param options optional find one options.
+     * @param cb an optional callback instead of using promise.
+     */
+    static async findModel<L extends BaseModel<S>>(
+      id: LikeObjectId,
+      FindModel: Constructor<L>,
+      options: IFindOneOptions,
+      cb?: MongoCallback<L | null>): Promise<L>;
+
+    /**
+     * Finds one document by query then converts to Model.
+     * 
+     * @param query the query for finding the document.
+     * @param FindModel the model to convert result to.
+     * @param options optional find one options.
+     * @param cb an optional callback instead of using promise.
+     */
+    static async findModel<L extends BaseModel<S>>(
+      query: FilterQuery<S>,
+      FindModel: Constructor<L>,
+      options: IFindOneOptions,
+      cb?: MongoCallback<L | null>): Promise<L>;
+
+    /**
+     * Finds one document by query then converts to Model.
+     * 
+     * @param id the id of the document to find.
+     * @param FindModel the model to convert result to.
+     * @param cb an optional callback instead of using promise.
+     */
+    static async findModel<L extends BaseModel<S>>(
+      id: LikeObjectId,
+      FindModel: Constructor<L>,
+      cb?: MongoCallback<L | null>): Promise<L>;
+
+    /**
+     * Finds one document by query then converts to Model.
+     * 
+     * @param query the query for finding the document.
+     * @param FindModel the model to convert result to.
+     * @param cb an optional callback instead of using promise.
+     */
+    static async findModel<L extends BaseModel<S>>(
+      query: FilterQuery<S>,
+      FindModel: Constructor<L>,
+      cb?: MongoCallback<L | null>): Promise<L>;
+
+    static async findModel<L extends BaseModel<S>>(
+      query: LikeObjectId | FilterQuery<S>,
+      FindModel: Constructor<L>,
+      options?: IFindOneOptions | MongoCallback<L | null>,
+      cb?: MongoCallback<L | null>) {
+
+      if (typeof options === 'function') {
+        cb = options as any;
+        options = undefined;
+      }
+
+      const _query = this.toQuery(query);
+      const { err, data } = await me(this._find(_query, options as IFindOneOptions, false));
+
+      if (err)
+        return Promise.reject(err);
+
+      return this._handleResponse(new FindModel(data), cb);
+
     }
 
     /**
@@ -704,13 +773,7 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
       }
 
       query = this.toQuery(query);
-
-      // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
       update = this.toUpdate(update);
-
-      // const date = Date.now();
-
-      // update.$set.modified = update.$set.modified || date;
 
       return this._handleResponse(this._update(query, update as any, options as UpdateManyOptions, true), cb);
 
@@ -780,13 +843,7 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
       }
 
       const _query = this.toQuery(query);
-
-      // update = !(update as any).$set ? update = { $set: update } : update as UpdateQuery<Partial<P>>;
       update = this.toUpdate(update);
-
-      // const date = Date.now();
-
-      //  update.$set.modified = update.$set.modified || date;
 
       return this._handleResponse(this._update(_query, update as any, options as UpdateOneOptions, false), cb);
 
@@ -886,21 +943,21 @@ export function initDocument<S extends IDoc, M extends DefaultModel<S>>(
         this._delete(_query, options as CommonOptions & { bypassDocumentValidation?: boolean }, false), cb);
     }
 
-    static pre(type: HookType, handlers: NextHandler | NextHandler[]) {
+    static pre<A1 = any, A2 = any, A3 = any>(type: HookType, handler: DocumentHook<A1, A2, A3>) {
       const methods = hookMap[type];
       if (!methods)
         throw new Error(`Cannot create hook for "${type}" using methods of undefined.`);
       // Bind each handler.
-      mustad.pre(methods, handlers);
+      mustad.pre(methods, handler);
       return this;
     }
 
-    static post(type: HookType, handlers: NextHandler | NextHandler[]) {
+    static post<A1 = any, A2 = any, A3 = any>(type: HookType, handler: DocumentHook<A1, A2, A3>) {
       const methods = hookMap[type];
       if (!methods)
         throw new Error(`Cannot create hook for "${type}" using methods of undefined.`);
       // Bind each handler.
-      mustad.post(methods, handlers);
+      mustad.post(methods, handler);
       return this;
     }
 

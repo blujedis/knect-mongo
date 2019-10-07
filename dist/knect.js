@@ -22,7 +22,7 @@ class KnectMongo {
     createModel(name, schema) {
         const knect = this;
         this.schemas.set(name, schema);
-        const Document = document_1.initDocument(schema, knect.client, knect.db, model_1.Model);
+        const Document = document_1.initDocument(schema, knect.client, knect.db, model_1.BaseModel);
         return Document;
     }
     /**

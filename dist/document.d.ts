@@ -1,9 +1,9 @@
 import { FilterQuery, UpdateQuery, ObjectId, DeleteWriteOpResultObject, CollectionInsertOneOptions, CollectionInsertManyOptions, UpdateManyOptions, UpdateOneOptions, CommonOptions, Db, MongoClient, FindOneAndUpdateOption, FindOneAndDeleteOption, FindOneAndReplaceOption, MongoCallback, FindAndModifyWriteOpResultObject, InsertOneWriteOpResult, InsertWriteOpResult, UpdateWriteOpResult } from 'mongodb';
-import { ISchema, LikeObjectId, IJoins, IJoin, ICascadeResult, IFindOneOptions, Constructor, IDoc } from './types';
-import { Model as DefaultModel } from './model';
+import { ISchema, LikeObjectId, IJoins, IJoin, ICascadeResult, IFindOneOptions, Constructor, IDoc, DocumentHook } from './types';
+import { BaseModel as BaseModel } from './model';
 import { ObjectSchema, ValidateOptions } from 'yup';
 export declare type HookType = 'find' | 'create' | 'update' | 'delete';
-export declare function initDocument<S extends IDoc, M extends DefaultModel<S>>(config?: ISchema<S>, client?: MongoClient, db?: Db, Model?: Constructor<M>): {
+export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(config?: ISchema<S>, client?: MongoClient, db?: Db, Model?: Constructor<M>): {
     new (doc?: S): {};
     client: MongoClient;
     db: Db;
@@ -104,7 +104,7 @@ export declare function initDocument<S extends IDoc, M extends DefaultModel<S>>(
      * @param promise a promise to be handled.
      * @param cb an optional callback to be called with error or data.
      */
-    _handleResponse<T, E>(promise: Promise<T>, cb?: (err: E, data: T) => void): Promise<T>;
+    _handleResponse<T, E>(promise: T | Promise<T>, cb?: (err: E, data: T) => void): Promise<T>;
     /**
      * Common handler finds a document or collection of documents by query.
      *
@@ -187,6 +187,42 @@ export declare function initDocument<S extends IDoc, M extends DefaultModel<S>>(
      * @param cb an optional callback instead of using promise.
      */
     findOne(query: FilterQuery<S>, cb?: MongoCallback<S>): Promise<S>;
+    /**
+     * Finds one document by query then converts to Model.
+     *
+     * @param id the id of the document to find.
+     * @param FindModel the model to convert result to.
+     * @param options optional find one options.
+     * @param cb an optional callback instead of using promise.
+     */
+    findModel<L extends BaseModel<S>>(id: LikeObjectId, FindModel: Constructor<L>, options: IFindOneOptions, cb?: MongoCallback<L>): Promise<L>;
+    /**
+     * Finds one document by query then converts to Model.
+     *
+     * @param id the id of the document to find.
+     * @param FindModel the model to convert result to.
+     * @param options optional find one options.
+     * @param cb an optional callback instead of using promise.
+     */
+    findModel<L_1 extends BaseModel<S>>(query: FilterQuery<S>, FindModel: Constructor<L_1>, options: IFindOneOptions, cb?: MongoCallback<L_1>): Promise<L_1>;
+    /**
+     * Finds one document by query then converts to Model.
+     *
+     * @param id the id of the document to find.
+     * @param FindModel the model to convert result to.
+     * @param options optional find one options.
+     * @param cb an optional callback instead of using promise.
+     */
+    findModel<L_2 extends BaseModel<S>>(id: LikeObjectId, FindModel: Constructor<L_2>, cb?: MongoCallback<L_2>): Promise<L_2>;
+    /**
+     * Finds one document by query then converts to Model.
+     *
+     * @param id the id of the document to find.
+     * @param FindModel the model to convert result to.
+     * @param options optional find one options.
+     * @param cb an optional callback instead of using promise.
+     */
+    findModel<L_3 extends BaseModel<S>>(query: FilterQuery<S>, FindModel: Constructor<L_3>, cb?: MongoCallback<L_3>): Promise<L_3>;
     /**
      * Finds a document and then updates.
      *
@@ -351,6 +387,6 @@ export declare function initDocument<S extends IDoc, M extends DefaultModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     deleteOne(query: FilterQuery<S>, cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
-    pre(type: HookType, handlers: any): any;
-    post(type: HookType, handlers: any): any;
+    pre<A1 = any, A2 = any, A3 = any>(type: HookType, handler: DocumentHook<A1, A2, A3>): any;
+    post<A1_1 = any, A2_1 = any, A3_1 = any>(type: HookType, handler: DocumentHook<A1_1, A2_1, A3_1>): any;
 };

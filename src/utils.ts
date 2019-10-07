@@ -48,3 +48,5 @@ export function fromNamespace(ns: string, delimiter: string = '.') {
     ns
   };
 }
+
+export const isPromise = val => Promise.resolve(val) === val;

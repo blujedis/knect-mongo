@@ -40,13 +40,13 @@ const userSchema = baseSchema.shape({
 });
 
 const postSchema = baseSchema.shape({
-  title: string(),
+  title: string().required(),
   body: string(),
-  user: mixed<LikeObjectId>()
+  user: mixed<LikeObjectId>().required()
 });
 
-type IUserSchema = InferType<typeof userSchema>;
-type IPostSchema = InferType<typeof postSchema>;
+export type IUserSchema = InferType<typeof userSchema>;
+export type IPostSchema = InferType<typeof postSchema>;
 
 export const UserSchema: ISchema<IUserSchema> = {
   props: userSchema,

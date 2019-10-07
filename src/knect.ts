@@ -1,7 +1,7 @@
 import { MongoClient, MongoClientOptions, Db } from 'mongodb';
 import { ISchema, Constructor, IDoc } from './types';
 import { parseDbName, fromNamespace } from './utils';
-import { Model } from './model';
+import { BaseModel } from './model';
 import { initDocument } from './document';
 
 export const MONGO_CLIENT_DEFAULTS = {
@@ -29,7 +29,7 @@ export class KnectMongo {
 
     this.schemas.set(name, schema);
 
-    const Document = initDocument(schema, knect.client, knect.db, Model);
+    const Document = initDocument(schema, knect.client, knect.db, BaseModel);
 
     return Document;
 
@@ -82,7 +82,7 @@ export class KnectMongo {
 
     const DocumentModel = this.createModel(_ns, _schema);
 
-    return DocumentModel as typeof DocumentModel & Constructor<Model<S> & S>;
+    return DocumentModel as typeof DocumentModel & Constructor<BaseModel<S> & S>;
 
   }
 

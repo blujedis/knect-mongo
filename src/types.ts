@@ -1,6 +1,6 @@
 import {
   ObjectId, FindOneOptions, DeleteWriteOpResultObject,
-  Db, MongoClient, InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FilterQuery, CollectionInsertOneOptions, UpdateQuery, UpdateManyOptions, UpdateOneOptions, CommonOptions
+  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject
 } from 'mongodb';
 
 import { IHookHandler } from 'mustad';
@@ -50,23 +50,5 @@ export interface IModelSaveResult<S extends IDoc> {
   response: InsertOneWriteOpResult<S> | FindAndModifyWriteOpResultObject<S>;
 }
 
-// IFindOneOptions, 
-// CollectionInsertOneOptions | CollectionInsertManyOptions 
-// UpdateOneOptions | UpdateManyOptions,
-// CommonOptions & { bypassDocumentValidation?: boolean }
-
-export interface IPreHook<S> {
-  (
-    next: IHookHandler,
-    queryOrId: LikeObjectId | FilterQuery<S>,
-    update: UpdateQuery<Partial<S>> | Partial<S>,
-    options?: UpdateOneOptions | UpdateManyOptions,
-    ...args: any[]): any;
-  (next: IHookHandler, doc: S | S[], options?: CollectionInsertOneOptions, ...args: any[]): any;
-  (
-    next: IHookHandler, 
-    queryOrId: LikeObjectId | FilterQuery<S>, 
-    options?: IFindOneOptions | CommonOptions & { bypassDocumentValidation?: boolean },
-    ...args: any[]): any;
-  (next: IHookHandler, ...args: any[]): any;
-}
+export type DocumentHook<A1 = any, A2 = any, A3 = any> =
+  (next: IHookHandler, arg1?: A1, arg2?: A2, arg3?: A3, ...args: any[]) => any;

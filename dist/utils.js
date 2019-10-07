@@ -49,4 +49,5 @@ function fromNamespace(ns, delimiter = '.') {
     };
 }
 exports.fromNamespace = fromNamespace;
+exports.isPromise = val => Promise.resolve(val) === val;
 //# sourceMappingURL=utils.js.map

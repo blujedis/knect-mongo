@@ -1,13 +1,26 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const document_1 = require("./document");
 const yup_1 = require("yup");
 const utils_1 = require("./utils");
-class Model {
+const doctype = false && document_1.initDocument();
+class BaseModel {
     constructor(doc, document) {
         const model = this;
-        this._doc = doc || {};
-        this._Document = document;
-        const fields = this._Document.schema.props.fields || {};
+        Object.defineProperties(this, {
+            _Document: {
+                enumerable: false,
+                configurable: false,
+                writable: false,
+                value: document
+            },
+            _doc: {
+                enumerable: false,
+                writable: true,
+                value: doc || {}
+            }
+        });
+        const fields = document.schema.props.fields || {};
         for (const k in fields) {
             Object.defineProperty(this, k, {
                 get() {
@@ -80,6 +93,18 @@ class Model {
         return this._Document.findDelete(this._id, options);
     }
     /**
+     * Propulates child values based on join configurations.
+     *
+     * @param names the names of joins that should be populated.
+     */
+    async populate(...names) {
+        const { err, data } = await utils_1.me(this._Document.populate(this._doc, names));
+        if (err)
+            return Promise.reject(err);
+        this._doc = data;
+        return Promise.resolve(data);
+    }
+    /**
      * Validates instance against schema.
      *
      * @param schema optional schema to verify by or uses defined.
@@ -96,5 +121,5 @@ class Model {
         return this._Document.isValid(this._doc, schema);
     }
 }
-exports.Model = Model;
+exports.BaseModel = BaseModel;
 //# sourceMappingURL=model.js.map
