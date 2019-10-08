@@ -84,22 +84,19 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_knect_.knectmongo.html#allowemptyschemas" class="tsd-kind-icon">allow<wbr>Empty<wbr>Schemas</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_knect_.knectmongo.html#client" class="tsd-kind-icon">client</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_knect_.knectmongo.html#db" class="tsd-kind-icon">db</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_knect_.knectmongo.html#dbname" class="tsd-kind-icon">dbname</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_knect_.knectmongo.html#delimiter" class="tsd-kind-icon">delimiter</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_knect_.knectmongo.html#schemas" class="tsd-kind-icon">schemas</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_knect_.knectmongo.html#models" class="tsd-kind-icon">models</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_knect_.knectmongo.html#connect" class="tsd-kind-icon">connect</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private"><a href="_knect_.knectmongo.html#createmodel" class="tsd-kind-icon">create<wbr>Model</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="_knect_.knectmongo.html#fromnamespace" class="tsd-kind-icon">from<wbr>Namespace</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="_knect_.knectmongo.html#model" class="tsd-kind-icon">model</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="_knect_.knectmongo.html#tonamespace" class="tsd-kind-icon">to<wbr>Namespace</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private"><a href="_knect_.knectmongo.html#normalizeschema" class="tsd-kind-icon">normalize<wbr>Schema</a></li>
 							</ul>
 						</section>
 					</div>
@@ -108,22 +105,12 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="allowemptyschemas" class="tsd-anchor"></a>
-					<h3>allow<wbr>Empty<wbr>Schemas</h3>
-					<div class="tsd-signature tsd-kind-icon">allow<wbr>Empty<wbr>Schemas<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L37">knect.ts:37</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="client" class="tsd-anchor"></a>
 					<h3>client</h3>
 					<div class="tsd-signature tsd-kind-icon">client<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">MongoClient</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L35">knect.ts:35</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L17">knect.ts:17</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -133,7 +120,7 @@
 					<div class="tsd-signature tsd-kind-icon">db<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Db</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L34">knect.ts:34</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L16">knect.ts:16</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -143,7 +130,7 @@
 					<div class="tsd-signature tsd-kind-icon">dbname<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L33">knect.ts:33</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L15">knect.ts:15</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -153,17 +140,17 @@
 					<div class="tsd-signature tsd-kind-icon">delimiter<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;.&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L38">knect.ts:38</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L19">knect.ts:19</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="schemas" class="tsd-anchor"></a>
-					<h3>schemas</h3>
-					<div class="tsd-signature tsd-kind-icon">schemas<span class="tsd-signature-symbol">:</span> <a href="../interfaces/_types_.ischemas.html" class="tsd-signature-type">ISchemas</a></div>
+					<a name="models" class="tsd-anchor"></a>
+					<h3>models</h3>
+					<div class="tsd-signature tsd-kind-icon">models<span class="tsd-signature-symbol">:</span> <a href="_map_.modelmap.html" class="tsd-signature-type">ModelMap</a><span class="tsd-signature-symbol"> =&nbsp;new ModelMap()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L36">knect.ts:36</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L18">knect.ts:18</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -180,7 +167,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L865">knect.ts:865</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L53">knect.ts:53</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -207,102 +194,17 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private">
-					<a name="createmodel" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagPrivate">Private</span> create<wbr>Model</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private">
-						<li class="tsd-signature tsd-kind-icon">create<wbr>Model&lt;S&gt;<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, config<span class="tsd-signature-symbol">: </span><a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Klass</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L72">knect.ts:72</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Accepts a schema and creates model with static and instance convenience methods.</p>
-								</div>
-							</div>
-							<h4 class="tsd-type-parameters-title">Type parameters</h4>
-							<ul class="tsd-type-parameters">
-								<li>
-									<h4>S<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></h4>
-								</li>
-							</ul>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>name: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the name of the collection</p>
-									</div>
-								</li>
-								<li>
-									<h5>config: <a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the schema configuration containing document validation.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Klass</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
-					<a name="fromnamespace" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagPrivate">Private</span> from<wbr>Namespace</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
-						<li class="tsd-signature tsd-kind-icon">from<wbr>Namespace<span class="tsd-signature-symbol">(</span>ns<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L57">knect.ts:57</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Breaks out a namespace to object with collection, name and original namespace.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>ns: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the namespace to be parsed.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4>
-							<ul class="tsd-parameters">
-								<li class="tsd-parameter">
-									<h5>collection<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-								</li>
-								<li class="tsd-parameter">
-									<h5>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-								</li>
-								<li class="tsd-parameter">
-									<h5>ns<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
-						</li>
-					</ul>
-				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
 					<a name="model" class="tsd-anchor"></a>
 					<h3>model</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-						<li class="tsd-signature tsd-kind-icon">model&lt;S&gt;<span class="tsd-signature-symbol">(</span>ns<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, schema<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span>, collectionName<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Klass</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">object</span></li>
+						<li class="tsd-signature tsd-kind-icon">model&lt;S&gt;<span class="tsd-signature-symbol">(</span>ns<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, schema<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Document</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">object</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L888">knect.ts:888</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L75">knect.ts:75</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -325,59 +227,59 @@
 									</div>
 								</li>
 								<li>
-									<h5><span class="tsd-flag ts-flagOptional">Optional</span> schema: <a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> schema: <a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>the schema configuration containing document validation.</p>
 									</div>
 								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagOptional">Optional</span> collectionName: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>specify the collection name otherwise schema name is used.</p>
-									</div>
-								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Klass</span>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Document</span>
 								<span class="tsd-signature-symbol"> &amp; </span>
 								<span class="tsd-signature-type">object</span>
 							</h4>
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
-					<a name="tonamespace" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagPrivate">Private</span> to<wbr>Namespace</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
-						<li class="tsd-signature tsd-kind-icon">to<wbr>Namespace<span class="tsd-signature-symbol">(</span>collection<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, name<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private">
+					<a name="normalizeschema" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> normalize<wbr>Schema</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">normalize<wbr>Schema&lt;S&gt;<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, schema<span class="tsd-signature-symbol">: </span><a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L46">knect.ts:46</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L27">knect.ts:27</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Converts a collection name and name/alias into a namespace.</p>
+									<p>Ensures schema is valid configuration.</p>
 								</div>
 							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>S<span class="tsd-signature-symbol">: </span><a href="../interfaces/_types_.idoc.html" class="tsd-signature-type">IDoc</a></h4>
+								</li>
+							</ul>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>collection: <span class="tsd-signature-type">string</span></h5>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>the collection name.</p>
+										<p>the name of the schema.</p>
 									</div>
 								</li>
 								<li>
-									<h5><span class="tsd-flag ts-flagOptional">Optional</span> name: <span class="tsd-signature-type">string</span></h5>
+									<h5>schema: <a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>the name to concat to collection name.</p>
+										<p>the schema object.</p>
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -390,10 +292,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="../modules/_document_.html">"document"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_index_.html">"index"</a>
 					</li>
 					<li class="current tsd-kind-external-module">
 						<a href="../modules/_knect_.html">"knect"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_map_.html">"map"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_model_.html">"model"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_types_.html">"types"</a>
@@ -411,9 +322,6 @@
 						<a href="_knect_.knectmongo.html" class="tsd-kind-icon">Knect<wbr>Mongo</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_knect_.knectmongo.html#allowemptyschemas" class="tsd-kind-icon">allow<wbr>Empty<wbr>Schemas</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_knect_.knectmongo.html#client" class="tsd-kind-icon">client</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
@@ -426,22 +334,16 @@
 								<a href="_knect_.knectmongo.html#delimiter" class="tsd-kind-icon">delimiter</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_knect_.knectmongo.html#schemas" class="tsd-kind-icon">schemas</a>
+								<a href="_knect_.knectmongo.html#models" class="tsd-kind-icon">models</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="_knect_.knectmongo.html#connect" class="tsd-kind-icon">connect</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private">
-								<a href="_knect_.knectmongo.html#createmodel" class="tsd-kind-icon">create<wbr>Model</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
-								<a href="_knect_.knectmongo.html#fromnamespace" class="tsd-kind-icon">from<wbr>Namespace</a>
-							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
 								<a href="_knect_.knectmongo.html#model" class="tsd-kind-icon">model</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
-								<a href="_knect_.knectmongo.html#tonamespace" class="tsd-kind-icon">to<wbr>Namespace</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-private">
+								<a href="_knect_.knectmongo.html#normalizeschema" class="tsd-kind-icon">normalize<wbr>Schema</a>
 							</li>
 						</ul>
 					</li>
@@ -452,9 +354,6 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
 						<a href="../modules/_knect_.html#getinstance" class="tsd-kind-icon">get<wbr>Instance</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="../modules/_knect_.html#parsedbname" class="tsd-kind-icon">parse<wbr>DbName</a>
 					</li>
 					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module">
 						<a href="../modules/_knect_.html#mongo_client_defaults" class="tsd-kind-icon">MONGO_<wbr>CLIENT_<wbr>DEFAULTS</a>

@@ -101,7 +101,7 @@
 					<div class="tsd-signature tsd-kind-icon">cascade<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/types.ts#L52">types.ts:52</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/types.ts#L30">types.ts:30</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -111,7 +111,7 @@
 					<div class="tsd-signature tsd-kind-icon">collection<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/types.ts#L49">types.ts:49</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/types.ts#L27">types.ts:27</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -121,7 +121,7 @@
 					<div class="tsd-signature tsd-kind-icon">key<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/types.ts#L50">types.ts:50</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/types.ts#L28">types.ts:28</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -131,7 +131,7 @@
 					<div class="tsd-signature tsd-kind-icon">options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">FindOneOptions</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/types.ts#L51">types.ts:51</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/types.ts#L29">types.ts:29</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -144,10 +144,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="../modules/_document_.html">"document"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_index_.html">"index"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_knect_.html">"knect"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_map_.html">"map"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_model_.html">"model"</a>
 					</li>
 					<li class="current tsd-kind-external-module">
 						<a href="../modules/_types_.html">"types"</a>
@@ -159,29 +168,17 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ibaseprops.html" class="tsd-kind-icon">IBase<wbr>Props</a>
-					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
 						<a href="_types_.icascaderesult.html" class="tsd-kind-icon">ICascade<wbr>Result</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
+						<a href="_types_.idoc.html" class="tsd-kind-icon">IDoc</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
+						<a href="_types_.ifindoneanddeleteoption.html" class="tsd-kind-icon">IFind<wbr>One<wbr>And<wbr>Delete<wbr>Option</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
 						<a href="_types_.ifindoneoptions.html" class="tsd-kind-icon">IFind<wbr>One<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ihookconfig.html" class="tsd-kind-icon">IHook<wbr>Config</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="_types_.ihookcontext.html" class="tsd-kind-icon">IHook<wbr>Context</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ihooks.html" class="tsd-kind-icon">IHooks</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="_types_.iinsertonewriteopresult.html" class="tsd-kind-icon">IInsert<wbr>One<wbr>Write<wbr>OpResult</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="_types_.iinsertwriteopresult.html" class="tsd-kind-icon">IInsert<wbr>Write<wbr>OpResult</a>
 					</li>
 				</ul>
 				<ul class="current">
@@ -204,32 +201,32 @@
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ijoins.html" class="tsd-kind-icon">IJoins</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
+						<a href="_types_.imodelsaveresult.html" class="tsd-kind-icon">IModel<wbr>Save<wbr>Result</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
 						<a href="_types_.ischema.html" class="tsd-kind-icon">ISchema</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ischemas.html" class="tsd-kind-icon">ISchemas</a>
-					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="../modules/_types_.html#awaiterresponse" class="tsd-kind-icon">Awaiter<wbr>Response</a>
-					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
 						<a href="../modules/_types_.html#constructor" class="tsd-kind-icon">Constructor</a>
 					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="../modules/_types_.html#hookhandler" class="tsd-kind-icon">Hook<wbr>Handler</a>
-					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
-						<a href="../modules/_types_.html#hooktypes" class="tsd-kind-icon">Hook<wbr>Types</a>
-					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
-						<a href="../modules/_types_.html#likeobjectid" class="tsd-kind-icon">Like<wbr>ObjectID</a>
+						<a href="../modules/_types_.html#deriveddocument" class="tsd-kind-icon">Derived<wbr>Document</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="../modules/_types_.html#omit" class="tsd-kind-icon">Omit</a>
+						<a href="../modules/_types_.html#documenthook" class="tsd-kind-icon">Document<wbr>Hook</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
+						<a href="../modules/_types_.html#joins" class="tsd-kind-icon">Joins</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
+						<a href="../modules/_types_.html#keyof" class="tsd-kind-icon">Key<wbr>Of</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
+						<a href="../modules/_types_.html#likeobjectid" class="tsd-kind-icon">Like<wbr>Object<wbr>Id</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_types_.html#documentmodel" class="tsd-kind-icon">Document<wbr>Model</a>
 					</li>
 				</ul>
 			</nav>

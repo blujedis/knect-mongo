@@ -1,12 +1,11 @@
 import {
   ObjectId, FindOneOptions, DeleteWriteOpResultObject,
-  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, MongoError, UpdateWriteOpResult, FindOneAndDeleteOption
+  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndDeleteOption
 } from 'mongodb';
 
 import { IHookHandler } from 'mustad';
 import { ObjectSchema } from 'yup';
 import { initDocument } from './document';
-import { Model } from './model';
 
 const DocumentModel = (false as true) && initDocument();
 export type DerivedDocument = typeof DocumentModel;

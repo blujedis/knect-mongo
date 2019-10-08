@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>IHookConfig | Knect-Mongo</title>
+	<title>IFindOneAndDeleteOption | Knect-Mongo</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -59,21 +59,34 @@
 					<a href="../modules/_types_.html">&quot;types&quot;</a>
 				</li>
 				<li>
-					<a href="_types_.ihookconfig.html">IHookConfig</a>
+					<a href="_types_.ifindoneanddeleteoption.html">IFindOneAndDeleteOption</a>
 				</li>
 			</ul>
-			<h1>Interface IHookConfig</h1>
+			<h1>Interface IFindOneAndDeleteOption&lt;S&gt;</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-type-parameters">
+				<h3>Type parameters</h3>
+				<ul class="tsd-type-parameters">
+					<li>
+						<h4>S<span class="tsd-signature-symbol">: </span><a href="_types_.idoc.html" class="tsd-signature-type">IDoc</a></h4>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">IHookConfig</span>
+						<span class="tsd-signature-type">FindOneAndDeleteOption</span>
+						<ul class="tsd-hierarchy">
+							<li>
+								<span class="target">IFindOneAndDeleteOption</span>
+							</li>
+						</ul>
 					</li>
 				</ul>
 			</section>
@@ -84,8 +97,12 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_types_.ihookconfig.html#post" class="tsd-kind-icon">post</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_types_.ihookconfig.html#pre" class="tsd-kind-icon">pre</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_types_.ifindoneanddeleteoption.html#cascade" class="tsd-kind-icon">cascade</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="_types_.ifindoneanddeleteoption.html#collation" class="tsd-kind-icon">collation</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="_types_.ifindoneanddeleteoption.html#maxtimems" class="tsd-kind-icon">max<wbr>TimeMS</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="_types_.ifindoneanddeleteoption.html#projection" class="tsd-kind-icon">projection</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="_types_.ifindoneanddeleteoption.html#session" class="tsd-kind-icon">session</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="_types_.ifindoneanddeleteoption.html#sort" class="tsd-kind-icon">sort</a></li>
 							</ul>
 						</section>
 					</div>
@@ -94,22 +111,67 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="post" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> post</h3>
-					<div class="tsd-signature tsd-kind-icon">post<span class="tsd-signature-symbol">:</span> <a href="../modules/_types_.html#hookhandler" class="tsd-signature-type">HookHandler</a></div>
+					<a name="cascade" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> cascade</h3>
+					<div class="tsd-signature tsd-kind-icon">cascade<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><a href="../modules/_types_.html#joins" class="tsd-signature-type">Joins</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/types.ts#L35">types.ts:35</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/types.ts#L50">types.ts:50</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="pre" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> pre</h3>
-					<div class="tsd-signature tsd-kind-icon">pre<span class="tsd-signature-symbol">:</span> <a href="../modules/_types_.html#hookhandler" class="tsd-signature-type">HookHandler</a></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a name="collation" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> collation</h3>
+					<div class="tsd-signature tsd-kind-icon">collation<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">CollationDocument</span></div>
 					<aside class="tsd-sources">
+						<p>Inherited from FindOneAndDeleteOption.collation</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/types.ts#L34">types.ts:34</a></li>
+							<li>Defined in /Users/carey/Projects/Node/knect/knect-mongo/node_modules/@types/mongodb/index.d.ts:1603</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a name="maxtimems" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> max<wbr>TimeMS</h3>
+					<div class="tsd-signature tsd-kind-icon">max<wbr>TimeMS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from FindOneAndDeleteOption.maxTimeMS</p>
+						<ul>
+							<li>Defined in /Users/carey/Projects/Node/knect/knect-mongo/node_modules/@types/mongodb/index.d.ts:1601</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a name="projection" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> projection</h3>
+					<div class="tsd-signature tsd-kind-icon">projection<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from FindOneAndDeleteOption.projection</p>
+						<ul>
+							<li>Defined in /Users/carey/Projects/Node/knect/knect-mongo/node_modules/@types/mongodb/index.d.ts:1599</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a name="session" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> session</h3>
+					<div class="tsd-signature tsd-kind-icon">session<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ClientSession</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from FindOneAndDeleteOption.session</p>
+						<ul>
+							<li>Defined in /Users/carey/Projects/Node/knect/knect-mongo/node_modules/@types/mongodb/index.d.ts:1602</li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+					<a name="sort" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> sort</h3>
+					<div class="tsd-signature tsd-kind-icon">sort<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<p>Inherited from FindOneAndDeleteOption.sort</p>
+						<ul>
+							<li>Defined in /Users/carey/Projects/Node/knect/knect-mongo/node_modules/@types/mongodb/index.d.ts:1600</li>
 						</ul>
 					</aside>
 				</section>
@@ -122,10 +184,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="../modules/_document_.html">"document"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_index_.html">"index"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_knect_.html">"knect"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_map_.html">"map"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_model_.html">"model"</a>
 					</li>
 					<li class="current tsd-kind-external-module">
 						<a href="../modules/_types_.html">"types"</a>
@@ -137,71 +208,71 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ibaseprops.html" class="tsd-kind-icon">IBase<wbr>Props</a>
-					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
 						<a href="_types_.icascaderesult.html" class="tsd-kind-icon">ICascade<wbr>Result</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ifindoneoptions.html" class="tsd-kind-icon">IFind<wbr>One<wbr>Options</a>
+						<a href="_types_.idoc.html" class="tsd-kind-icon">IDoc</a>
 					</li>
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ihookconfig.html" class="tsd-kind-icon">IHook<wbr>Config</a>
+					<li class="current tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
+						<a href="_types_.ifindoneanddeleteoption.html" class="tsd-kind-icon">IFind<wbr>One<wbr>And<wbr>Delete<wbr>Option</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_types_.ihookconfig.html#post" class="tsd-kind-icon">post</a>
+								<a href="_types_.ifindoneanddeleteoption.html#cascade" class="tsd-kind-icon">cascade</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_types_.ihookconfig.html#pre" class="tsd-kind-icon">pre</a>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+								<a href="_types_.ifindoneanddeleteoption.html#collation" class="tsd-kind-icon">collation</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+								<a href="_types_.ifindoneanddeleteoption.html#maxtimems" class="tsd-kind-icon">max<wbr>TimeMS</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+								<a href="_types_.ifindoneanddeleteoption.html#projection" class="tsd-kind-icon">projection</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+								<a href="_types_.ifindoneanddeleteoption.html#session" class="tsd-kind-icon">session</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+								<a href="_types_.ifindoneanddeleteoption.html#sort" class="tsd-kind-icon">sort</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="_types_.ihookcontext.html" class="tsd-kind-icon">IHook<wbr>Context</a>
-					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ihooks.html" class="tsd-kind-icon">IHooks</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="_types_.iinsertonewriteopresult.html" class="tsd-kind-icon">IInsert<wbr>One<wbr>Write<wbr>OpResult</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="_types_.iinsertwriteopresult.html" class="tsd-kind-icon">IInsert<wbr>Write<wbr>OpResult</a>
+						<a href="_types_.ifindoneoptions.html" class="tsd-kind-icon">IFind<wbr>One<wbr>Options</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
 						<a href="_types_.ijoin.html" class="tsd-kind-icon">IJoin</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ijoins.html" class="tsd-kind-icon">IJoins</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
+						<a href="_types_.imodelsaveresult.html" class="tsd-kind-icon">IModel<wbr>Save<wbr>Result</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-has-type-parameter">
 						<a href="_types_.ischema.html" class="tsd-kind-icon">ISchema</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_types_.ischemas.html" class="tsd-kind-icon">ISchemas</a>
-					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="../modules/_types_.html#awaiterresponse" class="tsd-kind-icon">Awaiter<wbr>Response</a>
-					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
 						<a href="../modules/_types_.html#constructor" class="tsd-kind-icon">Constructor</a>
 					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="../modules/_types_.html#hookhandler" class="tsd-kind-icon">Hook<wbr>Handler</a>
-					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
-						<a href="../modules/_types_.html#hooktypes" class="tsd-kind-icon">Hook<wbr>Types</a>
-					</li>
-					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
-						<a href="../modules/_types_.html#likeobjectid" class="tsd-kind-icon">Like<wbr>ObjectID</a>
+						<a href="../modules/_types_.html#deriveddocument" class="tsd-kind-icon">Derived<wbr>Document</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
-						<a href="../modules/_types_.html#omit" class="tsd-kind-icon">Omit</a>
+						<a href="../modules/_types_.html#documenthook" class="tsd-kind-icon">Document<wbr>Hook</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
+						<a href="../modules/_types_.html#joins" class="tsd-kind-icon">Joins</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-has-type-parameter">
+						<a href="../modules/_types_.html#keyof" class="tsd-kind-icon">Key<wbr>Of</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
+						<a href="../modules/_types_.html#likeobjectid" class="tsd-kind-icon">Like<wbr>Object<wbr>Id</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_types_.html#documentmodel" class="tsd-kind-icon">Document<wbr>Model</a>
 					</li>
 				</ul>
 			</nav>

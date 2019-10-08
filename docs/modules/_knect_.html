@@ -86,7 +86,6 @@
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported"><a href="_knect_.html#getinstance" class="tsd-kind-icon">get<wbr>Instance</a></li>
-								<li class="tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported"><a href="_knect_.html#parsedbname" class="tsd-kind-icon">parse<wbr>DbName</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -106,7 +105,7 @@
 					<div class="tsd-signature tsd-kind-icon">_instance<span class="tsd-signature-symbol">:</span> <a href="../classes/_knect_.knectmongo.html" class="tsd-signature-type">KnectMongo</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L925">knect.ts:925</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L103">knect.ts:103</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -123,7 +122,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L930">knect.ts:930</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L108">knect.ts:108</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -132,43 +131,6 @@
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <a href="../classes/_knect_.knectmongo.html" class="tsd-signature-type">KnectMongo</a></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-					<a name="parsedbname" class="tsd-anchor"></a>
-					<h3>parse<wbr>DbName</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-						<li class="tsd-signature tsd-kind-icon">parse<wbr>DbName<span class="tsd-signature-symbol">(</span>uri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, def<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L24">knect.ts:24</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Parses database name from Mongodb connection string.</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>uri: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the Mongodb uri connection string.</p>
-									</div>
-								</li>
-								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> def: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;&quot;</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the default database name when not found in uri.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -181,7 +143,7 @@
 					<div class="tsd-signature tsd-kind-icon">MONGO_<wbr>CLIENT_<wbr>DEFAULTS<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L14">knect.ts:14</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L8">knect.ts:8</a></li>
 						</ul>
 					</aside>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
@@ -190,7 +152,17 @@
 						<div class="tsd-signature tsd-kind-icon">use<wbr>New<wbr>Url<wbr>Parser<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/cd0f46a/src/knect.ts#L15">knect.ts:15</a></li>
+								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L9">knect.ts:9</a></li>
+							</ul>
+						</aside>
+					</section>
+					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
+						<a name="mongo_client_defaults.useunifiedtopology" class="tsd-anchor"></a>
+						<h3>use<wbr>Unified<wbr>Topology</h3>
+						<div class="tsd-signature tsd-kind-icon">use<wbr>Unified<wbr>Topology<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></div>
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/ae99387/src/knect.ts#L10">knect.ts:10</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -204,10 +176,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
+						<a href="_document_.html">"document"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="_index_.html">"index"</a>
 					</li>
 					<li class="current tsd-kind-external-module">
 						<a href="_knect_.html">"knect"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="_map_.html">"map"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="_model_.html">"model"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="_types_.html">"types"</a>
@@ -227,9 +208,6 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
 						<a href="_knect_.html#getinstance" class="tsd-kind-icon">get<wbr>Instance</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="_knect_.html#parsedbname" class="tsd-kind-icon">parse<wbr>DbName</a>
 					</li>
 					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module">
 						<a href="_knect_.html#mongo_client_defaults" class="tsd-kind-icon">MONGO_<wbr>CLIENT_<wbr>DEFAULTS</a>

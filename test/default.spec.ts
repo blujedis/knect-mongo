@@ -163,9 +163,8 @@ describe('Knect-Mongo', () => {
     const { err, data } = await me(User.cascade(user._doc, 'posts'));
     if (err)
       throw err;
-    console.log(data.ops.posts);
   });
 
- // after(drop.bind(null, true));
+  after(drop.bind(null, true));
 
 });
