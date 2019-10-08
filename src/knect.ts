@@ -1,8 +1,9 @@
 import { MongoClient, MongoClientOptions, Db } from 'mongodb';
-import { ISchema, Constructor, IDoc } from './types';
+import { ISchema, IDoc, Constructor } from './types';
 import { parseDbName, fromNamespace } from './utils';
-import { BaseModel } from './model';
+import { Model } from './model';
 import { initDocument } from './document';
+import { ModelMap } from './map';
 
 export const MONGO_CLIENT_DEFAULTS = {
   useNewUrlParser: true,
@@ -14,24 +15,32 @@ export class KnectMongo {
   dbname: string;
   db: Db;
   client: MongoClient;
-  schemas: Map<string, ISchema<any>> = new Map();
+  models: ModelMap = new ModelMap();
   delimiter: string = '.'; // used for defining schema names.
 
   /**
-   * Accepts a schema and creates model with static and instance convenience methods.
+   * Ensures schema is valid configuration.
    * 
-   * @param name the name of the collection
-   * @param schema the schema configuration containing document validation.
+   * @param name the name of the schema.
+   * @param schema the schema object.
    */
-  private createModel<S extends IDoc>(name: string, schema: ISchema<S>) {
+  private normalizeSchema<S extends IDoc>(name: string, schema: ISchema<S>) {
 
-    const knect = this;
+    schema.props = schema.props || {} as any;
+    schema.joins = schema.joins || {} as any;
 
-    this.schemas.set(name, schema);
+    if (!schema.collectionName)
+      throw new Error(`Cannot normalize schema "${name} using collectionName of undefined`);
 
-    const Document = initDocument(schema, knect.client, knect.db, BaseModel);
+    for (const k in schema.joins) {
+      const join = schema.joins[k];
+      if (!join.collection)
+        throw new Error(`Cannot normalize schema "${name}" using join "${k}" with collection of undefined.`);
+      join.key = join.key || '_id';
+      join.options = join.options || {};
+    }
 
-    return Document;
+    return schema;
 
   }
 
@@ -62,27 +71,30 @@ export class KnectMongo {
    * 
    * @param ns the namespace for the schema.
    * @param schema the schema configuration containing document validation.
-   * @param collectionName specify the collection name otherwise schema name is used.
    */
   model<S extends object>(ns: string, schema?: ISchema<S>) {
 
     const parsedNs = fromNamespace(ns, this.delimiter);
+    type Document = typeof DocumentModel;
 
-    let _ns: string = ns;
-    let _schema: ISchema<S> = schema;
-
-    // Return the existing schema/model by name.
-    if (!schema && this.schemas[parsedNs.ns]) {
-      _schema = this.schemas.get(parsedNs.ns);
-    }
-    else {
-      _ns = parsedNs.ns;
-      schema.collectionName = schema.collectionName || parsedNs.collection;
+    if (!schema) {
+      const model = this.models.get(ns) as Document & Constructor<Model<S> & S>;
+      if (!model)
+        throw new Error(`Model "${ns}" could NOT be found.`);
+      return model;
     }
 
-    const DocumentModel = this.createModel(_ns, _schema);
+    schema.collectionName = schema.collectionName || parsedNs.collection;
 
-    return DocumentModel as typeof DocumentModel & Constructor<BaseModel<S> & S>;
+    schema = this.normalizeSchema(ns, schema);
+
+    const DocumentModel = initDocument(schema, this.client, this.db, Model, this);
+
+    this.models.set(ns, DocumentModel as any);
+
+    // return DocumentModel as typeof DocumentModel & Constructor<Model<S> & S>;
+    // return DocumentModel as Document & DocumentContructor<Model<S>, S>;
+    return DocumentModel as Document & Constructor<Model<S> & S>;
 
   }
 

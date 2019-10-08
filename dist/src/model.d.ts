@@ -1,5 +1,5 @@
-import { ObjectId, CollectionInsertOneOptions, FindOneAndUpdateOption } from 'mongodb';
-import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
+import { ObjectId, UpdateOneOptions, CollectionInsertOneOptions, FindOneAndDeleteOption } from 'mongodb';
+import { IDoc, IModelSaveResult, DerivedDocument } from './types';
 import { ObjectSchema } from 'yup';
 export declare class Model<S extends IDoc> {
     private _Document;
@@ -23,13 +23,13 @@ export declare class Model<S extends IDoc> {
      *
      * @param options MongoDB update options.
      */
-    save(options?: FindOneAndUpdateOption | CollectionInsertOneOptions): Promise<IModelSaveResult<S>>;
+    save(options?: UpdateOneOptions | CollectionInsertOneOptions): Promise<IModelSaveResult<S>>;
     /**
      * Deletes document persisting in database.
      *
      * @param options Mongodb delete options.
      */
-    delete(options?: IFindOneAndDeleteOption<S>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<IDoc>>;
+    delete(options?: FindOneAndDeleteOption): Promise<import("mongodb").FindAndModifyWriteOpResultObject<IDoc>>;
     /**
      * Propulates child values based on join configurations.
      *

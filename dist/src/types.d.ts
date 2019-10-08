@@ -1,4 +1,4 @@
-import { ObjectId, FindOneOptions, DeleteWriteOpResultObject, InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, UpdateWriteOpResult, FindOneAndDeleteOption } from 'mongodb';
+import { ObjectId, FindOneOptions, DeleteWriteOpResultObject, InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, UpdateWriteOpResult } from 'mongodb';
 import { IHookHandler } from 'mustad';
 import { ObjectSchema } from 'yup';
 import { Model } from './model';
@@ -10,12 +10,10 @@ declare const DocumentModel: {
     collectionName: string;
     schema: ISchema<IDoc>;
     readonly collection: import("mongodb").Collection<IDoc>;
-    toObjectID(id: LikeObjectId): ObjectId;
-    toObjectID(ids: LikeObjectId[]): ObjectId[];
+    toObjectID(id: string | number | ObjectId): ObjectId;
+    toObjectID(ids: (string | number | ObjectId)[]): ObjectId[];
     toQuery(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>): import("mongodb").FilterQuery<IDoc>;
     toUpdate(update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>): import("mongodb").UpdateQuery<Partial<IDoc>>;
-    toCascades(joins: Joins<IDoc>, ...filter: string[]): string[];
-    toCascades(...filter: string[]): string[];
     isValid(doc: IDoc, schema?: ObjectSchema<IDoc>, options?: import("yup").ValidateOptions): boolean;
     validate(doc: IDoc, schema?: ObjectSchema<IDoc>, options?: import("yup").ValidateOptions): IDoc;
     populate(doc: IDoc, join: string | string[] | Joins<IDoc>): Promise<IDoc>;
@@ -40,30 +38,31 @@ declare const DocumentModel: {
         bypassDocumentValidation?: boolean;
     }, isMany?: boolean): Promise<DeleteWriteOpResultObject>;
     find(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions): Promise<IDoc[]>;
-    findOne(id: LikeObjectId, options: IFindOneOptions, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
-    findOne(id: LikeObjectId, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
+    findOne(id: string | number | ObjectId, options: IFindOneOptions, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
+    findOne(id: string | number | ObjectId, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
     findOne(query: import("mongodb").FilterQuery<IDoc>, options: IFindOneOptions, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
     findOne(query: import("mongodb").FilterQuery<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
-    findModel(id: LikeObjectId, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<Model<IDoc> & IDoc>): Promise<Model<IDoc> & IDoc>;
+    findModel(id: string | number | ObjectId, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<Model<IDoc> & IDoc>): Promise<Model<IDoc> & IDoc>;
     findModel(query: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<Model<IDoc> & IDoc>): Promise<Model<IDoc> & IDoc>;
     findUpdate(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
-    findDelete(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, options?: IFindOneAndDeleteOption<IDoc>, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
+    findDelete(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, options?: import("mongodb").FindOneAndDeleteOption, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
+    findReplace(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, doc: IDoc, options?: import("mongodb").FindOneAndReplaceOption, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<any>;
     create(docs: IDoc[], options: import("mongodb").CollectionInsertManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<IDoc>>): Promise<import("mongodb").InsertWriteOpResult<IDoc>>;
     create(docs: IDoc[], cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<IDoc>>): Promise<import("mongodb").InsertWriteOpResult<IDoc>>;
     createOne(doc: IDoc, options: import("mongodb").CollectionInsertOneOptions, cb?: import("mongodb").MongoCallback<InsertOneWriteOpResult<IDoc>>): Promise<InsertOneWriteOpResult<IDoc>>;
     createOne(doc: IDoc, cb?: import("mongodb").MongoCallback<InsertOneWriteOpResult<IDoc>>): Promise<InsertOneWriteOpResult<IDoc>>;
     update(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     update(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
-    updateOne(id: LikeObjectId, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
-    updateOne(id: LikeObjectId, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    updateOne(id: string | number | ObjectId, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    updateOne(id: string | number | ObjectId, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     updateOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     updateOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     delete(query: import("mongodb").FilterQuery<IDoc>, options: import("mongodb").CommonOptions, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     delete(query: import("mongodb").FilterQuery<IDoc>, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
-    deleteOne(id: LikeObjectId, options: import("mongodb").CommonOptions & {
+    deleteOne(id: string | number | ObjectId, options: import("mongodb").CommonOptions & {
         bypassDocumentValidation?: boolean;
     }, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
-    deleteOne(id: LikeObjectId, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
+    deleteOne(id: string | number | ObjectId, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     deleteOne(query: import("mongodb").FilterQuery<IDoc>, options?: import("mongodb").CommonOptions & {
         bypassDocumentValidation?: boolean;
     }, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
@@ -101,14 +100,14 @@ export interface IDoc {
 export interface IFindOneOptions extends FindOneOptions {
     populate?: string | string[];
 }
-export interface IFindOneAndDeleteOption<S extends IDoc> extends FindOneAndDeleteOption {
-    cascade?: boolean | string | string[] | Joins<S>;
+export interface IUpdateWriteOpResult<S extends IDoc> extends UpdateWriteOpResult {
+    ops: S[];
 }
 export interface IModelSaveResult<S extends IDoc> {
     insertId: LikeObjectId;
     ok: number;
     doc: S;
-    response: InsertOneWriteOpResult<S> | FindAndModifyWriteOpResultObject<S>;
+    response: InsertOneWriteOpResult<S> | FindAndModifyWriteOpResultObject<S> | IUpdateWriteOpResult<S>;
 }
 export declare type DocumentHook<A1 = any, A2 = any, A3 = any> = (next: IHookHandler, arg1?: A1, arg2?: A2, arg3?: A3, ...args: any[]) => any;
 export {};

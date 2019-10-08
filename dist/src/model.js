@@ -62,15 +62,13 @@ class Model {
      */
     async update(options) {
         // @ts-ignore
-        options = { upsert: false, returnOriginal: false, ...options };
+        options = { upsert: false, renturnNewDocument: true, ...options };
         options.upsert = false;
-        this._doc = this._Document.unpopulate(this._doc);
-        this._doc = this._Document.validate(this._doc);
-        const { _id, ...clone } = this._doc;
-        const { err, data } = await utils_1.me(this._Document.findUpdate(this._id, clone, options));
+        let doc = this._Document.unpopulate(this._doc);
+        doc = this._Document.validate(this._doc);
+        const { err, data } = await utils_1.me(this._Document.findReplace(this._id, doc, options));
         if (err)
             return Promise.reject(err);
-        this._doc = data.value;
         return {
             ok: data.ok,
             insertId: null,

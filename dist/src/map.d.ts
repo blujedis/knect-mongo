@@ -1,51 +1,20 @@
-import { MongoClient, MongoClientOptions, Db } from 'mongodb';
-import { ISchema, Constructor } from './types';
+/// <reference types="mongodb" />
+import { IDoc, Constructor, DerivedDocument } from './types';
 import { Model } from './model';
-import { ModelMap } from './map';
-export declare const MONGO_CLIENT_DEFAULTS: {
-    useNewUrlParser: boolean;
-    useUnifiedTopology: boolean;
-};
-export declare class KnectMongo {
-    dbname: string;
-    db: Db;
-    client: MongoClient;
-    models: ModelMap;
-    delimiter: string;
-    /**
-     * Ensures schema is valid configuration.
-     *
-     * @param name the name of the schema.
-     * @param schema the schema object.
-     */
-    private normalizeSchema;
-    /**
-     * Connects to Mongodb instance.
-     *
-     * @param uri the Mongodb connection uri.
-     * @param options Mongodb client connection options.
-     */
-    connect(uri: string, options?: MongoClientOptions): Promise<Db>;
-    /**
-     * Accepts a schema and creates model with static and instance convenience methods.
-     *
-     * @param ns the namespace for the schema.
-     * @param schema the schema configuration containing document validation.
-     */
-    model<S extends object>(ns: string, schema?: ISchema<S>): {
+declare type BaseSchema = IDoc & {};
+export declare class ModelMap extends Map<string, DerivedDocument & Constructor<Model<BaseSchema> & BaseSchema>> {
+    getAs<S extends IDoc>(key: string): {
         new (doc?: S): {};
-        knect: KnectMongo;
-        client: MongoClient;
-        db: Db;
+        knect: import("./knect").KnectMongo;
+        client: import("mongodb").MongoClient;
+        db: import("mongodb").Db;
         collectionName: string;
-        schema: ISchema<S>;
+        schema: import("./types").ISchema<S>;
         readonly collection: import("mongodb").Collection<S>;
-        toObjectID(id: import("./types").LikeObjectId): import("bson").ObjectId;
-        toObjectID(ids: import("./types").LikeObjectId[]): import("bson").ObjectId[];
+        toObjectID(id: string | number | import("bson").ObjectId): import("bson").ObjectId;
+        toObjectID(ids: (string | number | import("bson").ObjectId)[]): import("bson").ObjectId[];
         toQuery(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>): import("mongodb").FilterQuery<S>;
         toUpdate(update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>): import("mongodb").UpdateQuery<Partial<S>>;
-        toCascades(joins: import("./types").Joins<S>, ...filter: string[]): string[];
-        toCascades(...filter: string[]): string[];
         isValid(doc: S, schema?: import("yup").ObjectSchema<S>, options?: import("yup").ValidateOptions): boolean;
         validate(doc: S, schema?: import("yup").ObjectSchema<S>, options?: import("yup").ValidateOptions): S;
         populate(doc: S, join: string | string[] | import("./types").Joins<S>): Promise<S>;
@@ -74,30 +43,31 @@ export declare class KnectMongo {
             bypassDocumentValidation?: boolean;
         }, isMany?: boolean): Promise<import("mongodb").DeleteWriteOpResultObject>;
         find(query?: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions): Promise<S[]>;
-        findOne(id: import("./types").LikeObjectId, options: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<S>): Promise<S>;
-        findOne(id: import("./types").LikeObjectId, cb?: import("mongodb").MongoCallback<S>): Promise<S>;
+        findOne(id: string | number | import("bson").ObjectId, options: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<S>): Promise<S>;
+        findOne(id: string | number | import("bson").ObjectId, cb?: import("mongodb").MongoCallback<S>): Promise<S>;
         findOne(query: import("mongodb").FilterQuery<S>, options: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<S>): Promise<S>;
         findOne(query: import("mongodb").FilterQuery<S>, cb?: import("mongodb").MongoCallback<S>): Promise<S>;
-        findModel(id: import("./types").LikeObjectId, options?: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<Model<S> & S>): Promise<Model<S> & S>;
+        findModel(id: string | number | import("bson").ObjectId, options?: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<Model<S> & S>): Promise<Model<S> & S>;
         findModel(query: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<Model<S> & S>): Promise<Model<S> & S>;
         findUpdate(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
-        findDelete(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneAndDeleteOption<S>, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
+        findDelete(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, options?: import("mongodb").FindOneAndDeleteOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
+        findReplace(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, doc: S, options?: import("mongodb").FindOneAndReplaceOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<any>;
         create(docs: S[], options: import("mongodb").CollectionInsertManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<S>>): Promise<import("mongodb").InsertWriteOpResult<S>>;
         create(docs: S[], cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<S>>): Promise<import("mongodb").InsertWriteOpResult<S>>;
         createOne(doc: S, options: import("mongodb").CollectionInsertOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertOneWriteOpResult<S>>): Promise<import("mongodb").InsertOneWriteOpResult<S>>;
         createOne(doc: S, cb?: import("mongodb").MongoCallback<import("mongodb").InsertOneWriteOpResult<S>>): Promise<import("mongodb").InsertOneWriteOpResult<S>>;
         update(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         update(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-        updateOne(id: import("./types").LikeObjectId, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-        updateOne(id: import("./types").LikeObjectId, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+        updateOne(id: string | number | import("bson").ObjectId, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+        updateOne(id: string | number | import("bson").ObjectId, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         updateOne(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         updateOne(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         delete(query: import("mongodb").FilterQuery<S>, options: import("mongodb").CommonOptions, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
         delete(query: import("mongodb").FilterQuery<S>, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
-        deleteOne(id: import("./types").LikeObjectId, options: import("mongodb").CommonOptions & {
+        deleteOne(id: string | number | import("bson").ObjectId, options: import("mongodb").CommonOptions & {
             bypassDocumentValidation?: boolean;
         }, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
-        deleteOne(id: import("./types").LikeObjectId, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
+        deleteOne(id: string | number | import("bson").ObjectId, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
         deleteOne(query: import("mongodb").FilterQuery<S>, options?: import("mongodb").CommonOptions & {
             bypassDocumentValidation?: boolean;
         }, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
@@ -105,6 +75,6 @@ export declare class KnectMongo {
         pre<A1 = any, A2 = any, A3 = any>(type: import("./document").HookType, handler: import("./types").DocumentHook<A1, A2, A3>): any;
         post<A1_1 = any, A2_1 = any, A3_1 = any>(type: import("./document").HookType, handler: import("./types").DocumentHook<A1_1, A2_1, A3_1>): any;
     } & Constructor<Model<S> & S>;
+    list(): string[];
 }
-declare const _default: KnectMongo;
-export default _default;
+export {};

@@ -2,18 +2,19 @@
 import {
   FilterQuery, UpdateQuery, ObjectId, DeleteWriteOpResultObject,
   CollectionInsertOneOptions, CollectionInsertManyOptions, UpdateManyOptions, UpdateOneOptions,
-  CommonOptions, Db, MongoClient, FindOneAndUpdateOption, FindOneAndDeleteOption,
-  FindOneAndReplaceOption, MongoCallback, FindAndModifyWriteOpResultObject, InsertOneWriteOpResult,
-  InsertWriteOpResult, UpdateWriteOpResult, MongoError
+  CommonOptions, Db, MongoClient, FindOneAndUpdateOption,
+  MongoCallback, FindAndModifyWriteOpResultObject, InsertOneWriteOpResult,
+  InsertWriteOpResult, UpdateWriteOpResult, ObjectID
 } from 'mongodb';
 import {
-  ISchema, LikeObjectId, IJoins, IJoin, ICascadeResult, IFindOneOptions,
-  Constructor, IDoc, DocumentHook
+  ISchema, LikeObjectId, ICascadeResult, IFindOneOptions,
+  Constructor, IDoc, DocumentHook, Joins, KeyOf, IFindOneAndDeleteOption
 } from './types';
 import { me, isPromise } from './utils';
-import { BaseModel as BaseModel } from './model';
+import { Model as BaseModel } from './model';
 import { Mustad } from 'mustad';
 import { ObjectSchema, ValidateOptions, object } from 'yup';
+import { KnectMongo } from './knect';
 
 export type HookType = 'find' | 'create' | 'update' | 'delete';
 
@@ -28,19 +29,29 @@ const includeKeys = Object.keys(hookMap).reduce((a, c) => {
   return [...a, ...hookMap[c]];
 }, []);
 
+/**
+ * Initializes a new Knect Document.
+ * 
+ * @param config the configuration with schema.
+ * @param client the MongoClient instance.
+ * @param db the Mongo database connection.
+ * @param Model the BaseModel type for creating models.
+ */
 export function initDocument<S extends IDoc, M extends BaseModel<S>>(
-  config: ISchema<S> = {},
+  config?: ISchema<S>,
   client?: MongoClient,
   db?: Db,
-  Model?: Constructor<M>) {
+  Model?: Constructor<M>,
+  knect?: KnectMongo) {
 
   let mustad: Mustad<typeof Wrapper>;
 
   const Wrapper = class Document {
 
+    static knect: KnectMongo = knect;
     static client: MongoClient = client;
     static db: Db = db;
-    static collectionName: string = config.collectionName;
+    static collectionName: string = config && config.collectionName;
     static schema: ISchema<S> = config;
 
     static get collection() {
@@ -119,16 +130,35 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
     }
 
     /**
-     * Converts to simple object document.
+     * Converts Joins<S> to cascade keys.
      * 
-     * @param doc the document context to convert.
+     * @param joins object containing joins to build list from.
+     * @param filter an array of keys to exclude.
      */
-    static toDoc(doc: any) {
-      return Object.getOwnPropertyNames(doc)
-        .reduce((a, c) => {
-          a[c] = doc[c];
+    static toCascades(joins: Joins<S>, ...filter: string[]): string[];
+
+    /**
+     * Converts Joins<S> to cascade keys.
+     * 
+     * @param filter an array of keys to exclude.
+     */
+    static toCascades(...filter: string[]): string[];
+
+    static toCascades(joins: string | Joins<S>, ...filter: string[]) {
+
+      if (typeof joins === 'string') {
+        filter.unshift(joins as string);
+        joins = undefined;
+      }
+
+      const _joins = joins || (this.schema.joins || {}) as Joins<S>;
+
+      return Object.keys(_joins).reduce((a, c) => {
+        if (!_joins[c].cascade || filter.includes(c))
           return a;
-        }, {} as Partial<S>);
+        return [...a, c];
+      }, [] as string[]);
+
     }
 
     /**
@@ -165,7 +195,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param doc the document to populate joins for.
      * @param join the join config, configs or array of join names.
      */
-    static async populate(doc: S, join: string | string[] | IJoins): Promise<S>;
+    static async populate(doc: S, join: string | string[] | Joins<S>): Promise<S>;
 
     /**
      * Populates documents with specified join.
@@ -173,26 +203,27 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param docs the document to populate joins for.
      * @param join the join config, configs or array of join names.
      */
-    static async populate(docs: S[], join: string | string[] | IJoins): Promise<S[]>;
+    static async populate(docs: S[], join: string | string[] | Joins<S>): Promise<S[]>;
 
-    static async populate(docs: S | S[], join?: string | string[] | IJoins): Promise<S | S[]> {
-
-      let joins: IJoins = join as any;
+    static async populate(docs: S | S[], join?: string | string[] | Joins<S>): Promise<S | S[]> {
 
       const isArray = Array.isArray(docs);
 
-      if (typeof join === 'string')
-        join = [join];
+      let joins: Joins<S> = join as any;
+      join = typeof join === 'string' ? [join] : join;
+      join = join || Object.keys(this.schema.joins || {});
+
+      // Hotpath nothing to do.
+      if (!joins && !(join as string[]).length)
+        return docs;
 
       // Iterate array and get join configs.
       if (Array.isArray(join)) {
-        if (typeof join[0] === 'string') {
-          joins = join.reduce((a, c) => {
-            const j = this.schema.joins[c];
-            if (j) a[c] = j;
-            return a;
-          }, {});
-        }
+        joins = join.reduce((a, c) => {
+          const j = this.schema.joins[c];
+          if (j) a[c] = j;
+          return a;
+        }, {} as Joins<S>);
       }
 
       const _docs = (!isArray ? [docs] : docs) as S[];
@@ -210,7 +241,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
           let values = !Array.isArray(prop) ? [prop] : prop;
 
           if (key === '_id')
-            values = this.toObjectID(values);
+            values = (values as any).map(v => this.toObjectID(v));
 
           const filter = { [key]: { '$in': values } } as FilterQuery<S>;
 
@@ -222,10 +253,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
           if (pErr)
             return Promise.reject(pErr);
 
-          doc[k] = pData[0];
+          doc[k] = pData[0] as any;
 
           if (Array.isArray(prop))
-            doc[k] = pData;
+            doc[k] = pData as any;
 
         }
 
@@ -244,62 +275,131 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
     }
 
     /**
+     * Iterates populated prop and restores to join key.
+     * 
+     * @param doc the document to be unpopulated.
+     * @param join the join string array or Joins<S> object.
+     */
+    static unpopulate(doc: S, join?: string | string[] | Joins<S>): S;
+
+    /**
+     * Iterates populated prop and restores to join key.
+     * 
+     * @param docs the documents to be unpopulated.
+     * @param join the join string array or Joins<S> object.
+     */
+    static unpopulate(docs: S[], join?: string | string[] | Joins<S>): S[];
+
+    static unpopulate(docs: S | S[], join?: string | string[] | Joins<S>) {
+
+      const isArray = Array.isArray(docs);
+
+      let joins: Joins<S> = join as any;
+      join = typeof join === 'string' ? [join] : join;
+      join = join || Object.keys(this.schema.joins || {});
+
+      // Hotpath nothing to do.
+      if (!joins && !(join as string[]).length)
+        return docs;
+
+      // Iterate array and get join configs.
+      if (Array.isArray(join)) {
+        joins = join.reduce((a, c) => {
+          const j = this.schema.joins[c];
+          if (j) a[c] = j;
+          return a;
+        }, {} as Joins<S>);
+      }
+
+      const _docs = (!isArray ? [docs] : docs) as S[];
+
+      const canPopulate = v =>
+        typeof v !== 'undefined' && !ObjectID.isValid(v) && (Array.isArray(v) || typeof v === 'object');
+
+      _docs.forEach(doc => {
+
+        for (const k in joins) {
+          if (doc.hasOwnProperty(k) && canPopulate(doc[k])) {
+
+            const _join = joins[k];
+            const _prop = doc[k];
+
+            if (Array.isArray(_prop)) {
+
+              _prop.forEach((p, i) => {
+
+                if (p instanceof Model)
+                  doc[k][i] = p._doc[_join.key];
+
+                else if (typeof p === 'object' && !ObjectID.isValid(p))
+                  doc[k][i] = p[_join.key];
+
+              });
+
+            }
+
+            else if (typeof _prop === 'object') {
+              doc[k] = _prop[_join.key];
+            }
+
+          }
+        }
+
+      });
+
+      if (!isArray)
+        return _docs[0];
+
+      return _docs;
+
+    }
+
+    /**
      * Cascades delete with specified joins.
      * 
      * @param doc the document to populate joins for.
-     * @param joins an array or IJoins object of joins.
+     * @param join the join string array or Joins<S> object.
      */
-    static async cascade(doc: S, joins: string[] | IJoins): Promise<ICascadeResult<S>>;
+    static async cascade(doc: S, join: string | string[] | Joins<S>): Promise<ICascadeResult<S>>;
 
     /**
      * Cascades deletes with specified joins.
      * 
      * @param docs the documents to populate joins for.
-     * @param joins an array or IJoins object of joins.
+     * @param join the join string array or Joins<S> object.
      */
-    static async cascade(doc: S[], joins: string[] | IJoins): Promise<ICascadeResult<S>[]>;
+    static async cascade(doc: S[], join: string | string[] | Joins<S>): Promise<ICascadeResult<S>[]>;
 
-    /**
-     * Cascades delete with specified join.
-     * 
-     * @param doc the document to populate joins for.
-     * @param key the join key property name.
-     * @param join the join configuration object.
-     */
-    static async cascade(doc: S, key: string, join: IJoin): Promise<ICascadeResult<S>>;
+    static async cascade(
+      docs: S | S[],
+      join?: string | string[] | Joins<S>) {
 
-    /**
-     * Cascades deletes with specified join.
-     * 
-     * @param docs the document to populate joins for.
-     * @param key the join key property name.
-     * @param join the join configuration object.
-     */
-    static async cascade(doc: S[], key: string, join: IJoin): Promise<ICascadeResult<S>[]>;
-    static async cascade(doc: S | S[], key: any, join?: IJoin): Promise<ICascadeResult<S> | ICascadeResult<S>[]> {
+      const isArray = Array.isArray(docs);
 
-      let joins: IJoins = key;
-      const isArray = Array.isArray(doc);
+      let joins: Joins<S> = join as any;
+      join = typeof join === 'string' ? [join] : join;
 
-      if (arguments.length === 3)
-        joins = { [key]: join };
+      // Hotpath nothing to do.
+      if (!joins && !(join as string[]).length)
+        return null;
 
-      if (Array.isArray(key)) {
-        joins = key.reduce((a, c) => {
+      // Iterate array and get join configs.
+      if (Array.isArray(join)) {
+        joins = join.reduce((a, c) => {
           const j = this.schema.joins[c];
           if (j) a[c] = j;
           return a;
-        }, {});
+        }, {} as Joins<S>);
       }
 
-      const docs = (!isArray ? [doc] : doc) as S[];
+      const _docs = (!isArray ? [docs] : docs) as S[];
 
       const session = this.client.startSession();
       session.startTransaction();
 
       try {
 
-        const result = await Promise.all(docs.map(async d => {
+        const result = await Promise.all(_docs.map(async d => {
 
           let optKey: string;
           const ops: DeleteWriteOpResultObject[] = [];
@@ -316,7 +416,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
               let values = !Array.isArray(prop) ? [prop] : prop;
 
               if (filterKey === '_id')
-                values = this.toObjectID(values);
+                values = (values as any).map(v => this.toObjectID(v));
 
               const filter = { [filterKey]: { '$in': values } };
 
@@ -354,6 +454,76 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
     }
 
+    /**
+     * Casts to new type.
+     * 
+     * @param doc the document to be cast.
+     * @param include when true only the specified props are included.
+     * @param props the list of props to include if empty, all included.
+     */
+    static cast<T extends Partial<S>>(doc: T, include?: true, ...props: Array<KeyOf<T>>): T;
+
+    /**
+     * Casts to new type.
+     * 
+     * @param doc the document to be cast.
+     * @param omit the list of props to omit.
+     */
+    static cast<T extends Partial<S>>(doc: T, ...omit: Array<KeyOf<T>>): T;
+
+    /**
+     * Casts to new type.
+     * 
+     * @param docs the documents to be cast.
+     * @param include when true only the specified props are included.
+     * @param props the list of props to include if empty, all included.
+     */
+    static cast<T extends Partial<S>>(docs: T[], include?: true, ...props: Array<KeyOf<T>>): T[];
+
+    /**
+     * Casts to new type.
+     * 
+     * @param docs the documents to be cast.
+     * @param omit the list of props to omit.
+     */
+    static cast<T extends Partial<S>>(docs: T[], ...omit: Array<KeyOf<T>>): T[];
+
+    static cast<T extends Partial<S>>(doc: T | T[], include?: boolean | KeyOf<T>, ...props: Array<KeyOf<T>>) {
+
+      if (typeof include === 'string') {
+        props.unshift(include);
+        include = undefined;
+      }
+
+      const _doc = Array.isArray(doc) ? doc[0] : doc;
+      const _keys = Object.keys(_doc) as Array<KeyOf<T>>;
+
+      if (include === true) {
+        props = props.length ? props : _keys;
+      }
+      else {
+        props = _keys.filter(k => !props.includes(k));
+      }
+
+      function clean(d) {
+        for (const k in d) {
+          if (!props.includes(k as any))
+            delete d[k];
+        }
+        return d;
+      }
+
+      if (Array.isArray(doc)) {
+        doc = (doc as T[]).map(d => {
+          return clean(doc);
+        });
+        return doc as T[];
+      }
+
+      return clean(doc) as T;
+
+    }
+
     //////////////////
     // CRUD METHODS //
     //////////////////
@@ -368,6 +538,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       promise: T | Promise<T>,
       cb?: (err: E, data: T) => void): Promise<T> {
       const prom = (!isPromise(promise) ? Promise.resolve(promise) : promise) as Promise<T>;
+
       return prom.then(res => {
         if (cb)
           cb(null, res);
@@ -552,55 +723,27 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param options optional find one options.
      * @param cb an optional callback instead of using promise.
      */
-    static async findModel<L extends BaseModel<S>>(
+    static async findModel(
       id: LikeObjectId,
-      FindModel: Constructor<L>,
-      options: IFindOneOptions,
-      cb?: MongoCallback<L | null>): Promise<L>;
+      options?: IFindOneOptions,
+      cb?: MongoCallback<M & S | null>): Promise<M & S>;
 
     /**
      * Finds one document by query then converts to Model.
      * 
      * @param query the query for finding the document.
-     * @param FindModel the model to convert result to.
      * @param options optional find one options.
      * @param cb an optional callback instead of using promise.
      */
-    static async findModel<L extends BaseModel<S>>(
+    static async findModel(
       query: FilterQuery<S>,
-      FindModel: Constructor<L>,
-      options: IFindOneOptions,
-      cb?: MongoCallback<L | null>): Promise<L>;
+      options?: IFindOneOptions,
+      cb?: MongoCallback<M & S | null>): Promise<M & S>;
 
-    /**
-     * Finds one document by query then converts to Model.
-     * 
-     * @param id the id of the document to find.
-     * @param FindModel the model to convert result to.
-     * @param cb an optional callback instead of using promise.
-     */
-    static async findModel<L extends BaseModel<S>>(
-      id: LikeObjectId,
-      FindModel: Constructor<L>,
-      cb?: MongoCallback<L | null>): Promise<L>;
-
-    /**
-     * Finds one document by query then converts to Model.
-     * 
-     * @param query the query for finding the document.
-     * @param FindModel the model to convert result to.
-     * @param cb an optional callback instead of using promise.
-     */
-    static async findModel<L extends BaseModel<S>>(
-      query: FilterQuery<S>,
-      FindModel: Constructor<L>,
-      cb?: MongoCallback<L | null>): Promise<L>;
-
-    static async findModel<L extends BaseModel<S>>(
+    static async findModel(
       query: LikeObjectId | FilterQuery<S>,
-      FindModel: Constructor<L>,
-      options?: IFindOneOptions | MongoCallback<L | null>,
-      cb?: MongoCallback<L | null>) {
+      options?: IFindOneOptions | MongoCallback<M & S | null>,
+      cb?: MongoCallback<M & S | null>) {
 
       if (typeof options === 'function') {
         cb = options as any;
@@ -613,7 +756,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       if (err)
         return Promise.reject(err);
 
-      return this._handleResponse(new FindModel(data), cb);
+      const model = new Model(data as S, Document) as M & S;
+
+      return this._handleResponse(model, cb);
 
     }
 
@@ -644,12 +789,13 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static findDelete(
       query: LikeObjectId | FilterQuery<S>,
-      options?: FindOneAndDeleteOption,
+      options?: IFindOneAndDeleteOption<S>,
       cb?: MongoCallback<FindAndModifyWriteOpResultObject<S>>) {
       const _query = this.toQuery(query);
       return this._handleResponse(this.collection.findOneAndDelete(_query, options), cb);
     }
 
+    // Maybe consider adding this back in at some point.
     /**
      * Finds a document and then replaces it.
      * 
@@ -658,14 +804,14 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param options the update options.
      * @param cb optional callback to use instead of Promise.
      */
-    static findReplace(
-      query: LikeObjectId | FilterQuery<S>,
-      doc: S,
-      options?: FindOneAndReplaceOption,
-      cb?: MongoCallback<FindAndModifyWriteOpResultObject<S>>) {
-      const _query = this.toQuery(query);
-      return this._handleResponse(this.collection.findOneAndReplace(_query, doc, options), cb);
-    }
+    // static findReplace(
+    //   query: LikeObjectId | FilterQuery<S>,
+    //   doc: S,
+    //   options?: FindOneAndReplaceOption,
+    //   cb?: MongoCallback<FindAndModifyWriteOpResultObject<S>>) {
+    //   const _query = this.toQuery(query);
+    //   return this._handleResponse(this.collection.findOneAndReplace(_query, doc, options), cb);
+    // }
 
     /**
      * Creates multiple documents in database.
@@ -969,7 +1115,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
   };
 
-  mustad = new Mustad(Wrapper, { include: includeKeys });
+  // If no config only return the derived type.
+  if (config)
+    mustad = new Mustad(Wrapper, { include: includeKeys });
 
   return Wrapper;
 

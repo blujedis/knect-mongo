@@ -1,44 +1,15 @@
-import { MongoClient, MongoClientOptions, Db } from 'mongodb';
-import { ISchema, Constructor } from './types';
+/// <reference types="mongodb" />
+import { IDoc, Constructor, DerivedDocument } from './types';
 import { Model } from './model';
-import { ModelMap } from './map';
-export declare const MONGO_CLIENT_DEFAULTS: {
-    useNewUrlParser: boolean;
-    useUnifiedTopology: boolean;
-};
-export declare class KnectMongo {
-    dbname: string;
-    db: Db;
-    client: MongoClient;
-    models: ModelMap;
-    delimiter: string;
-    /**
-     * Ensures schema is valid configuration.
-     *
-     * @param name the name of the schema.
-     * @param schema the schema object.
-     */
-    private normalizeSchema;
-    /**
-     * Connects to Mongodb instance.
-     *
-     * @param uri the Mongodb connection uri.
-     * @param options Mongodb client connection options.
-     */
-    connect(uri: string, options?: MongoClientOptions): Promise<Db>;
-    /**
-     * Accepts a schema and creates model with static and instance convenience methods.
-     *
-     * @param ns the namespace for the schema.
-     * @param schema the schema configuration containing document validation.
-     */
-    model<S extends object>(ns: string, schema?: ISchema<S>): {
+declare type BaseSchema = IDoc & {};
+export declare class ModelMap extends Map<string, DerivedDocument & Constructor<Model<BaseSchema> & BaseSchema>> {
+    getAs<S extends IDoc>(key: string): {
         new (doc?: S): {};
-        knect: KnectMongo;
-        client: MongoClient;
-        db: Db;
+        knect: import("./knect").KnectMongo;
+        client: import("mongodb").MongoClient;
+        db: import("mongodb").Db;
         collectionName: string;
-        schema: ISchema<S>;
+        schema: import("./types").ISchema<S>;
         readonly collection: import("mongodb").Collection<S>;
         toObjectID(id: import("./types").LikeObjectId): import("bson").ObjectId;
         toObjectID(ids: import("./types").LikeObjectId[]): import("bson").ObjectId[];
@@ -105,6 +76,6 @@ export declare class KnectMongo {
         pre<A1 = any, A2 = any, A3 = any>(type: import("./document").HookType, handler: import("./types").DocumentHook<A1, A2, A3>): any;
         post<A1_1 = any, A2_1 = any, A3_1 = any>(type: import("./document").HookType, handler: import("./types").DocumentHook<A1_1, A2_1, A3_1>): any;
     } & Constructor<Model<S> & S>;
+    list(): string[];
 }
-declare const _default: KnectMongo;
-export default _default;
+export {};

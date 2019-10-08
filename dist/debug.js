@@ -13,8 +13,8 @@ const userSchema = yup_1.object({
 const schema = {
     props: userSchema,
     joins: {
-        tags: { collection: 'tags' },
-        apikey: { collection: 'keys', cascade: true },
+    // tags: { collection: 'tags' },
+    // apikey: { collection: 'keys', cascade: true },
     }
 };
 (async function init() {

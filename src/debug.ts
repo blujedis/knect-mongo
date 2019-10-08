@@ -14,8 +14,8 @@ const userSchema = object({
 const schema: ISchema<InferType<typeof userSchema>> = {
   props: userSchema,
   joins: {
-    tags: { collection: 'tags' },
-    apikey: { collection: 'keys', cascade: true },
+    // tags: { collection: 'tags' },
+    // apikey: { collection: 'keys', cascade: true },
   }
 };
 

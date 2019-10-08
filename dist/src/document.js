@@ -77,18 +77,6 @@ function initDocument(config, client, db, Model, knect) {
                     update = { $set: update };
                 return update;
             }
-            static toCascades(joins, ...filter) {
-                if (typeof joins === 'string') {
-                    filter.unshift(joins);
-                    joins = undefined;
-                }
-                const _joins = joins || (this.schema.joins || {});
-                return Object.keys(_joins).reduce((a, c) => {
-                    if (!_joins[c].cascade || filter.includes(c))
-                        return a;
-                    return [...a, c];
-                }, []);
-            }
             /**
              * Checks is document is valid against schema.
              *
@@ -175,26 +163,32 @@ function initDocument(config, client, db, Model, knect) {
                         return a;
                     }, {});
                 }
-                const _docs = (!isArray ? [docs] : docs);
                 const canPopulate = v => typeof v !== 'undefined' && !mongodb_1.ObjectID.isValid(v) && (Array.isArray(v) || typeof v === 'object');
-                _docs.forEach(doc => {
+                let _docs = (!isArray ? [docs] : docs);
+                _docs = _docs.map((doc, i) => {
                     for (const k in joins) {
-                        if (doc.hasOwnProperty(k) && canPopulate(doc[k])) {
-                            const _join = joins[k];
-                            const _prop = doc[k];
-                            if (Array.isArray(_prop)) {
-                                _prop.forEach((p, i) => {
-                                    if (p instanceof Model)
-                                        doc[k][i] = p._doc[_join.key];
-                                    else if (typeof p === 'object' && !mongodb_1.ObjectID.isValid(p))
-                                        doc[k][i] = p[_join.key];
+                        if (canPopulate(doc[k])) {
+                            const j = joins[k];
+                            // Iterate and convert to just keys.
+                            if (Array.isArray(doc[k])) {
+                                doc[k] = doc[k].map(v => {
+                                    const val = doc[k][i];
+                                    if (val instanceof Model)
+                                        v = val._doc[j.key] || v;
+                                    else if (typeof val === 'object')
+                                        v = val[j.key] || v;
+                                    if (mongodb_1.ObjectID.isValid(v))
+                                        v = v.toString();
+                                    return v;
                                 });
                             }
-                            else if (typeof _prop === 'object') {
-                                doc[k] = _prop[_join.key];
+                            // Just set to key value.
+                            else if (typeof doc[k] === 'object') {
+                                doc[k] = doc[k][j.key];
                             }
                         }
                     }
+                    return doc;
                 });
                 if (!isArray)
                     return _docs[0];
@@ -425,6 +419,31 @@ function initDocument(config, client, db, Model, knect) {
             static findDelete(query, options, cb) {
                 const _query = this.toQuery(query);
                 return this._handleResponse(this.collection.findOneAndDelete(_query, options), cb);
+            }
+            /**
+             * Finds a document and then replaces it.
+             *
+             * @param query the filter for finding the document.
+             * @param doc the doc used to replace existing.
+             * @param options the update options.
+             * @param cb optional callback to use instead of Promise.
+             */
+            static findReplace(query, doc, options, cb) {
+                const _query = this.toQuery(query);
+                // @ts-ignore
+                const isPete = doc.firstName === 'Peter';
+                return this.collection.findOneAndReplace(_query, doc, options)
+                    .then(res => {
+                    if (cb)
+                        cb(null, res);
+                    return res;
+                })
+                    .catch(err => {
+                    if (cb)
+                        cb(err, null);
+                    return err;
+                });
+                // return this._handleResponse(this.collection.findOneAndReplace(_query, doc, options), cb);
             }
             static create(docs, options, cb) {
                 if (typeof options === 'function') {

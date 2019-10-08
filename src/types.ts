@@ -1,11 +1,17 @@
 import {
   ObjectId, FindOneOptions, DeleteWriteOpResultObject,
-  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject
+  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, MongoError, UpdateWriteOpResult, FindOneAndDeleteOption
 } from 'mongodb';
 
 import { IHookHandler } from 'mustad';
-
 import { ObjectSchema } from 'yup';
+import { initDocument } from './document';
+import { Model } from './model';
+
+const DocumentModel = (false as true) && initDocument();
+export type DerivedDocument = typeof DocumentModel;
+
+export type KeyOf<T> = Extract<keyof T, string>;
 
 export type LikeObjectId = string | number | ObjectId;
 
@@ -25,22 +31,24 @@ export interface IJoin {
   cascade?: boolean;
 }
 
-export interface IJoins {
-  [key: string]: IJoin;
-}
+export type Joins<S> = { [K in keyof S]: IJoin };
 
-export interface ISchema<T extends object> {
+export interface ISchema<S extends object> {
   collectionName?: string;
-  props?: ObjectSchema<T>;
-  joins?: IJoins;
+  props?: ObjectSchema<S>;
+  joins?: Joins<S>;
 }
 
 export interface IDoc {
-  _id?: ObjectId;
+  _id?: LikeObjectId;
 }
 
 export interface IFindOneOptions extends FindOneOptions {
   populate?: string | string[];
+}
+
+export interface IFindOneAndDeleteOption<S extends IDoc> extends FindOneAndDeleteOption {
+  cascade?: boolean | string | string[] | Joins<S>;
 }
 
 export interface IModelSaveResult<S extends IDoc> {

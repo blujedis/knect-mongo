@@ -1,27 +1,23 @@
 import {
-  ObjectId, UpdateOneOptions, CollectionInsertOneOptions,
+  ObjectId, CollectionInsertOneOptions,
   FindOneAndDeleteOption,
   FindOneAndUpdateOption
 } from 'mongodb';
-import { IDoc, IModelSaveResult } from './types';
-import { initDocument } from './document';
+import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
 import { ValidationError, ObjectSchema } from 'yup';
 import { me } from './utils';
 
-const doctype = (false as true) && initDocument();
-type Document = typeof doctype;
+export class Model<S extends IDoc> {
 
-export class BaseModel<S extends IDoc> {
+  private _Document: DerivedDocument;
 
-  private _Document: Document;
-  
   _id: ObjectId;
   _doc: S;
 
-  constructor(doc: S, document: Document) {
+  constructor(doc: S, document: DerivedDocument) {
 
     const model = this;
-  
+
     Object.defineProperties(this, {
       _Document: {
         enumerable: false,
@@ -58,17 +54,23 @@ export class BaseModel<S extends IDoc> {
    */
   private async create(options?: CollectionInsertOneOptions): Promise<IModelSaveResult<S>> {
 
-    const doc = this._doc;
+    let doc = this._doc;
+
+    // Remove any populated data so it isn't
+    // updated.
+
+    doc = this._Document.unpopulate(doc) as S;
+
     this._Document.validate(doc);
 
     if (this._id)
-      throw new ValidationError([`Cannot create for collection "${this._Document.collection.namespace}" with existing 
-            id, did you mean ".save()"?`], doc, 'id');
+      return Promise.reject(new ValidationError([`Cannot create for collection "${this._Document.collection.namespace}" with existing 
+            id, did you mean ".save()"?`], doc, 'id'));
 
     const { err, data } = await me(this._Document.createOne(doc, options));
 
     if (err)
-      throw err;
+      return Promise.reject(err);
 
     this._doc = ((data.ops && data.ops[0]) || {}) as S;
 
@@ -88,15 +90,22 @@ export class BaseModel<S extends IDoc> {
    */
   private async update(options?: FindOneAndUpdateOption): Promise<IModelSaveResult<S>> {
 
-    options = options || {};
+    // @ts-ignore
+    options = { upsert: false, returnOriginal: false, ...options };
     (options as FindOneAndUpdateOption).upsert = false;
 
-    this._Document.validate(this._doc);
+    this._doc = this._Document.unpopulate(this._doc) as S;
 
-    const { err, data } = await me(this._Document.findUpdate(this._id, this._doc, options));
+    this._doc = this._Document.validate(this._doc) as S;
+
+    const { _id, ...clone } = this._doc;
+
+    const { err, data } = await me(this._Document.findUpdate(this._id, clone, options));
 
     if (err)
-      throw err;
+      return Promise.reject(err);
+
+    this._doc = data.value as S;
 
     return {
       ok: data.ok,
@@ -112,7 +121,7 @@ export class BaseModel<S extends IDoc> {
    * 
    * @param options MongoDB update options.
    */
-  async save(options?: UpdateOneOptions | CollectionInsertOneOptions) {
+  async save(options?: FindOneAndUpdateOption | CollectionInsertOneOptions) {
 
     // If no id try create.
     if (!this._id)
@@ -127,7 +136,7 @@ export class BaseModel<S extends IDoc> {
    * 
    * @param options Mongodb delete options.
    */
-  async delete(options?: FindOneAndDeleteOption) {
+  async delete(options?: IFindOneAndDeleteOption<S>) {
     return this._Document.findDelete(this._id, options);
   }
 

@@ -1,5 +1,6 @@
 import { LikeObjectId, ISchema } from '../src';
 import yup, { object, string, array, number, mixed, InferType } from 'yup';
+import { Model } from '../src/model';
 
 // export interface IUser extends IBase {
 //   firstName: string;
@@ -36,7 +37,7 @@ const baseSchema = object({
 const userSchema = baseSchema.shape({
   firstName: string(),
   lastName: string(),
-  posts: array<LikeObjectId | IPost>()
+  posts: array<string | number | IPost | Model<any>>()
 });
 
 const postSchema = baseSchema.shape({
