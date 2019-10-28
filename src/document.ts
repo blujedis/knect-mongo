@@ -49,10 +49,16 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
   const Wrapper = class Document {
 
     static knect: KnectMongo = knect;
-    static client: MongoClient = client;
-    static db: Db = db;
     static collectionName: string = config && config.collectionName;
     static schema: ISchema<S> = config;
+
+    static get client() {
+      return client || this.knect.client;
+    }
+
+    static get db() {
+      return db || this.knect.db;
+    }
 
     static get collection() {
       return this.db.collection<S>(this.collectionName);
@@ -125,7 +131,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       if (hasSpecial)
         (update as any).$set = (update as any).$set || {};
       else
-        update = { $set: update };
+        update = { $set: update } as any;
       return update as any;
     }
 

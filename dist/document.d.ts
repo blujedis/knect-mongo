@@ -15,10 +15,10 @@ export declare type HookType = 'find' | 'create' | 'update' | 'delete';
 export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(config?: ISchema<S>, client?: MongoClient, db?: Db, Model?: Constructor<M>, knect?: KnectMongo): {
     new (doc?: S): {};
     knect: KnectMongo;
-    client: MongoClient;
-    db: Db;
     collectionName: string;
     schema: ISchema<S>;
+    readonly client: MongoClient;
+    readonly db: Db;
     readonly collection: import("mongodb").Collection<S>;
     /**
      * Convert value to ObjectID.

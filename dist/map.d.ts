@@ -6,10 +6,10 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
     getAs<S extends IDoc>(key: string): {
         new (doc?: S): {};
         knect: import("./knect").KnectMongo;
-        client: import("mongodb").MongoClient;
-        db: import("mongodb").Db;
         collectionName: string;
         schema: import("./types").ISchema<S>;
+        readonly client: import("mongodb").MongoClient;
+        readonly db: import("mongodb").Db;
         readonly collection: import("mongodb").Collection<S>;
         toObjectID(id: string | number | import("bson").ObjectId): import("bson").ObjectId;
         toObjectID(ids: (string | number | import("bson").ObjectId)[]): import("bson").ObjectId[];

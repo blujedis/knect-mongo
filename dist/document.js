@@ -30,6 +30,12 @@ function initDocument(config, client, db, Model, knect) {
                     throw new Error(`Failed to initialize model with "db" or "client" of undefined.`);
                 return new Model(doc, Document);
             }
+            static get client() {
+                return client || this.knect.client;
+            }
+            static get db() {
+                return db || this.knect.db;
+            }
             static get collection() {
                 return this.db.collection(this.collectionName);
             }
@@ -494,8 +500,6 @@ function initDocument(config, client, db, Model, knect) {
             }
         },
         _a.knect = knect,
-        _a.client = client,
-        _a.db = db,
         _a.collectionName = config && config.collectionName,
         _a.schema = config,
         _a);

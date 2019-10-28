@@ -4,10 +4,10 @@ import { ObjectSchema } from 'yup';
 declare const DocumentModel: {
     new (doc?: IDoc): {};
     knect: import("./knect").KnectMongo;
-    client: import("mongodb").MongoClient;
-    db: import("mongodb").Db;
     collectionName: string;
     schema: ISchema<IDoc>;
+    readonly client: import("mongodb").MongoClient;
+    readonly db: import("mongodb").Db;
     readonly collection: import("mongodb").Collection<IDoc>;
     toObjectID(id: string | number | ObjectId): ObjectId;
     toObjectID(ids: (string | number | ObjectId)[]): ObjectId[];

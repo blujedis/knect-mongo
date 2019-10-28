@@ -35,10 +35,10 @@ export declare class KnectMongo {
     model<S extends object>(ns: string, schema?: ISchema<S>): {
         new (doc?: S): {};
         knect: KnectMongo;
-        client: MongoClient;
-        db: Db;
         collectionName: string;
         schema: ISchema<S>;
+        readonly client: MongoClient;
+        readonly db: Db;
         readonly collection: import("mongodb").Collection<S>;
         toObjectID(id: string | number | import("bson").ObjectId): import("bson").ObjectId;
         toObjectID(ids: (string | number | import("bson").ObjectId)[]): import("bson").ObjectId[];
