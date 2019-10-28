@@ -32,7 +32,7 @@
     "typescript": "^3.6.3"
   },
   "peerDependencies": {
-    "@types/mongodb": "3.1.31"
+    "@types/mongodb": "3.3.6"
   },
   "dependencies": {
     "mongodb": "^3.3.3",
