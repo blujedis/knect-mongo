@@ -170,11 +170,11 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param docs the documents to be persisted to database.
      * @param options Mongodb insert many options.
      */
-    _create(doc: S | S[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions): Promise<InsertWriteOpResult<Pick<S, Exclude<keyof S, "_id">> & {
+    _create(doc: S | S[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions): Promise<InsertWriteOpResult<(string | number extends keyof S ? S : Pick<S, Exclude<keyof S, "_id">>) & {
         _id: S extends {
             _id: infer U;
         } ? {} extends U ? Exclude<U, {}> : unknown extends U ? ObjectId : U : ObjectId;
-    }>> | Promise<InsertOneWriteOpResult<Pick<S, Exclude<keyof S, "_id">> & {
+    }>> | Promise<InsertOneWriteOpResult<(string | number extends keyof S ? S : Pick<S, Exclude<keyof S, "_id">>) & {
         _id: S extends {
             _id: infer U;
         } ? {} extends U ? Exclude<U, {}> : unknown extends U ? ObjectId : U : ObjectId;
@@ -287,7 +287,11 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb insert many options.
      * @param cb optional callback to use instead of promise.
      */
-    create(docs: S[], options: CollectionInsertManyOptions, cb?: MongoCallback<InsertWriteOpResult<S>>): Promise<InsertWriteOpResult<S>>;
+    create(docs: S[], options: CollectionInsertManyOptions, cb?: MongoCallback<InsertWriteOpResult<S & {
+        _id: any;
+    }>>): Promise<InsertWriteOpResult<S & {
+        _id: any;
+    }>>;
     /**
      * Finds a document and then replaces it.
      *
@@ -303,7 +307,11 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb insert many options.
      * @param cb optional callback to use instead of promise.
      */
-    create(docs: S[], cb?: MongoCallback<InsertWriteOpResult<S>>): Promise<InsertWriteOpResult<S>>;
+    create(docs: S[], cb?: MongoCallback<InsertWriteOpResult<S & {
+        _id: any;
+    }>>): Promise<InsertWriteOpResult<S & {
+        _id: any;
+    }>>;
     /**
      * Creates document in database.
      *
@@ -311,7 +319,11 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb insert one options.
      * @param cb optional callback to use instead of promise.
      */
-    createOne(doc: S, options: CollectionInsertOneOptions, cb?: MongoCallback<InsertOneWriteOpResult<S>>): Promise<InsertOneWriteOpResult<S>>;
+    createOne(doc: S, options: CollectionInsertOneOptions, cb?: MongoCallback<InsertOneWriteOpResult<S & {
+        _id: any;
+    }>>): Promise<InsertOneWriteOpResult<S & {
+        _id: any;
+    }>>;
     /**
      * Creates document in database.
      *
@@ -319,7 +331,11 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb insert one options.
      * @param cb optional callback to use instead of promise.
      */
-    createOne(doc: S, cb?: MongoCallback<InsertOneWriteOpResult<S>>): Promise<InsertOneWriteOpResult<S>>;
+    createOne(doc: S, cb?: MongoCallback<InsertOneWriteOpResult<S & {
+        _id: any;
+    }>>): Promise<InsertOneWriteOpResult<S & {
+        _id: any;
+    }>>;
     /**
      * Updates multiple documents by query.
      *

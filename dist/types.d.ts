@@ -47,10 +47,26 @@ declare const DocumentModel: {
     findModel(query: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
     findUpdate(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
     findDelete(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, options?: IFindOneAndDeleteOption<IDoc>, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
-    create(docs: IDoc[], options: import("mongodb").CollectionInsertManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<IDoc>>): Promise<import("mongodb").InsertWriteOpResult<IDoc>>;
-    create(docs: IDoc[], cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<IDoc>>): Promise<import("mongodb").InsertWriteOpResult<IDoc>>;
-    createOne(doc: IDoc, options: import("mongodb").CollectionInsertOneOptions, cb?: import("mongodb").MongoCallback<InsertOneWriteOpResult<IDoc>>): Promise<InsertOneWriteOpResult<IDoc>>;
-    createOne(doc: IDoc, cb?: import("mongodb").MongoCallback<InsertOneWriteOpResult<IDoc>>): Promise<InsertOneWriteOpResult<IDoc>>;
+    create(docs: IDoc[], options: import("mongodb").CollectionInsertManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<IDoc & {
+        _id: any;
+    }>>): Promise<import("mongodb").InsertWriteOpResult<IDoc & {
+        _id: any;
+    }>>;
+    create(docs: IDoc[], cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<IDoc & {
+        _id: any;
+    }>>): Promise<import("mongodb").InsertWriteOpResult<IDoc & {
+        _id: any;
+    }>>;
+    createOne(doc: IDoc, options: import("mongodb").CollectionInsertOneOptions, cb?: import("mongodb").MongoCallback<InsertOneWriteOpResult<IDoc & {
+        _id: any;
+    }>>): Promise<InsertOneWriteOpResult<IDoc & {
+        _id: any;
+    }>>;
+    createOne(doc: IDoc, cb?: import("mongodb").MongoCallback<InsertOneWriteOpResult<IDoc & {
+        _id: any;
+    }>>): Promise<InsertOneWriteOpResult<IDoc & {
+        _id: any;
+    }>>;
     update(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     update(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     updateOne(id: string | number | ObjectId, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
@@ -107,7 +123,9 @@ export interface IModelSaveResult<S extends IDoc> {
     insertId: LikeObjectId;
     ok: number;
     doc: S;
-    response: InsertOneWriteOpResult<S> | FindAndModifyWriteOpResultObject<S>;
+    response: InsertOneWriteOpResult<S & {
+        _id: any;
+    }> | FindAndModifyWriteOpResultObject<S>;
 }
 export declare type DocumentHook<A1 = any, A2 = any, A3 = any> = (next: IHookHandler, arg1?: A1, arg2?: A2, arg3?: A3, ...args: any[]) => any;
 export {};

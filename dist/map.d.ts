@@ -31,11 +31,11 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
         cast<T_3 extends Partial<S>>(docs: T_3[], ...omit: Extract<keyof T_3, string>[]): T_3[];
         _handleResponse<T_4, E>(promise: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
         _find(query?: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions, isMany?: boolean): Promise<S | S[]>;
-        _create(doc: S | S[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<Pick<S, Exclude<keyof S, "_id">> & {
+        _create(doc: S | S[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<(string | number extends keyof S ? S : Pick<S, Exclude<keyof S, "_id">>) & {
             _id: S extends {
                 _id: infer U;
             } ? {} extends U ? Exclude<U, {}> : unknown extends U ? import("bson").ObjectId : U : import("bson").ObjectId;
-        }>> | Promise<import("mongodb").InsertOneWriteOpResult<Pick<S, Exclude<keyof S, "_id">> & {
+        }>> | Promise<import("mongodb").InsertOneWriteOpResult<(string | number extends keyof S ? S : Pick<S, Exclude<keyof S, "_id">>) & {
             _id: S extends {
                 _id: infer U;
             } ? {} extends U ? Exclude<U, {}> : unknown extends U ? import("bson").ObjectId : U : import("bson").ObjectId;
@@ -53,10 +53,26 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
         findModel(query: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<Model<S> & S>): Promise<Model<S> & S>;
         findUpdate(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
         findDelete(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneAndDeleteOption<S>, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
-        create(docs: S[], options: import("mongodb").CollectionInsertManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<S>>): Promise<import("mongodb").InsertWriteOpResult<S>>;
-        create(docs: S[], cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<S>>): Promise<import("mongodb").InsertWriteOpResult<S>>;
-        createOne(doc: S, options: import("mongodb").CollectionInsertOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertOneWriteOpResult<S>>): Promise<import("mongodb").InsertOneWriteOpResult<S>>;
-        createOne(doc: S, cb?: import("mongodb").MongoCallback<import("mongodb").InsertOneWriteOpResult<S>>): Promise<import("mongodb").InsertOneWriteOpResult<S>>;
+        create(docs: S[], options: import("mongodb").CollectionInsertManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<S & {
+            _id: any;
+        }>>): Promise<import("mongodb").InsertWriteOpResult<S & {
+            _id: any;
+        }>>;
+        create(docs: S[], cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<S & {
+            _id: any;
+        }>>): Promise<import("mongodb").InsertWriteOpResult<S & {
+            _id: any;
+        }>>;
+        createOne(doc: S, options: import("mongodb").CollectionInsertOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertOneWriteOpResult<S & {
+            _id: any;
+        }>>): Promise<import("mongodb").InsertOneWriteOpResult<S & {
+            _id: any;
+        }>>;
+        createOne(doc: S, cb?: import("mongodb").MongoCallback<import("mongodb").InsertOneWriteOpResult<S & {
+            _id: any;
+        }>>): Promise<import("mongodb").InsertOneWriteOpResult<S & {
+            _id: any;
+        }>>;
         update(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         update(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         updateOne(id: string | number | import("bson").ObjectId, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;

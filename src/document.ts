@@ -829,7 +829,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
     static create(
       docs: S[],
       options: CollectionInsertManyOptions,
-      cb?: MongoCallback<InsertWriteOpResult<S>>): Promise<InsertWriteOpResult<S>>;
+      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any }>>): Promise<InsertWriteOpResult<S & { _id: any }>>;
 
     /**
      * Creates multiple documents in database.
@@ -839,18 +839,18 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static create(
       docs: S[],
-      cb?: MongoCallback<InsertWriteOpResult<S>>): Promise<InsertWriteOpResult<S>>;
+      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any }>>): Promise<InsertWriteOpResult<S & { _id: any }>>;
 
     static create(
       docs: S[],
-      options?: CollectionInsertManyOptions | MongoCallback<InsertWriteOpResult<S>>,
-      cb?: MongoCallback<InsertWriteOpResult<S>>) {
+      options?: CollectionInsertManyOptions | MongoCallback<InsertWriteOpResult<S & { _id: any }>>,
+      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any }>>) {
       if (typeof options === 'function') {
         cb = options;
         options = undefined;
       }
       const creator = this._create(docs, options as CollectionInsertManyOptions) as any;
-      return this._handleResponse(creator as Promise<InsertWriteOpResult<S>>, cb);
+      return this._handleResponse(creator as Promise<InsertWriteOpResult<S & { _id: any }>>, cb);
     }
 
     /**
@@ -863,7 +863,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
     static createOne(
       doc: S,
       options: CollectionInsertOneOptions,
-      cb?: MongoCallback<InsertOneWriteOpResult<S>>): Promise<InsertOneWriteOpResult<S>>;
+      cb?: MongoCallback<InsertOneWriteOpResult<S & { _id: any }>>): Promise<InsertOneWriteOpResult<S & { _id: any }>>;
 
     /**
      * Creates document in database.
@@ -873,18 +873,18 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static createOne(
       doc: S,
-      cb?: MongoCallback<InsertOneWriteOpResult<S>>): Promise<InsertOneWriteOpResult<S>>;
+      cb?: MongoCallback<InsertOneWriteOpResult<S & { _id: any }>>): Promise<InsertOneWriteOpResult<S & { _id: any }>>;
 
     static createOne(
       doc: S,
-      options?: CollectionInsertOneOptions | MongoCallback<InsertOneWriteOpResult<S>>,
-      cb?: MongoCallback<InsertOneWriteOpResult<S>>) {
+      options?: CollectionInsertOneOptions | MongoCallback<InsertOneWriteOpResult<S & { _id: any }>>,
+      cb?: MongoCallback<InsertOneWriteOpResult<S & { _id: any }>>) {
       if (typeof options === 'function') {
         cb = options;
         options = undefined;
       }
       const creator = this._create(doc, options as CollectionInsertOneOptions) as any;
-      return this._handleResponse(creator as Promise<InsertOneWriteOpResult<S>>, cb);
+      return this._handleResponse(creator as Promise<InsertOneWriteOpResult<S & { _id: any }>>, cb);
     }
 
     /**

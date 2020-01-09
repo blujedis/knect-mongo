@@ -54,7 +54,7 @@ export interface IModelSaveResult<S extends IDoc> {
   insertId: LikeObjectId,
   ok: number;
   doc: S;
-  response: InsertOneWriteOpResult<S> | FindAndModifyWriteOpResultObject<S>;
+  response: InsertOneWriteOpResult<S & { _id: any }> | FindAndModifyWriteOpResultObject<S>;
 }
 
 export type DocumentHook<A1 = any, A2 = any, A3 = any> =
