@@ -71,11 +71,15 @@
 				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
 					<h2>Usage</h2>
 				</a>
-				<p>Below example utilizes async/await you can also use promises if you wish.</p>
-				<pre><code class="language-ts"><span class="hljs-keyword">import</span> KnectMongo <span class="hljs-keyword">from</span> <span class="hljs-string">'knect-mongo'</span>;
-<span class="hljs-keyword">import</span> yup <span class="hljs-keyword">from</span> <span class="hljs-string">'yup'</span>;
+				<p>Below example utilizes async/await you can also use promises or callbacks if you wish, all supported.</p>
+				<pre><code class="language-sh">$ npm install knect-mongo s-</code></pre>
+				<p>OR</p>
+				<pre><code class="language-sh">$ yarn add knect-mongo</code></pre>
+				<p>After install import or require knect-mongo.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">import</span> KnectMongo <span class="hljs-keyword">from</span> <span class="hljs-string">'knect-mongo'</span>;   <span class="hljs-comment">// or const KnectMongo = require('knect-mongo');</span>
+<span class="hljs-keyword">import</span> yup <span class="hljs-keyword">from</span> <span class="hljs-string">'yup'</span>;                  <span class="hljs-comment">// or const yup = require('yup');</span>
 
-<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params"></span>) </span>{
+(<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params"></span>) </span>{
 
   <span class="hljs-keyword">const</span> dbOptions = {};
   <span class="hljs-keyword">await</span> KnectMongo.connect(<span class="hljs-string">'mongodb://localhost:27017/mydb'</span>, dbOptions);
@@ -85,41 +89,68 @@
     lastName: yup..string().required()
   });
 
-  <span class="hljs-comment">// If using Typescript</span>
+  <span class="hljs-comment">/* WITH TYPESCRIPT
+  ****************************************************/</span>
   <span class="hljs-keyword">type</span> IUserDoc = InferType&lt;<span class="hljs-keyword">typeof</span> userDoc&gt;;
 
-  <span class="hljs-comment">// Define the schema (see ISchema for additional properties)</span>
   <span class="hljs-keyword">const</span> UserSchema: ISchema&lt;IUserDoc&gt; = {
     props: userDoc
   };
 
   <span class="hljs-keyword">const</span> User = KnectMongo.model(<span class="hljs-string">'user'</span>, UserSchema);
+  <span class="hljs-comment">/***************************************************/</span>
 
-  <span class="hljs-comment">// Rather meaningless example but you get the idea.</span>
-  <span class="hljs-comment">// Check /test/default.spec.ts for more examples.</span>
+  <span class="hljs-comment">/* WITHOUT TYPESCRIPT
+  ****************************************************/</span>
+   <span class="hljs-keyword">const</span> User = KnectMongo.model(<span class="hljs-string">'user'</span>, { props: userDoc });
+  <span class="hljs-comment">/***************************************************/</span>
+
+
   <span class="hljs-keyword">try</span> {
-
     <span class="hljs-comment">// Create a new user from model.</span>
     <span class="hljs-keyword">const</span> user = <span class="hljs-keyword">new</span> User({ firstName: <span class="hljs-string">'Milton'</span>, lastName: <span class="hljs-string">'Waddams'</span> });
-    <span class="hljs-keyword">await</span> user.save(); <span class="hljs-comment">// This will create a new user as there is no id.</span>
 
-    <span class="hljs-comment">// Retrieve the user from the database.</span>
-    <span class="hljs-keyword">const</span> userData = <span class="hljs-keyword">await</span> User.findOne({ _id: user._id });
-
-    <span class="hljs-comment">// Retrieve as a model.</span>
-    <span class="hljs-comment">// this will be the same as</span>
-    <span class="hljs-comment">// our "user" above where</span>
-    <span class="hljs-comment">// we called .save().</span>
-    <span class="hljs-keyword">const</span> modelFromDb = <span class="hljs-keyword">await</span> User.fromModel({ _id: user._id });
+    <span class="hljs-comment">// Save our new model.</span>
+    <span class="hljs-keyword">await</span> user.save(); 
 
   }
   <span class="hljs-keyword">catch</span>(err) {
     <span class="hljs-keyword">if</span> (err) <span class="hljs-keyword">throw</span> err;
   }
 
-}
+})();</code></pre>
+				<a href="#working-with-data" id="working-with-data" style="color: inherit; text-decoration: none;">
+					<h2>WORKING WITH DATA</h2>
+				</a>
+				<p>You can find all static methods for a model in the source <a href="https://github.com/blujedis/knect-mongo/blob/master/src/document.ts">document.ts</a> file.</p>
+				<a href="#finding-data" id="finding-data" style="color: inherit; text-decoration: none;">
+					<h3>FINDING DATA</h3>
+				</a>
+				<p>Additional boilerplate from above left out for clarity.</p>
+				<pre><code class="language-ts"><span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getUser</span>(<span class="hljs-params">_id</span>) </span>{
 
-init();</code></pre>
+  <span class="hljs-comment">// Create the Model</span>
+  <span class="hljs-keyword">const</span> User = KnectMongo.model(<span class="hljs-string">'user'</span>, { your_schema_here });
+
+  <span class="hljs-comment">// Using await get the user data.</span>
+  <span class="hljs-keyword">const</span> userData = <span class="hljs-keyword">await</span> User.findOne({ _id });
+
+}</code></pre>
+				<p>In the above example we create the model but what if a model already exists? It&#39;s important to note if using Typescript we need to pass back in the schema for the model. This is because we cannot store the design time type in our map. Simply pass in our defined schema as <strong>show above</strong> then import and reuse it here.</p>
+				<pre><code class="language-ts"><span class="hljs-comment">// file containing all our defined schemas NOT SHOWN ABOVE.</span>
+<span class="hljs-comment">// this is NOT required if NOT using Typescript.</span>
+<span class="hljs-keyword">import</span> { IUserSchema } <span class="hljs-keyword">from</span> <span class="hljs-string">'./schemas'</span>; 
+
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getUser</span>(<span class="hljs-params">_id</span>) </span>{
+
+  <span class="hljs-comment">// Get the Model</span>
+  <span class="hljs-comment">// <span class="hljs-doctag">NOTE:</span> if NOT using Typescript "&lt;IUserSchema&gt;" is NOT required.</span>
+  <span class="hljs-keyword">const</span> User = KnectMongo.model&lt;IUserSchema&gt;(<span class="hljs-string">'user'</span>);
+
+  <span class="hljs-comment">// Using await get the user data.</span>
+  <span class="hljs-keyword">const</span> userData = <span class="hljs-keyword">await</span> User.findOne({ _id });
+
+}</code></pre>
 				<a href="#docs" id="docs" style="color: inherit; text-decoration: none;">
 					<h2>Docs</h2>
 				</a>
