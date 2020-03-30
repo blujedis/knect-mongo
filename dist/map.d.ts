@@ -1,4 +1,3 @@
-/// <reference types="mongodb" />
 import { IDoc, Constructor, DerivedDocument } from './types';
 import { Model } from './model';
 declare type BaseSchema = IDoc & {};
