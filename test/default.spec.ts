@@ -1,9 +1,10 @@
 import { assert } from 'chai';
 
-import KnectMongo, { me } from '../src';
-import { UserSchema, PostSchema, IUserSchema } from './models';
+import { me, KnectMongo } from '../src';
+import { UserSchema, PostSchema } from './models';
 
 let lastPost;
+const instance = new KnectMongo();
 
 function extendDate(doc, isCreate = false) {
   const date = Date.now();
@@ -27,15 +28,15 @@ async function each(arr, done) {
 
 async function load() {
 
-  if (!KnectMongo.client)
-    await KnectMongo.connect(`mongodb://10.10.20.5:32768/temp`);
+  if (!instance.client)
+    await instance.connect(`mongodb://10.10.20.5:32768/temp`);
 
   // Reset schemas or you'll get dupe error.
-  // KnectMongo.schemas.clear();
-  KnectMongo.models.clear();
+  // instance.schemas.clear();
+  instance.models.clear();
 
-  const User = KnectMongo.model('user', UserSchema);
-  const Post = KnectMongo.model('post', PostSchema);
+  const User = instance.model('user', UserSchema);
+  const Post = instance.model('post', PostSchema);
 
   User.pre('create', (next, doc) => {
     extendDate(doc, true);
@@ -58,10 +59,10 @@ async function load() {
 
 async function drop(close?: boolean) {
 
-  if (!KnectMongo.client)
+  if (!instance.client)
     return;
 
-  const db = KnectMongo.db;
+  const db = instance.db;
 
   let collections: any[] = await db.collections();
   collections = collections.map(c => c.s.namespace.collection);
@@ -75,7 +76,7 @@ async function drop(close?: boolean) {
   });
 
   if (close)
-    KnectMongo.client.close();
+    instance.client.close();
 
 }
 

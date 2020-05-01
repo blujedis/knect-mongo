@@ -100,15 +100,15 @@ export class KnectMongo {
 
 }
 
-let _instance: KnectMongo;
+// let _instance: KnectMongo;
 
-/**
- * Gets singleton instance of KnectMongo
- */
-function getInstance() {
-  if (!_instance)
-    _instance = new KnectMongo();
-  return _instance;
-}
+// /**
+//  * Gets singleton instance of KnectMongo
+//  */
+// function getInstance() {
+//   if (!_instance)
+//     _instance = new KnectMongo();
+//   return _instance;
+// }
 
-export default getInstance();
+// export default getInstance();

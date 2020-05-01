@@ -29,11 +29,7 @@ declare const DocumentModel: {
     cast<T_3 extends Partial<IDoc>>(docs: T_3[], ...omit: Extract<keyof T_3, string>[]): T_3[];
     _handleResponse<T_4, E>(promise: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
     _find(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions, isMany?: boolean): Promise<IDoc | IDoc[]>;
-    _create(doc: IDoc | IDoc[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<Pick<IDoc, never> & {
-        _id: ObjectId;
-    }>> | Promise<InsertOneWriteOpResult<Pick<IDoc, never> & {
-        _id: ObjectId;
-    }>>;
+    _create(doc: IDoc | IDoc[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<import("mongodb").WithId<IDoc>>> | Promise<InsertOneWriteOpResult<import("mongodb").WithId<IDoc>>>;
     _update(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;
     _delete(query: import("mongodb").FilterQuery<IDoc>, options?: import("mongodb").CommonOptions & {
         bypassDocumentValidation?: boolean;

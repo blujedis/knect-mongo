@@ -19,8 +19,10 @@ $ yarn add knect-mongo
 After install import or require knect-mongo.
 
 ```ts
-import KnectMongo from 'knect-mongo';   // or const KnectMongo = require('knect-mongo');
+import { KnectMongo }  from 'knect-mongo';   // or const { KnectMongo } = require('knect-mongo');
 import yup from 'yup';                  // or const yup = require('yup');
+
+const instance = new KnectMongo();
 
 (async function init() {
 
@@ -40,12 +42,12 @@ import yup from 'yup';                  // or const yup = require('yup');
     props: userDoc
   };
 
-  const User = KnectMongo.model('user', UserSchema);
+  const User = instance.model('user', UserSchema);
   /***************************************************/
 
   /* WITHOUT TYPESCRIPT
   ****************************************************/
-   const User = KnectMongo.model('user', { props: userDoc });
+   const User = instance.model('user', { props: userDoc });
   /***************************************************/
   
 
@@ -76,7 +78,7 @@ Additional boilerplate from above left out for clarity.
 async function getUser(_id) {
 
   // Create the Model
-  const User = KnectMongo.model('user', { your_schema_here });
+  const User = instance.model('user', { your_schema_here });
 
   // Using await get the user data.
   const userData = await User.findOne({ _id });
@@ -95,7 +97,7 @@ async function getUser(_id) {
 
   // Get the Model
   // NOTE: if NOT using Typescript "<IUserSchema>" is NOT required.
-  const User = KnectMongo.model<IUserSchema>('user');
+  const User = instance.model<IUserSchema>('user');
 
   // Using await get the user data.
   const userData = await User.findOne({ _id });

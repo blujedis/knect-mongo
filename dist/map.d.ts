@@ -30,15 +30,7 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
         cast<T_3 extends Partial<S>>(docs: T_3[], ...omit: Extract<keyof T_3, string>[]): T_3[];
         _handleResponse<T_4, E>(promise: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
         _find(query?: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions, isMany?: boolean): Promise<S | S[]>;
-        _create(doc: S | S[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<(string | number extends keyof S ? S : Pick<S, Exclude<keyof S, "_id">>) & {
-            _id: S extends {
-                _id: infer U;
-            } ? {} extends U ? Exclude<U, {}> : unknown extends U ? import("bson").ObjectId : U : import("bson").ObjectId;
-        }>> | Promise<import("mongodb").InsertOneWriteOpResult<(string | number extends keyof S ? S : Pick<S, Exclude<keyof S, "_id">>) & {
-            _id: S extends {
-                _id: infer U;
-            } ? {} extends U ? Exclude<U, {}> : unknown extends U ? import("bson").ObjectId : U : import("bson").ObjectId;
-        }>>;
+        _create(doc: S | S[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<import("mongodb").WithId<S>>> | Promise<import("mongodb").InsertOneWriteOpResult<import("mongodb").WithId<S>>>;
         _update(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;
         _delete(query: import("mongodb").FilterQuery<S>, options?: import("mongodb").CommonOptions & {
             bypassDocumentValidation?: boolean;

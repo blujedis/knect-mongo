@@ -170,15 +170,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param docs the documents to be persisted to database.
      * @param options Mongodb insert many options.
      */
-    _create(doc: S | S[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions): Promise<InsertWriteOpResult<(string | number extends keyof S ? S : Pick<S, Exclude<keyof S, "_id">>) & {
-        _id: S extends {
-            _id: infer U;
-        } ? {} extends U ? Exclude<U, {}> : unknown extends U ? ObjectId : U : ObjectId;
-    }>> | Promise<InsertOneWriteOpResult<(string | number extends keyof S ? S : Pick<S, Exclude<keyof S, "_id">>) & {
-        _id: S extends {
-            _id: infer U;
-        } ? {} extends U ? Exclude<U, {}> : unknown extends U ? ObjectId : U : ObjectId;
-    }>>;
+    _create(doc: S | S[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions): Promise<InsertWriteOpResult<import("mongodb").WithId<S>>> | Promise<InsertOneWriteOpResult<import("mongodb").WithId<S>>>;
     /**
      * Common update handler to update single or multiple documents by query.
      *
