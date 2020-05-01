@@ -17,12 +17,11 @@ const schema = {
     // apikey: { collection: 'keys', cascade: true },
     }
 };
-const instance = new _1.KnectMongo();
 (async function init() {
-    const { err, data } = await utils_1.me(instance.connect('mongodb://10.10.20.5:32768/temp'));
-    const UserModel = instance.model('user', schema);
+    const { err, data } = await utils_1.me(_1.default.connect('mongodb://10.10.20.5:32768/temp'));
+    const UserModel = _1.default.model('user', schema);
     if (err) {
-        instance.client.close();
+        _1.default.client.close();
         throw err;
     }
     console.log(`\nConnected to: ${data.databaseName}`);
@@ -37,6 +36,6 @@ const instance = new _1.KnectMongo();
     // @ts-ignore
     console.log(user._doc);
     console.log('\n');
-    instance.client.close();
+    _1.default.client.close();
 })();
 //# sourceMappingURL=debug.js.map

@@ -73,14 +73,14 @@ class KnectMongo {
     }
 }
 exports.KnectMongo = KnectMongo;
-// let _instance: KnectMongo;
-// /**
-//  * Gets singleton instance of KnectMongo
-//  */
-// function getInstance() {
-//   if (!_instance)
-//     _instance = new KnectMongo();
-//   return _instance;
-// }
-// export default getInstance();
+let _instance;
+/**
+ * Gets singleton instance of KnectMongo
+ */
+function getInstance() {
+    if (!_instance)
+        _instance = new KnectMongo();
+    return _instance;
+}
+exports.default = getInstance();
 //# sourceMappingURL=knect.js.map

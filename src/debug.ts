@@ -1,4 +1,4 @@
-import { KnectMongo } from './';
+import KnectMongo  from './';
 import { object, string, array, InferType, number } from 'yup';
 import { me } from './utils';
 import { LikeObjectId, ISchema } from './types';
@@ -19,16 +19,14 @@ const schema: ISchema<InferType<typeof userSchema>> = {
   }
 };
 
-const instance = new KnectMongo();
-
 (async function init() {
 
-  const { err, data } = await me(instance.connect('mongodb://10.10.20.5:32768/temp'));
+  const { err, data } = await me(KnectMongo.connect('mongodb://10.10.20.5:32768/temp'));
 
-  const UserModel = instance.model('user', schema);
+  const UserModel = KnectMongo.model('user', schema);
 
   if (err) {
-    instance.client.close();
+    KnectMongo.client.close();
     throw err;
   }
 
@@ -50,6 +48,6 @@ const instance = new KnectMongo();
   console.log(user._doc);
   console.log('\n');
 
-  instance.client.close();
+  KnectMongo.client.close();
 
 })();

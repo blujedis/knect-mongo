@@ -114,3 +114,5 @@ export declare class KnectMongo {
         post<A1_1 = any, A2_1 = any, A3_1 = any>(type: import("./document").HookType, handler: import("./types").DocumentHook<A1_1, A2_1, A3_1>): any;
     } & Constructor<Model<S> & S>;
 }
+declare const _default: KnectMongo;
+export default _default;

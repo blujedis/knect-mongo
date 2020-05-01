@@ -76,8 +76,10 @@
 				<p>OR</p>
 				<pre><code class="language-sh">$ yarn add knect-mongo</code></pre>
 				<p>After install import or require knect-mongo.</p>
-				<pre><code class="language-ts"><span class="hljs-keyword">import</span> KnectMongo <span class="hljs-keyword">from</span> <span class="hljs-string">'knect-mongo'</span>;   <span class="hljs-comment">// or const KnectMongo = require('knect-mongo');</span>
+				<pre><code class="language-ts"><span class="hljs-keyword">import</span> { KnectMongo }  <span class="hljs-keyword">from</span> <span class="hljs-string">'knect-mongo'</span>;   <span class="hljs-comment">// or const { KnectMongo } = require('knect-mongo');</span>
 <span class="hljs-keyword">import</span> yup <span class="hljs-keyword">from</span> <span class="hljs-string">'yup'</span>;                  <span class="hljs-comment">// or const yup = require('yup');</span>
+
+<span class="hljs-keyword">const</span> instance = <span class="hljs-keyword">new</span> KnectMongo();
 
 (<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params"></span>) </span>{
 
@@ -97,12 +99,12 @@
     props: userDoc
   };
 
-  <span class="hljs-keyword">const</span> User = KnectMongo.model(<span class="hljs-string">'user'</span>, UserSchema);
+  <span class="hljs-keyword">const</span> User = instance.model(<span class="hljs-string">'user'</span>, UserSchema);
   <span class="hljs-comment">/***************************************************/</span>
 
   <span class="hljs-comment">/* WITHOUT TYPESCRIPT
   ****************************************************/</span>
-   <span class="hljs-keyword">const</span> User = KnectMongo.model(<span class="hljs-string">'user'</span>, { props: userDoc });
+   <span class="hljs-keyword">const</span> User = instance.model(<span class="hljs-string">'user'</span>, { props: userDoc });
   <span class="hljs-comment">/***************************************************/</span>
 
 
@@ -130,7 +132,7 @@
 				<pre><code class="language-ts"><span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getUser</span>(<span class="hljs-params">_id</span>) </span>{
 
   <span class="hljs-comment">// Create the Model</span>
-  <span class="hljs-keyword">const</span> User = KnectMongo.model(<span class="hljs-string">'user'</span>, { your_schema_here });
+  <span class="hljs-keyword">const</span> User = instance.model(<span class="hljs-string">'user'</span>, { your_schema_here });
 
   <span class="hljs-comment">// Using await get the user data.</span>
   <span class="hljs-keyword">const</span> userData = <span class="hljs-keyword">await</span> User.findOne({ _id });
@@ -145,7 +147,7 @@
 
   <span class="hljs-comment">// Get the Model</span>
   <span class="hljs-comment">// <span class="hljs-doctag">NOTE:</span> if NOT using Typescript "&lt;IUserSchema&gt;" is NOT required.</span>
-  <span class="hljs-keyword">const</span> User = KnectMongo.model&lt;IUserSchema&gt;(<span class="hljs-string">'user'</span>);
+  <span class="hljs-keyword">const</span> User = instance.model&lt;IUserSchema&gt;(<span class="hljs-string">'user'</span>);
 
   <span class="hljs-comment">// Using await get the user data.</span>
   <span class="hljs-keyword">const</span> userData = <span class="hljs-keyword">await</span> User.findOne({ _id });
