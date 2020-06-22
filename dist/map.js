@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ModelMap = void 0;
 const document_1 = require("./document");
 class ModelMap extends Map {
     getAs(key) {

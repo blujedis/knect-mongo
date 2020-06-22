@@ -4,7 +4,7 @@ import {
   CollectionInsertOneOptions, CollectionInsertManyOptions, UpdateManyOptions, UpdateOneOptions,
   CommonOptions, Db, MongoClient, FindOneAndUpdateOption,
   MongoCallback, FindAndModifyWriteOpResultObject, InsertOneWriteOpResult,
-  InsertWriteOpResult, UpdateWriteOpResult, ObjectID
+  InsertWriteOpResult, UpdateWriteOpResult, ObjectID, OptionalId
 } from 'mongodb';
 import {
   ISchema, LikeObjectId, ICascadeResult, IFindOneOptions,
@@ -110,7 +110,6 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       let _query: FilterQuery<S> = query as any;
       if (typeof query !== 'object')
         _query = { _id: query } as FilterQuery<S>;
-
       if (_query._id)
         _query._id = this.toObjectID(_query._id as LikeObjectId) as any;
       return _query;
@@ -128,11 +127,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
         a = c.charAt(0) === '$';
         return a;
       }, false);
-      if (hasSpecial)
-        (update as any).$set = (update as any).$set || {};
-      else
-        update = { $set: update } as any;
-      return update as any;
+      if (!hasSpecial)
+        update = { $set: update } as UpdateQuery<S>;
+      return update as UpdateQuery<S>;
     }
 
     /**
@@ -325,19 +322,22 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       _docs.forEach(doc => {
 
         for (const k in joins) {
+
           if (doc.hasOwnProperty(k) && canPopulate(doc[k])) {
 
+            type DocKey = S[Extract<keyof S, string>];
+
             const _join = joins[k];
-            const _prop = doc[k];
+            const _prop = doc[k] as DocKey | DocKey[];
 
             if (Array.isArray(_prop)) {
 
-              _prop.forEach((p, i) => {
+              (_prop as DocKey[]).forEach((p, i) => {
 
                 if (p instanceof Model)
                   doc[k][i] = p._doc[_join.key];
 
-                else if (typeof p === 'object' && !ObjectID.isValid(p))
+                else if (typeof p === 'object' && !ObjectID.isValid(p as any))
                   doc[k][i] = p[_join.key];
 
               });
@@ -553,7 +553,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
         .catch(err => {
           if (cb)
             cb(err, null);
-          return err;
+
+          throw err;
+          // return err;
         });
     }
 
@@ -573,7 +575,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       query = this.toQuery(query || {});
       options = options || {};
 
-      let result: { err?: Error, data?: S | S[] };
+      let result: { err?: Error, data?: S | S[]; };
 
       if (isMany)
         result = await me(this.collection.find(query, options).toArray());
@@ -602,7 +604,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param options Mongodb insert many options.
      */
     static _create(
-      doc: S | S[],
+      doc: OptionalId<S> | OptionalId<S>[],
       options: CollectionInsertOneOptions | CollectionInsertManyOptions = {}) {
 
       if (Array.isArray(doc)) {
@@ -610,11 +612,11 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
           a.push(c);
           return a;
         }, []);
-        return this.collection.insertMany(doc as any, options);
+        return this.collection.insertMany(doc, options);
       }
 
       else {
-        return this.collection.insertOne(doc as any, options);
+        return this.collection.insertOne(doc, options);
       }
 
     }
@@ -633,8 +635,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       options?: UpdateOneOptions | UpdateManyOptions,
       isMany: boolean = false) {
       if (isMany)
-        return this.collection.updateMany(query, update as any, options);
-      return this.collection.updateOne(query, update as any, options);
+        return this.collection.updateMany(query, update, options);
+      return this.collection.updateOne(query, update, options);
     }
 
     /**
@@ -646,7 +648,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static _delete(
       query: FilterQuery<S>,
-      options?: CommonOptions & { bypassDocumentValidation?: boolean },
+      options?: CommonOptions & { bypassDocumentValidation?: boolean; },
       isMany: boolean = false) {
       if (isMany)
         return this.collection.deleteMany(query, options);
@@ -827,9 +829,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static create(
-      docs: S[],
+      docs: OptionalId<S>[],
       options: CollectionInsertManyOptions,
-      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any }>>): Promise<InsertWriteOpResult<S & { _id: any }>>;
+      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any; }>>): Promise<InsertWriteOpResult<S & { _id: any; }>>;
 
     /**
      * Creates multiple documents in database.
@@ -838,19 +840,19 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static create(
-      docs: S[],
-      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any }>>): Promise<InsertWriteOpResult<S & { _id: any }>>;
+      docs: OptionalId<S>[],
+      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any; }>>): Promise<InsertWriteOpResult<S & { _id: any; }>>;
 
     static create(
-      docs: S[],
-      options?: CollectionInsertManyOptions | MongoCallback<InsertWriteOpResult<S & { _id: any }>>,
-      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any }>>) {
+      docs: OptionalId<S>[],
+      options?: CollectionInsertManyOptions | MongoCallback<InsertWriteOpResult<S & { _id: any; }>>,
+      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any; }>>) {
       if (typeof options === 'function') {
         cb = options;
         options = undefined;
       }
       const creator = this._create(docs, options as CollectionInsertManyOptions) as any;
-      return this._handleResponse(creator as Promise<InsertWriteOpResult<S & { _id: any }>>, cb);
+      return this._handleResponse(creator as Promise<InsertWriteOpResult<S & { _id: any; }>>, cb);
     }
 
     /**
@@ -861,9 +863,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static createOne(
-      doc: S,
+      doc: OptionalId<S>,
       options: CollectionInsertOneOptions,
-      cb?: MongoCallback<InsertOneWriteOpResult<S & { _id: any }>>): Promise<InsertOneWriteOpResult<S & { _id: any }>>;
+      cb?:
+        MongoCallback<InsertOneWriteOpResult<S & { _id: any; }>>): Promise<InsertOneWriteOpResult<S & { _id: any; }>>;
 
     /**
      * Creates document in database.
@@ -872,19 +875,20 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static createOne(
-      doc: S,
-      cb?: MongoCallback<InsertOneWriteOpResult<S & { _id: any }>>): Promise<InsertOneWriteOpResult<S & { _id: any }>>;
+      doc: OptionalId<S>,
+      cb?:
+        MongoCallback<InsertOneWriteOpResult<S & { _id: any; }>>): Promise<InsertOneWriteOpResult<S & { _id: any; }>>;
 
     static createOne(
-      doc: S,
-      options?: CollectionInsertOneOptions | MongoCallback<InsertOneWriteOpResult<S & { _id: any }>>,
-      cb?: MongoCallback<InsertOneWriteOpResult<S & { _id: any }>>) {
+      doc: OptionalId<S>,
+      options?: CollectionInsertOneOptions | MongoCallback<InsertOneWriteOpResult<S & { _id: any; }>>,
+      cb?: MongoCallback<InsertOneWriteOpResult<S & { _id: any; }>>) {
       if (typeof options === 'function') {
         cb = options;
         options = undefined;
       }
       const creator = this._create(doc, options as CollectionInsertOneOptions) as any;
-      return this._handleResponse(creator as Promise<InsertOneWriteOpResult<S & { _id: any }>>, cb);
+      return this._handleResponse(creator as Promise<InsertOneWriteOpResult<S & { _id: any; }>>, cb);
     }
 
     /**
@@ -927,7 +931,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       query = this.toQuery(query);
       update = this.toUpdate(update);
 
-      return this._handleResponse(this._update(query, update as any, options as UpdateManyOptions, true), cb);
+      return this._handleResponse(this._update(query, update, options as UpdateManyOptions, true), cb);
 
     }
 
@@ -997,7 +1001,12 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       const _query = this.toQuery(query);
       update = this.toUpdate(update);
 
-      return this._handleResponse(this._update(_query, update as any, options as UpdateOneOptions, false), cb);
+      console.log('\n-- updateOne options --');
+      console.log('query:', _query);
+      console.log('update:', update);
+      console.log();
+
+      return this._handleResponse(this._update(_query, update, options as UpdateOneOptions, false), cb);
 
     }
 
@@ -1046,7 +1055,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static deleteOne(
       id: LikeObjectId,
-      options: CommonOptions & { bypassDocumentValidation?: boolean },
+      options: CommonOptions & { bypassDocumentValidation?: boolean; },
       cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
 
     /**
@@ -1068,7 +1077,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static deleteOne(
       query: FilterQuery<S>,
-      options?: CommonOptions & { bypassDocumentValidation?: boolean },
+      options?: CommonOptions & { bypassDocumentValidation?: boolean; },
       cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
 
     /**
@@ -1083,7 +1092,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
     static deleteOne(
       query: LikeObjectId | FilterQuery<S>,
-      options?: CommonOptions & { bypassDocumentValidation?: boolean } | MongoCallback<DeleteWriteOpResultObject>,
+      options?: CommonOptions & { bypassDocumentValidation?: boolean; } | MongoCallback<DeleteWriteOpResultObject>,
       cb?: MongoCallback<DeleteWriteOpResultObject>) {
 
       if (typeof options === 'function') {
@@ -1092,7 +1101,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       }
       const _query = this.toQuery(query);
       return this._handleResponse(
-        this._delete(_query, options as CommonOptions & { bypassDocumentValidation?: boolean }, false), cb);
+        this._delete(_query, options as CommonOptions & { bypassDocumentValidation?: boolean; }, false), cb);
     }
 
     static pre<A1 = any, A2 = any, A3 = any>(type: HookType, handler: DocumentHook<A1, A2, A3>) {

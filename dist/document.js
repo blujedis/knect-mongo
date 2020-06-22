@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.initDocument = void 0;
 const mongodb_1 = require("mongodb");
 const utils_1 = require("./utils");
 const mustad_1 = require("mustad");
@@ -77,9 +78,7 @@ function initDocument(config, client, db, Model, knect) {
                     a = c.charAt(0) === '$';
                     return a;
                 }, false);
-                if (hasSpecial)
-                    update.$set = update.$set || {};
-                else
+                if (!hasSpecial)
                     update = { $set: update };
                 return update;
             }
@@ -306,7 +305,8 @@ function initDocument(config, client, db, Model, knect) {
                     .catch(err => {
                     if (cb)
                         cb(err, null);
-                    return err;
+                    throw err;
+                    // return err;
                 });
             }
             /**
@@ -464,6 +464,10 @@ function initDocument(config, client, db, Model, knect) {
                 }
                 const _query = this.toQuery(query);
                 update = this.toUpdate(update);
+                console.log('\n-- updateOne options --');
+                console.log('query:', _query);
+                console.log('update:', update);
+                console.log();
                 return this._handleResponse(this._update(_query, update, options, false), cb);
             }
             static delete(filter, options, cb) {

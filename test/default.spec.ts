@@ -42,11 +42,6 @@ async function load() {
     next();
   });
 
-  // User.pre('update', (next, query, update) => {
-  //   extendDate(update);
-  //   next();
-  // });
-
   const Models = {
     User,
     Post

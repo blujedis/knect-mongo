@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.KnectMongo = exports.MONGO_CLIENT_DEFAULTS = void 0;
 const mongodb_1 = require("mongodb");
 const utils_1 = require("./utils");
 const model_1 = require("./model");

@@ -1,5 +1,5 @@
 import { LikeObjectId, ISchema } from '../src';
-import yup, { object, string, array, number, mixed, InferType } from 'yup';
+import { object, string, array, number, mixed, InferType } from 'yup';
 import { Model } from '../src/model';
 
 // export interface IUser extends IBase {

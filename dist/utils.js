@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.isPromise = exports.fromNamespace = exports.toNamespace = exports.parseDbName = exports.me = void 0;
 /**
  * Normalizes promise to return object containing { err, data }
  *

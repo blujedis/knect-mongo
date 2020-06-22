@@ -1,7 +1,7 @@
 import {
   ObjectId, CollectionInsertOneOptions,
-  FindOneAndDeleteOption,
-  FindOneAndUpdateOption
+  FindOneAndUpdateOption,
+  OptionalId
 } from 'mongodb';
 import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
 import { ValidationError, ObjectSchema } from 'yup';
@@ -67,7 +67,8 @@ export class Model<S extends IDoc> {
       return Promise.reject(new ValidationError([`Cannot create for collection "${this._Document.collection.namespace}" with existing 
             id, did you mean ".save()"?`], doc, 'id'));
 
-    const { err, data } = await me(this._Document.createOne(doc, options));
+    // TODO: Typing issue with Doc.
+    const { err, data } = await me(this._Document.createOne(doc as any, options));
 
     if (err)
       return Promise.reject(err);

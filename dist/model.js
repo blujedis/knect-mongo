@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Model = void 0;
 const yup_1 = require("yup");
 const utils_1 = require("./utils");
 class Model {
@@ -44,6 +45,7 @@ class Model {
         if (this._id)
             return Promise.reject(new yup_1.ValidationError([`Cannot create for collection "${this._Document.collection.namespace}" with existing 
             id, did you mean ".save()"?`], doc, 'id'));
+        // TODO: Typing issue with Doc.
         const { err, data } = await utils_1.me(this._Document.createOne(doc, options));
         if (err)
             return Promise.reject(err);
