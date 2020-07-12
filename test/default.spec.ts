@@ -155,7 +155,7 @@ describe('Knect-Mongo', () => {
     const Models = await load();
     const User = Models.User;
     const user = await User.findModel({ firstName: 'Peter' });
-    const { err, data } = await promise(User.cascade(user._doc, 'posts'));
+    const { err } = await promise(User.cascade(user._doc, 'posts'));
     if (err)
       throw err;
   });
