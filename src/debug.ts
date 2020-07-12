@@ -1,6 +1,6 @@
 import KnectMongo from './';
 import { object, string, array, InferType, number } from 'yup';
-import { me } from './utils';
+import { promise } from './utils';
 import { LikeObjectId, ISchema } from './types';
 import { ObjectId } from 'mongodb';
 
@@ -23,7 +23,7 @@ const schema: ISchema<InferType<typeof userSchema>> = {
 
 (async function init() {
 
-  const { err: cErr, data: cData } = await me(KnectMongo.connect('mongodb://10.10.20.5:32768/temp'));
+  const { err: cErr, data: cData } = await promise(KnectMongo.connect('mongodb://10.10.20.5:32768/temp'));
 
   const UserModel = KnectMongo.model('user', schema);
 
@@ -47,7 +47,7 @@ const schema: ISchema<InferType<typeof userSchema>> = {
   // console.log('\n');
 
   const { err: uErr, data: uData } =
-    await me(UserModel.updateOne(
+    await promise(UserModel.updateOne(
       { _id: new ObjectId('5eec078cd4b283619e646e63') },
       {
         tags: ['ten']

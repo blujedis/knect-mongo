@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 
-import KnectMongo, { me } from '../src';
+import KnectMongo, { promise } from '../src';
 import { UserSchema, PostSchema } from './models';
 
 let lastPost;
@@ -88,7 +88,7 @@ describe('Knect-Mongo', () => {
       lastName: 'Waddams',
       posts: []
     });
-    const { err, data } = await me(milton.save());
+    const { err, data } = await promise(milton.save());
     if (err)
       throw err;
     assert.equal(data.ok, 1);
@@ -101,7 +101,7 @@ describe('Knect-Mongo', () => {
     const User = Models.User;
 
     // Test using callback.
-    const result = await me(User.findOne({ firstName: 'Milton' }));
+    const result = await promise(User.findOne({ firstName: 'Milton' }));
 
     if (result.err)
       throw result.err;
@@ -111,7 +111,7 @@ describe('Knect-Mongo', () => {
     user.firstName = 'Peter';
     user.lastName = 'Gibbons';
 
-    const result2 = await me(user.save());
+    const result2 = await promise(user.save());
 
     if (result2.err)
       throw result2.err;
@@ -155,7 +155,7 @@ describe('Knect-Mongo', () => {
     const Models = await load();
     const User = Models.User;
     const user = await User.findModel({ firstName: 'Peter' });
-    const { err, data } = await me(User.cascade(user._doc, 'posts'));
+    const { err, data } = await promise(User.cascade(user._doc, 'posts'));
     if (err)
       throw err;
   });

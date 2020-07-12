@@ -1,11 +1,10 @@
 import {
   ObjectId, CollectionInsertOneOptions,
-  FindOneAndUpdateOption,
-  OptionalId
+  FindOneAndUpdateOption
 } from 'mongodb';
 import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
 import { ValidationError, ObjectSchema } from 'yup';
-import { me } from './utils';
+import { promise } from './utils';
 
 export class Model<S extends IDoc> {
 
@@ -68,7 +67,7 @@ export class Model<S extends IDoc> {
             id, did you mean ".save()"?`], doc, 'id'));
 
     // TODO: Typing issue with Doc.
-    const { err, data } = await me(this._Document.createOne(doc as any, options));
+    const { err, data } = await promise(this._Document.createOne(doc as any, options));
 
     if (err)
       return Promise.reject(err);
@@ -101,7 +100,7 @@ export class Model<S extends IDoc> {
 
     const { _id, ...clone } = this._doc;
 
-    const { err, data } = await me(this._Document.findUpdate(this._id, clone, options));
+    const { err, data } = await promise(this._Document.findUpdate(this._id, clone, options));
 
     if (err)
       return Promise.reject(err);
@@ -147,7 +146,7 @@ export class Model<S extends IDoc> {
    * @param names the names of joins that should be populated.
    */
   async populate(...names: string[]) {
-    const { err, data } = await me(this._Document.populate(this._doc, names));
+    const { err, data } = await promise(this._Document.populate(this._doc, names));
     if (err)
       return Promise.reject(err);
     this._doc = data as S;

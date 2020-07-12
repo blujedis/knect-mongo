@@ -3,8 +3,8 @@
  *
  * @param promise the promise to be wrapped.
  */
-export declare const me: <T>(promise: Promise<T>) => Promise<{
-    err?: Error;
+export declare function promise<T, E extends Error = Error>(p: Promise<T>): Promise<{
+    err?: E;
     data?: T;
 }>;
 /**

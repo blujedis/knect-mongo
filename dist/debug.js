@@ -20,7 +20,7 @@ const schema = {
     }
 };
 (async function init() {
-    const { err: cErr, data: cData } = await utils_1.me(_1.default.connect('mongodb://10.10.20.5:32768/temp'));
+    const { err: cErr, data: cData } = await utils_1.promise(_1.default.connect('mongodb://10.10.20.5:32768/temp'));
     const UserModel = _1.default.model('user', schema);
     if (cErr) {
         _1.default.client.close();
@@ -35,7 +35,7 @@ const schema = {
     // console.log('\n');
     // console.log(user._doc);
     // console.log('\n');
-    const { err: uErr, data: uData } = await utils_1.me(UserModel.updateOne({ _id: new mongodb_1.ObjectId('5eec078cd4b283619e646e63') }, {
+    const { err: uErr, data: uData } = await utils_1.promise(UserModel.updateOne({ _id: new mongodb_1.ObjectId('5eec078cd4b283619e646e63') }, {
         tags: ['ten']
         // $addToSet: {
         //   tags: {

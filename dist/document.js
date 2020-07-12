@@ -134,7 +134,7 @@ function initDocument(config, client, db, Model, knect) {
                     }, {});
                 }
                 const _docs = (!isArray ? [docs] : docs);
-                const { err, data } = await utils_1.me(Promise.all(_docs.map(async (doc) => {
+                const { err, data } = await utils_1.promise(Promise.all(_docs.map(async (doc) => {
                     for (const k in joins) {
                         if (!joins.hasOwnProperty(k))
                             continue;
@@ -145,7 +145,7 @@ function initDocument(config, client, db, Model, knect) {
                         if (key === '_id')
                             values = values.map(v => this.toObjectID(v));
                         const filter = { [key]: { '$in': values } };
-                        const { err: pErr, data: pData } = await utils_1.me(this.db
+                        const { err: pErr, data: pData } = await utils_1.promise(this.db
                             .collection(conf.collection)
                             .find(filter, conf.options)
                             .toArray());
@@ -322,9 +322,9 @@ function initDocument(config, client, db, Model, knect) {
                 options = options || {};
                 let result;
                 if (isMany)
-                    result = await utils_1.me(this.collection.find(query, options).toArray());
+                    result = await utils_1.promise(this.collection.find(query, options).toArray());
                 else
-                    result = await utils_1.me(this.collection.findOne(query, options));
+                    result = await utils_1.promise(this.collection.findOne(query, options));
                 if (result.err)
                     return Promise.reject(result.err);
                 if (!options.populate) {
@@ -402,7 +402,7 @@ function initDocument(config, client, db, Model, knect) {
                     options = undefined;
                 }
                 const _query = this.toQuery(query);
-                const { err, data } = await utils_1.me(this._find(_query, options, false));
+                const { err, data } = await utils_1.promise(this._find(_query, options, false));
                 if (err)
                     return Promise.reject(err);
                 const model = new Model(data, Document);

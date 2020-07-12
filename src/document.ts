@@ -10,7 +10,7 @@ import {
   ISchema, LikeObjectId, ICascadeResult, IFindOneOptions,
   Constructor, IDoc, DocumentHook, Joins, KeyOf, IFindOneAndDeleteOption
 } from './types';
-import { me, isPromise } from './utils';
+import { promise, isPromise } from './utils';
 import { Model as BaseModel } from './model';
 import { Mustad } from 'mustad';
 import { ObjectSchema, ValidateOptions, object } from 'yup';
@@ -231,7 +231,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
       const _docs = (!isArray ? [docs] : docs) as S[];
 
-      const { err, data } = await me(Promise.all(_docs.map(async doc => {
+      const { err, data } = await promise(Promise.all(_docs.map(async doc => {
 
         for (const k in joins) {
 
@@ -248,7 +248,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
           const filter = { [key]: { '$in': values } } as FilterQuery<S>;
 
-          const { err: pErr, data: pData } = await me(this.db
+          const { err: pErr, data: pData } = await promise(this.db
             .collection<S>(conf.collection)
             .find(filter, conf.options)
             .toArray());
@@ -578,9 +578,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       let result: { err?: Error, data?: S | S[]; };
 
       if (isMany)
-        result = await me(this.collection.find(query, options).toArray());
+        result = await promise(this.collection.find(query, options).toArray());
       else
-        result = await me(this.collection.findOne(query, options));
+        result = await promise(this.collection.findOne(query, options));
 
       if (result.err)
         return Promise.reject(result.err);
@@ -759,7 +759,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       }
 
       const _query = this.toQuery(query);
-      const { err, data } = await me(this._find(_query, options as IFindOneOptions, false));
+      const { err, data } = await promise(this._find(_query, options as IFindOneOptions, false));
 
       if (err)
         return Promise.reject(err);

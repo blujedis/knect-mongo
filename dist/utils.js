@@ -1,16 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isPromise = exports.fromNamespace = exports.toNamespace = exports.parseDbName = exports.me = void 0;
+exports.isPromise = exports.fromNamespace = exports.toNamespace = exports.parseDbName = exports.promise = void 0;
 /**
  * Normalizes promise to return object containing { err, data }
  *
  * @param promise the promise to be wrapped.
  */
-exports.me = (promise) => {
-    return promise
+function promise(p) {
+    return p
         .then(data => ({ err: null, data }))
-        .catch(err => ({ err }));
-};
+        .catch(err => ({ err, data: null }));
+}
+exports.promise = promise;
 /**
  * Parses database name from Mongodb connection string.
  *

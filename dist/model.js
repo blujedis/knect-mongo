@@ -46,7 +46,7 @@ class Model {
             return Promise.reject(new yup_1.ValidationError([`Cannot create for collection "${this._Document.collection.namespace}" with existing 
             id, did you mean ".save()"?`], doc, 'id'));
         // TODO: Typing issue with Doc.
-        const { err, data } = await utils_1.me(this._Document.createOne(doc, options));
+        const { err, data } = await utils_1.promise(this._Document.createOne(doc, options));
         if (err)
             return Promise.reject(err);
         this._doc = ((data.ops && data.ops[0]) || {});
@@ -69,7 +69,7 @@ class Model {
         this._doc = this._Document.unpopulate(this._doc);
         this._doc = this._Document.validate(this._doc);
         const { _id, ...clone } = this._doc;
-        const { err, data } = await utils_1.me(this._Document.findUpdate(this._id, clone, options));
+        const { err, data } = await utils_1.promise(this._Document.findUpdate(this._id, clone, options));
         if (err)
             return Promise.reject(err);
         this._doc = data.value;
@@ -105,7 +105,7 @@ class Model {
      * @param names the names of joins that should be populated.
      */
     async populate(...names) {
-        const { err, data } = await utils_1.me(this._Document.populate(this._doc, names));
+        const { err, data } = await utils_1.promise(this._Document.populate(this._doc, names));
         if (err)
             return Promise.reject(err);
         this._doc = data;

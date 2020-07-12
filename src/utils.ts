@@ -4,11 +4,11 @@
  * 
  * @param promise the promise to be wrapped.
  */
-export const me = <T>(promise: Promise<T>) => {
-  return promise
+export function promise<T, E extends Error = Error>(p: Promise<T>) {
+  return p
     .then(data => ({ err: null, data }))
-    .catch(err => ({ err })) as Promise<{ err?: Error, data?: T }>;
-};
+    .catch(err => ({ err, data: null })) as Promise<{ err?: E, data?: T }>;
+}
 
 /**
  * Parses database name from Mongodb connection string.
