@@ -1,11 +1,16 @@
 import { ObjectId, CollectionInsertOneOptions, FindOneAndUpdateOption } from 'mongodb';
 import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
-import { ObjectSchema } from 'yup';
 export declare class Model<S extends IDoc> {
     private _Document;
     _id: ObjectId;
     _doc: S;
-    constructor(doc: S, document: DerivedDocument);
+    constructor(doc: S, document: DerivedDocument, isClone?: boolean);
+    /**
+     * Binds properties to instance.
+     *
+     * @param props the properties to be bind.
+     */
+    private bindProps;
     /**
      * Creates and persists instance to database.
      *
@@ -37,15 +42,11 @@ export declare class Model<S extends IDoc> {
      */
     populate(...names: string[]): Promise<IDoc>;
     /**
-     * Validates instance against schema.
-     *
-     * @param schema optional schema to verify by or uses defined.
+     * Validates the document.
      */
-    validate(schema?: ObjectSchema<S>): IDoc;
+    validate(): Promise<IDoc>;
     /**
      * Checks if instance is valid against schema.
-     *
-     * @param schema optional schema to verify by or uses defined.
      */
-    isValid(schema?: ObjectSchema<S>): boolean;
+    isValid(): void;
 }

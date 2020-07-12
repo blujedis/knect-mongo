@@ -1,17 +1,19 @@
 import { MongoClient, MongoClientOptions, Db } from 'mongodb';
-import { ISchema, Constructor } from './types';
 import { Model } from './model';
 import { ModelMap } from './map';
+import { ISchema, Constructor, IOptions } from './types';
 export declare const MONGO_CLIENT_DEFAULTS: {
     useNewUrlParser: boolean;
     useUnifiedTopology: boolean;
 };
 export declare class KnectMongo {
+    static instance: KnectMongo;
     dbname: string;
-    db: Db;
     client: MongoClient;
+    db: Db;
     models: ModelMap;
-    delimiter: string;
+    options: IOptions;
+    constructor(options?: IOptions);
     /**
      * Ensures schema is valid configuration.
      *
@@ -25,7 +27,13 @@ export declare class KnectMongo {
      * @param uri the Mongodb connection uri.
      * @param options Mongodb client connection options.
      */
-    connect(uri: string, options?: MongoClientOptions): Promise<Db>;
+    connect(uri?: string, options?: MongoClientOptions): Promise<MongoClient>;
+    /**
+     * Sets the database.
+     *
+     * @param name the database name to connect to.
+     */
+    setDb(name: string): Promise<Db>;
     /**
      * Accepts a schema and creates model with static and instance convenience methods.
      *
@@ -33,7 +41,7 @@ export declare class KnectMongo {
      * @param schema the schema configuration containing document validation.
      */
     model<S extends object>(ns: string, schema?: ISchema<S>): {
-        new (doc?: S): {};
+        new (doc?: S, isClone?: boolean): {};
         knect: KnectMongo;
         collectionName: string;
         schema: ISchema<S>;
@@ -46,8 +54,8 @@ export declare class KnectMongo {
         toUpdate(update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>): import("mongodb").UpdateQuery<Partial<S>>;
         toCascades(joins: import("./types").Joins<S>, ...filter: string[]): string[];
         toCascades(...filter: string[]): string[];
-        isValid(doc: S, schema?: import("yup").ObjectSchema<S>, options?: import("yup").ValidateOptions): boolean;
-        validate(doc: S, schema?: import("yup").ObjectSchema<S>, options?: import("yup").ValidateOptions): S;
+        isValid(doc: S): void;
+        validate(doc: S): Promise<S>;
         populate(doc: S, join: string | string[] | import("./types").Joins<S>): Promise<S>;
         populate(docs: S[], join: string | string[] | import("./types").Joins<S>): Promise<S[]>;
         unpopulate(doc: S, join?: string | string[] | import("./types").Joins<S>): S;
@@ -58,7 +66,7 @@ export declare class KnectMongo {
         cast<T_1 extends Partial<S>>(doc: T_1, ...omit: Extract<keyof T_1, string>[]): T_1;
         cast<T_2 extends Partial<S>>(docs: T_2[], include?: true, ...props: Extract<keyof T_2, string>[]): T_2[];
         cast<T_3 extends Partial<S>>(docs: T_3[], ...omit: Extract<keyof T_3, string>[]): T_3[];
-        _handleResponse<T_4, E>(promise: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
+        _handleResponse<T_4, E>(p: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
         _find(query?: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions, isMany?: boolean): Promise<S | S[]>;
         _create(doc: import("mongodb").OptionalId<S> | import("mongodb").OptionalId<S>[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<import("mongodb").WithId<S>>> | Promise<import("mongodb").InsertOneWriteOpResult<import("mongodb").WithId<S>>>;
         _update(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;
@@ -114,5 +122,6 @@ export declare class KnectMongo {
         post<A1_1 = any, A2_1 = any, A3_1 = any>(type: import("./document").HookType, handler: import("./types").DocumentHook<A1_1, A2_1, A3_1>): any;
     } & Constructor<Model<S> & S>;
 }
-declare const _default: KnectMongo;
-export default _default;
+/**
+ * Gets singleton instance of KnectMongo
+ */

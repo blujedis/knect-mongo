@@ -49,4 +49,25 @@ export function fromNamespace(ns: string, delimiter: string = '.') {
   };
 }
 
+/**
+ * Checks if value is a promise.
+ * 
+ * @param val the value to be inspected.
+ */
 export const isPromise = val => Promise.resolve(val) === val;
+
+/**
+ * Checks if an object has a defined property descriptor. 
+ * Also returns if has getter and/or setters.
+ * 
+ * @param obj the object to inspect.
+ * @param prop the property within the object.
+ */
+export function hasDescriptor<T extends {}>(obj: T, prop: string) {
+  const descriptor = Object.getOwnPropertyDescriptor(obj, prop);
+  return {
+    exists: !!descriptor,
+    getter: descriptor && !!descriptor.get,
+    setter: descriptor && !!descriptor.set
+  };
+}

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isPromise = exports.fromNamespace = exports.toNamespace = exports.parseDbName = exports.promise = void 0;
+exports.hasDescriptor = exports.isPromise = exports.fromNamespace = exports.toNamespace = exports.parseDbName = exports.promise = void 0;
 /**
  * Normalizes promise to return object containing { err, data }
  *
@@ -51,5 +51,26 @@ function fromNamespace(ns, delimiter = '.') {
     };
 }
 exports.fromNamespace = fromNamespace;
+/**
+ * Checks if value is a promise.
+ *
+ * @param val the value to be inspected.
+ */
 exports.isPromise = val => Promise.resolve(val) === val;
+/**
+ * Checks if an object has a defined property descriptor.
+ * Also returns if has getter and/or setters.
+ *
+ * @param obj the object to inspect.
+ * @param prop the property within the object.
+ */
+function hasDescriptor(obj, prop) {
+    const descriptor = Object.getOwnPropertyDescriptor(obj, prop);
+    return {
+        exists: !!descriptor,
+        getter: descriptor && !!descriptor.get,
+        setter: descriptor && !!descriptor.set
+    };
+}
+exports.hasDescriptor = hasDescriptor;
 //# sourceMappingURL=utils.js.map

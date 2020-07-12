@@ -10,9 +10,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const knect_1 = require("./knect");
-__exportStar(require("./knect"), exports);
 __exportStar(require("./types"), exports);
 __exportStar(require("./utils"), exports);
-exports.default = knect_1.default;
+__exportStar(require("./knect"), exports);
 //# sourceMappingURL=index.js.map

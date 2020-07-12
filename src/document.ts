@@ -13,7 +13,6 @@ import {
 import { promise, isPromise } from './utils';
 import { Model as BaseModel } from './model';
 import { Mustad } from 'mustad';
-import { ObjectSchema, ValidateOptions, object } from 'yup';
 import { KnectMongo } from './knect';
 
 export type HookType = 'find' | 'create' | 'update' | 'delete';
@@ -21,7 +20,7 @@ export type HookType = 'find' | 'create' | 'update' | 'delete';
 const hookMap = {
   find: ['_find'],
   create: ['_create'],
-  update: ['_update', 'findUpdate', 'findReplace'],
+  update: ['_update', 'findUpdate'],
   delete: ['_delete', 'findDelete']
 };
 
@@ -42,7 +41,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
   client?: MongoClient,
   db?: Db,
   Model?: Constructor<M>,
-  knect?: KnectMongo) {
+  knect?: KnectMongo,
+  ) {
 
   let mustad: Mustad<typeof Wrapper>;
 
@@ -168,24 +168,18 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * Checks is document is valid against schema.
      * 
      * @param doc the document to be validated.
-     * @param schema the schema to validate against.
-     * @param options the validation options to be applied.
      */
-    static isValid(doc: S, schema?: ObjectSchema<S>, options?: ValidateOptions) {
-      schema = (this.schema.props || object()) as ObjectSchema<S>;
-      return schema.isValidSync(doc, options);
+    static isValid(doc: S) {
+      this.knect.options.isValid(this.collectionName, doc);
     }
 
     /**
      * Validates a document against schema.
      * 
      * @param doc the document to be validated.
-     * @param schema the schema to validate against.
-     * @param options the validation options to be applied.
      */
-    static validate(doc: S, schema?: ObjectSchema<S>, options?: ValidateOptions) {
-      schema = (this.schema.props || object()) as ObjectSchema<S>;
-      return schema.validateSync(doc, options);
+    static validate(doc: S) {
+      return this.knect.options.validate(this.collectionName, doc);
     }
 
     ////////////////////////
@@ -541,9 +535,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb an optional callback to be called with error or data.
      */
     static async _handleResponse<T, E>(
-      promise: T | Promise<T>,
+      p: T | Promise<T>,
       cb?: (err: E, data: T) => void): Promise<T> {
-      const prom = (!isPromise(promise) ? Promise.resolve(promise) : promise) as Promise<T>;
+      const prom = (!isPromise(p) ? Promise.resolve(p) : p) as Promise<T>;
 
       return prom.then(res => {
         if (cb)
@@ -1122,15 +1116,16 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       return this;
     }
 
-    constructor(doc?: S) {
+    constructor(doc?: S, isClone = false) {
       if (!Document.db || !Document.client)
         throw new Error(`Failed to initialize model with "db" or "client" of undefined.`);
-      return new Model(doc, Document);
+      return new Model(doc, Document, isClone);
     }
 
   };
 
   // If no config only return the derived type.
+  // Otherwise wrap with Mustad hooks.
   if (config)
     mustad = new Mustad(Wrapper, { include: includeKeys });
 

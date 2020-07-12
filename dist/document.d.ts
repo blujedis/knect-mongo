@@ -1,7 +1,6 @@
 import { FilterQuery, UpdateQuery, ObjectId, DeleteWriteOpResultObject, CollectionInsertOneOptions, CollectionInsertManyOptions, UpdateManyOptions, UpdateOneOptions, CommonOptions, Db, MongoClient, FindOneAndUpdateOption, MongoCallback, FindAndModifyWriteOpResultObject, InsertOneWriteOpResult, InsertWriteOpResult, UpdateWriteOpResult, OptionalId } from 'mongodb';
 import { ISchema, LikeObjectId, ICascadeResult, IFindOneOptions, Constructor, IDoc, DocumentHook, Joins, KeyOf, IFindOneAndDeleteOption } from './types';
 import { Model as BaseModel } from './model';
-import { ObjectSchema, ValidateOptions } from 'yup';
 import { KnectMongo } from './knect';
 export declare type HookType = 'find' | 'create' | 'update' | 'delete';
 /**
@@ -13,7 +12,7 @@ export declare type HookType = 'find' | 'create' | 'update' | 'delete';
  * @param Model the BaseModel type for creating models.
  */
 export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(config?: ISchema<S>, client?: MongoClient, db?: Db, Model?: Constructor<M>, knect?: KnectMongo): {
-    new (doc?: S): {};
+    new (doc?: S, isClone?: boolean): {};
     knect: KnectMongo;
     collectionName: string;
     schema: ISchema<S>;
@@ -62,18 +61,14 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * Checks is document is valid against schema.
      *
      * @param doc the document to be validated.
-     * @param schema the schema to validate against.
-     * @param options the validation options to be applied.
      */
-    isValid(doc: S, schema?: ObjectSchema<S>, options?: ValidateOptions): boolean;
+    isValid(doc: S): void;
     /**
      * Validates a document against schema.
      *
      * @param doc the document to be validated.
-     * @param schema the schema to validate against.
-     * @param options the validation options to be applied.
      */
-    validate(doc: S, schema?: ObjectSchema<S>, options?: ValidateOptions): S;
+    validate(doc: S): Promise<S>;
     /**
      * Populates document with specified joins.
      *
@@ -154,7 +149,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param promise a promise to be handled.
      * @param cb an optional callback to be called with error or data.
      */
-    _handleResponse<T_4, E>(promise: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
+    _handleResponse<T_4, E>(p: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
     /**
      * Common handler finds a document or collection of documents by query.
      *

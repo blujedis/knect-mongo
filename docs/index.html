@@ -76,37 +76,55 @@
 				<p>OR</p>
 				<pre><code class="language-sh">$ yarn add knect-mongo</code></pre>
 				<p>After install import or require knect-mongo.</p>
-				<pre><code class="language-ts"><span class="hljs-keyword">import</span> { KnectMongo }  <span class="hljs-keyword">from</span> <span class="hljs-string">'knect-mongo'</span>;   <span class="hljs-comment">// or const { KnectMongo } = require('knect-mongo');</span>
-<span class="hljs-keyword">import</span> yup <span class="hljs-keyword">from</span> <span class="hljs-string">'yup'</span>;                  <span class="hljs-comment">// or const yup = require('yup');</span>
+				<pre><code class="language-ts"><span class="hljs-keyword">import</span> { KnectMongo }  <span class="hljs-keyword">from</span> <span class="hljs-string">'knect-mongo'</span>;
 
-<span class="hljs-keyword">const</span> instance = <span class="hljs-keyword">new</span> KnectMongo();
+<span class="hljs-comment">/** 
+ * Create singleton instance.
+ */</span>
+<span class="hljs-keyword">const</span> knect = <span class="hljs-keyword">new</span> KnectMongo();
 
 (<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params"></span>) </span>{
 
-  <span class="hljs-keyword">const</span> dbOptions = {};
-  <span class="hljs-keyword">await</span> KnectMongo.connect(<span class="hljs-string">'mongodb://localhost:27017/mydb'</span>, dbOptions);
-
-  <span class="hljs-keyword">const</span> userDoc = yup.object({
-    firstName: yup.string().required(),
-    lastName: yup..string().required()
-  });
-
-  <span class="hljs-comment">/* WITH TYPESCRIPT
-  ****************************************************/</span>
-  <span class="hljs-keyword">type</span> IUserDoc = InferType&lt;<span class="hljs-keyword">typeof</span> userDoc&gt;;
-
-  <span class="hljs-keyword">const</span> UserSchema: ISchema&lt;IUserDoc&gt; = {
-    props: userDoc
+  <span class="hljs-keyword">const</span> dbOptions = {
+    <span class="hljs-comment">// your options here.</span>
   };
 
-  <span class="hljs-keyword">const</span> User = instance.model(<span class="hljs-string">'user'</span>, UserSchema);
-  <span class="hljs-comment">/***************************************************/</span>
+  <span class="hljs-keyword">await</span> knect.connect(<span class="hljs-string">'mongodb://localhost:27017/mydb'</span>, dbOptions);
 
-  <span class="hljs-comment">/* WITHOUT TYPESCRIPT
-  ****************************************************/</span>
-   <span class="hljs-keyword">const</span> User = instance.model(<span class="hljs-string">'user'</span>, { props: userDoc });
-  <span class="hljs-comment">/***************************************************/</span>
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> IBase {
+    _id?: LikeObjectId;
+    created?: <span class="hljs-built_in">number</span>;
+    modified?: <span class="hljs-built_in">number</span>;
+  }
 
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> IPost <span class="hljs-keyword">extends</span> IBase {
+    title: <span class="hljs-built_in">string</span>;
+    body: <span class="hljs-built_in">string</span>;
+    user: LikeObjectId;
+  }
+
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> IUser <span class="hljs-keyword">extends</span> IBase {
+    firstName: <span class="hljs-built_in">string</span>;
+    lastName: <span class="hljs-built_in">string</span>;
+    posts: (<span class="hljs-built_in">string</span> | <span class="hljs-built_in">number</span> | IPost | Model&lt;<span class="hljs-built_in">any</span>&gt;)[];
+  }
+
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> UserSchema: ISchema&lt;IUser&gt; = {
+    joins: {
+      posts: { collection: <span class="hljs-string">'post'</span> }
+    }
+  };
+
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> PostSchema: ISchema&lt;IPost&gt; = {
+    joins: {
+      user: { collection: <span class="hljs-string">'user'</span> }
+    }
+  };
+
+
+  <span class="hljs-keyword">const</span> User = knect.model(<span class="hljs-string">'user'</span>, UserSchema);
+
+  <span class="hljs-keyword">const</span> Post = knect.model(<span class="hljs-string">'post'</span>, PostSchema);
 
   <span class="hljs-keyword">try</span> {
     <span class="hljs-comment">// Create a new user from model.</span>
@@ -132,7 +150,7 @@
 				<pre><code class="language-ts"><span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getUser</span>(<span class="hljs-params">_id</span>) </span>{
 
   <span class="hljs-comment">// Create the Model</span>
-  <span class="hljs-keyword">const</span> User = instance.model(<span class="hljs-string">'user'</span>, { your_schema_here });
+  <span class="hljs-keyword">const</span> User = knect.model(<span class="hljs-string">'user'</span>, { your_schema_here });
 
   <span class="hljs-comment">// Using await get the user data.</span>
   <span class="hljs-keyword">const</span> userData = <span class="hljs-keyword">await</span> User.findOne({ _id });
@@ -147,7 +165,7 @@
 
   <span class="hljs-comment">// Get the Model</span>
   <span class="hljs-comment">// <span class="hljs-doctag">NOTE:</span> if NOT using Typescript "&lt;IUserSchema&gt;" is NOT required.</span>
-  <span class="hljs-keyword">const</span> User = instance.model&lt;IUserSchema&gt;(<span class="hljs-string">'user'</span>);
+  <span class="hljs-keyword">const</span> User = knect.model&lt;IUserSchema&gt;(<span class="hljs-string">'user'</span>);
 
   <span class="hljs-comment">// Using await get the user data.</span>
   <span class="hljs-keyword">const</span> userData = <span class="hljs-keyword">await</span> User.findOne({ _id });
@@ -175,6 +193,9 @@
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="modules/_document_.html">"document"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_error_.html">"error"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="modules/_index_.html">"index"</a>

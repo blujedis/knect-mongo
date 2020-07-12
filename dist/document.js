@@ -4,11 +4,10 @@ exports.initDocument = void 0;
 const mongodb_1 = require("mongodb");
 const utils_1 = require("./utils");
 const mustad_1 = require("mustad");
-const yup_1 = require("yup");
 const hookMap = {
     find: ['_find'],
     create: ['_create'],
-    update: ['_update', 'findUpdate', 'findReplace'],
+    update: ['_update', 'findUpdate'],
     delete: ['_delete', 'findDelete']
 };
 const includeKeys = Object.keys(hookMap).reduce((a, c) => {
@@ -26,10 +25,10 @@ function initDocument(config, client, db, Model, knect) {
     var _a;
     let mustad;
     const Wrapper = (_a = class Document {
-            constructor(doc) {
+            constructor(doc, isClone = false) {
                 if (!Document.db || !Document.client)
                     throw new Error(`Failed to initialize model with "db" or "client" of undefined.`);
-                return new Model(doc, Document);
+                return new Model(doc, Document, isClone);
             }
             static get client() {
                 return client || this.knect.client;
@@ -98,23 +97,17 @@ function initDocument(config, client, db, Model, knect) {
              * Checks is document is valid against schema.
              *
              * @param doc the document to be validated.
-             * @param schema the schema to validate against.
-             * @param options the validation options to be applied.
              */
-            static isValid(doc, schema, options) {
-                schema = (this.schema.props || yup_1.object());
-                return schema.isValidSync(doc, options);
+            static isValid(doc) {
+                this.knect.options.isValid(this.collectionName, doc);
             }
             /**
              * Validates a document against schema.
              *
              * @param doc the document to be validated.
-             * @param schema the schema to validate against.
-             * @param options the validation options to be applied.
              */
-            static validate(doc, schema, options) {
-                schema = (this.schema.props || yup_1.object());
-                return schema.validateSync(doc, options);
+            static validate(doc) {
+                return this.knect.options.validate(this.collectionName, doc);
             }
             static async populate(docs, join) {
                 const isArray = Array.isArray(docs);
@@ -295,8 +288,8 @@ function initDocument(config, client, db, Model, knect) {
              * @param promise a promise to be handled.
              * @param cb an optional callback to be called with error or data.
              */
-            static async _handleResponse(promise, cb) {
-                const prom = (!utils_1.isPromise(promise) ? Promise.resolve(promise) : promise);
+            static async _handleResponse(p, cb) {
+                const prom = (!utils_1.isPromise(p) ? Promise.resolve(p) : p);
                 return prom.then(res => {
                     if (cb)
                         cb(null, res);
@@ -508,6 +501,7 @@ function initDocument(config, client, db, Model, knect) {
         _a.schema = config,
         _a);
     // If no config only return the derived type.
+    // Otherwise wrap with Mustad hooks.
     if (config)
         mustad = new mustad_1.Mustad(Wrapper, { include: includeKeys });
     return Wrapper;

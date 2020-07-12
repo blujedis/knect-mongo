@@ -1,22 +1,40 @@
 import { MongoClient, MongoClientOptions, Db } from 'mongodb';
-import { ISchema, IDoc, Constructor } from './types';
 import { parseDbName, fromNamespace } from './utils';
 import { Model } from './model';
 import { initDocument } from './document';
 import { ModelMap } from './map';
+import { ISchema, IDoc, Constructor, IOptions } from './types';
 
 export const MONGO_CLIENT_DEFAULTS = {
   useNewUrlParser: true,
   useUnifiedTopology: true
 };
 
+const DEFAULTS: IOptions = {
+  delimiter: '.',
+  isValid: (...args) => Promise.resolve(true),
+  validate: (ns, doc) => Promise.resolve(doc)
+};
+
 export class KnectMongo {
 
+  static instance: KnectMongo;
+
   dbname: string;
-  db: Db;
   client: MongoClient;
+  db: Db;
   models: ModelMap = new ModelMap();
-  delimiter: string = '.'; // used for defining schema names.
+
+  options: IOptions;
+
+  constructor(options?: IOptions) {
+    if (KnectMongo.instance)
+      return KnectMongo.instance;
+    this.options = { ...DEFAULTS, ...options };
+    if (this.options.uri)
+      this.connect(this.options.uri, this.options.clientOptions);
+    KnectMongo.instance = this;
+  }
 
   /**
    * Ensures schema is valid configuration.
@@ -26,7 +44,6 @@ export class KnectMongo {
    */
   private normalizeSchema<S extends IDoc>(name: string, schema: ISchema<S>) {
 
-    schema.props = schema.props || {} as any;
     schema.joins = schema.joins || {} as any;
 
     if (!schema.collectionName)
@@ -50,20 +67,35 @@ export class KnectMongo {
    * @param uri the Mongodb connection uri.
    * @param options Mongodb client connection options.
    */
-  async connect(uri: string, options?: MongoClientOptions) {
+  async connect(uri: string = this.options.uri, options: MongoClientOptions = this.options.clientOptions) {
 
-    if (this.db) return this.db;
+    if (this.client) return this.client;
 
     options = { ...MONGO_CLIENT_DEFAULTS, ...options };
 
-    this.dbname = parseDbName(uri);
+    this.dbname = parseDbName(uri) || null;
 
     this.client = await MongoClient.connect(uri, options);
 
-    this.db = this.client.db(this.dbname);
+    if (this.dbname)
+      this.db = this.client.db(this.dbname);
 
+    return this.client;
+
+  }
+
+  /**
+   * Sets the database.
+   * 
+   * @param name the database name to connect to.
+   */
+  async setDb(name: string) {
+    if (!this.client)
+      throw new Error(`Cannot set database with MongoClient of undefined.`);
+    if (!this.client.isConnected())
+      await this.client.connect();
+    this.db = this.client.db(name);
     return this.db;
-
   }
 
   /**
@@ -74,11 +106,10 @@ export class KnectMongo {
    */
   model<S extends object>(ns: string, schema?: ISchema<S>) {
 
-    const parsedNs = fromNamespace(ns, this.delimiter);
-    type Document = typeof DocumentModel;
+    const parsedNs = fromNamespace(ns, this.options.delimiter);
 
     if (!schema) {
-      const model = this.models.get(ns) as Document & Constructor<Model<S> & S>;
+      const model = this.models.get(ns) as typeof DocumentModel & Constructor<Model<S> & S>;
       if (!model)
         throw new Error(`Model "${ns}" could NOT be found.`);
       return model;
@@ -92,23 +123,21 @@ export class KnectMongo {
 
     this.models.set(ns, DocumentModel as any);
 
-    // return DocumentModel as typeof DocumentModel & Constructor<Model<S> & S>;
-    // return DocumentModel as Document & DocumentContructor<Model<S>, S>;
-    return DocumentModel as Document & Constructor<Model<S> & S>;
+    return DocumentModel as typeof DocumentModel & Constructor<Model<S> & S>;
 
   }
 
 }
 
-let _instance: KnectMongo;
+// let _instance: KnectMongo;
 
 /**
  * Gets singleton instance of KnectMongo
  */
-function getInstance() {
-  if (!_instance)
-    _instance = new KnectMongo();
-  return _instance;
-}
+// function getInstance(options?: IOptions) {
+//   if (!_instance)
+//     _instance = new KnectMongo(options);
+//   return _instance;
+// }
 
-export default getInstance();
+// export default getInstance;

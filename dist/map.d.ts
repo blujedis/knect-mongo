@@ -3,7 +3,7 @@ import { Model } from './model';
 declare type BaseSchema = IDoc & {};
 export declare class ModelMap extends Map<string, DerivedDocument & Constructor<Model<BaseSchema> & BaseSchema>> {
     getAs<S extends IDoc>(key: string): {
-        new (doc?: S): {};
+        new (doc?: S, isClone?: boolean): {};
         knect: import("./knect").KnectMongo;
         collectionName: string;
         schema: import("./types").ISchema<S>;
@@ -16,8 +16,8 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
         toUpdate(update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>): import("mongodb").UpdateQuery<Partial<S>>;
         toCascades(joins: import("./types").Joins<S>, ...filter: string[]): string[];
         toCascades(...filter: string[]): string[];
-        isValid(doc: S, schema?: import("yup").ObjectSchema<S>, options?: import("yup").ValidateOptions): boolean;
-        validate(doc: S, schema?: import("yup").ObjectSchema<S>, options?: import("yup").ValidateOptions): S;
+        isValid(doc: S): void;
+        validate(doc: S): Promise<S>;
         populate(doc: S, join: string | string[] | import("./types").Joins<S>): Promise<S>;
         populate(docs: S[], join: string | string[] | import("./types").Joins<S>): Promise<S[]>;
         unpopulate(doc: S, join?: string | string[] | import("./types").Joins<S>): S;
@@ -28,7 +28,7 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
         cast<T_1 extends Partial<S>>(doc: T_1, ...omit: Extract<keyof T_1, string>[]): T_1;
         cast<T_2 extends Partial<S>>(docs: T_2[], include?: true, ...props: Extract<keyof T_2, string>[]): T_2[];
         cast<T_3 extends Partial<S>>(docs: T_3[], ...omit: Extract<keyof T_3, string>[]): T_3[];
-        _handleResponse<T_4, E>(promise: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
+        _handleResponse<T_4, E>(p: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
         _find(query?: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions, isMany?: boolean): Promise<S | S[]>;
         _create(doc: import("mongodb").OptionalId<S> | import("mongodb").OptionalId<S>[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<import("mongodb").WithId<S>>> | Promise<import("mongodb").InsertOneWriteOpResult<import("mongodb").WithId<S>>>;
         _update(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;

@@ -1,5 +1,4 @@
 import { LikeObjectId, ISchema } from '../src';
-import { object, string, array, number, mixed, InferType } from 'yup';
 import { Model } from '../src/model';
 
 // export interface IUser extends IBase {
@@ -26,38 +25,19 @@ export interface IPost extends IBase {
   user: LikeObjectId;
 }
 
-// SCHEMAS //
+export interface IUser extends IBase {
+  firstName: string;
+  lastName: string;
+  posts: (string | number | IPost | Model<any>)[];
+}
 
-const baseSchema = object({
-  _id: mixed<LikeObjectId>(),
-  created: number(),
-  modified: number()
-});
-
-const userSchema = baseSchema.shape({
-  firstName: string(),
-  lastName: string(),
-  posts: array<string | number | IPost | Model<any>>()
-});
-
-const postSchema = baseSchema.shape({
-  title: string().required(),
-  body: string(),
-  user: mixed<LikeObjectId>().required()
-});
-
-export type IUserSchema = InferType<typeof userSchema>;
-export type IPostSchema = InferType<typeof postSchema>;
-
-export const UserSchema: ISchema<IUserSchema> = {
-  props: userSchema,
+export const UserSchema: ISchema<IUser> = {
   joins: {
     posts: { collection: 'post' }
   }
 };
 
-export const PostSchema: ISchema<IPostSchema> = {
-  props: postSchema,
+export const PostSchema: ISchema<IPost> = {
   joins: {
     user: { collection: 'user' }
   }

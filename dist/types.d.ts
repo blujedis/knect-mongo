@@ -1,8 +1,7 @@
-import { ObjectId, FindOneOptions, DeleteWriteOpResultObject, InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndDeleteOption } from 'mongodb';
+import { ObjectId, FindOneOptions, DeleteWriteOpResultObject, InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndDeleteOption, MongoClientOptions } from 'mongodb';
 import { IHookHandler } from 'mustad';
-import { ObjectSchema } from 'yup';
 declare const DocumentModel: {
-    new (doc?: IDoc): {};
+    new (doc?: IDoc, isClone?: boolean): {};
     knect: import("./knect").KnectMongo;
     collectionName: string;
     schema: ISchema<IDoc>;
@@ -15,8 +14,8 @@ declare const DocumentModel: {
     toUpdate(update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>): import("mongodb").UpdateQuery<Partial<IDoc>>;
     toCascades(joins: Joins<IDoc>, ...filter: string[]): string[];
     toCascades(...filter: string[]): string[];
-    isValid(doc: IDoc, schema?: ObjectSchema<IDoc>, options?: import("yup").ValidateOptions): boolean;
-    validate(doc: IDoc, schema?: ObjectSchema<IDoc>, options?: import("yup").ValidateOptions): IDoc;
+    isValid(doc: IDoc): void;
+    validate(doc: IDoc): Promise<IDoc>;
     populate(doc: IDoc, join: string | string[] | Joins<IDoc>): Promise<IDoc>;
     populate(docs: IDoc[], join: string | string[] | Joins<IDoc>): Promise<IDoc[]>;
     unpopulate(doc: IDoc, join?: string | string[] | Joins<IDoc>): IDoc;
@@ -27,7 +26,7 @@ declare const DocumentModel: {
     cast<T_1 extends Partial<IDoc>>(doc: T_1, ...omit: Extract<keyof T_1, string>[]): T_1;
     cast<T_2 extends Partial<IDoc>>(docs: T_2[], include?: true, ...props: Extract<keyof T_2, string>[]): T_2[];
     cast<T_3 extends Partial<IDoc>>(docs: T_3[], ...omit: Extract<keyof T_3, string>[]): T_3[];
-    _handleResponse<T_4, E>(promise: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
+    _handleResponse<T_4, E>(p: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
     _find(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions, isMany?: boolean): Promise<IDoc | IDoc[]>;
     _create(doc: (Pick<IDoc, never> & {
         _id?: ObjectId;
@@ -94,6 +93,9 @@ declare const DocumentModel: {
     pre<A1 = any, A2 = any, A3 = any>(type: import("./document").HookType, handler: DocumentHook<A1, A2, A3>): any;
     post<A1_1 = any, A2_1 = any, A3_1 = any>(type: import("./document").HookType, handler: DocumentHook<A1_1, A2_1, A3_1>): any;
 };
+export interface IMap<T = any> {
+    [key: string]: T;
+}
 export declare type DerivedDocument = typeof DocumentModel;
 export declare type KeyOf<T> = Extract<keyof T, string>;
 export declare type LikeObjectId = string | number | ObjectId;
@@ -113,10 +115,9 @@ export interface IJoin {
 export declare type Joins<S> = {
     [K in keyof S]: IJoin;
 };
-export interface ISchema<S extends object> {
+export interface ISchema<S extends {}> {
     collectionName?: string;
-    props?: ObjectSchema<S>;
-    joins?: Joins<S>;
+    joins?: Joins<Partial<S>>;
 }
 export interface IDoc {
     _id?: LikeObjectId;
@@ -136,4 +137,34 @@ export interface IModelSaveResult<S extends IDoc> {
     }> | FindAndModifyWriteOpResultObject<S>;
 }
 export declare type DocumentHook<A1 = any, A2 = any, A3 = any> = (next: IHookHandler, arg1?: A1, arg2?: A2, arg3?: A3, ...args: any[]) => any;
+export interface IOptions {
+    /**
+     * The connections string to connect to MongoDB.
+     */
+    uri?: string;
+    /**
+     * Mongodb client connection options.
+     */
+    clientOptions?: MongoClientOptions;
+    /**
+     * The namespace delimiter
+     *
+     * @default .
+     */
+    delimiter?: string;
+    /**
+     * Tests if the document is valid.
+     *
+     * @param ns the namespace being validated.
+     * @param doc the document to be validated.
+     */
+    isValid?<S extends {}>(ns: string, doc: S): Promise<boolean>;
+    /**
+     * Tests if the document is valid and returns ValidationError when false.
+     *
+     * @param ns the namespace being validated.
+     * @param doc the document to be validated.
+     */
+    validate?<S extends {}>(ns: string, doc: S): Promise<S>;
+}
 export {};

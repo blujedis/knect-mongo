@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Model = void 0;
-const yup_1 = require("yup");
 const utils_1 = require("./utils");
+const error_1 = require("./error");
+// import { ValidationError, ObjectSchema } from 'yup';
 class Model {
-    constructor(doc, document) {
-        const model = this;
+    constructor(doc, document, isClone = false) {
         Object.defineProperties(this, {
             _Document: {
                 enumerable: false,
@@ -19,16 +19,32 @@ class Model {
                 value: doc || {}
             }
         });
-        const fields = document.schema.props.fields || {};
-        for (const k in fields) {
-            Object.defineProperty(this, k, {
-                get() {
-                    return model._doc[k];
-                },
-                set(v) {
-                    model._doc[k] = v;
-                }
-            });
+        // If cloning existing props 
+        // we can't include the _id.
+        if (isClone) {
+            delete doc._id;
+        }
+        this.bindProps(doc);
+    }
+    /**
+     * Binds properties to instance.
+     *
+     * @param props the properties to be bind.
+     */
+    bindProps(props = {}) {
+        const model = this;
+        for (const k in props) {
+            const descriptor = utils_1.hasDescriptor(model, k);
+            if (!descriptor.exists) {
+                Object.defineProperty(this, k, {
+                    get() {
+                        return model._doc[k];
+                    },
+                    set(v) {
+                        model._doc[k] = v;
+                    }
+                });
+            }
         }
     }
     /**
@@ -41,15 +57,17 @@ class Model {
         // Remove any populated data so it isn't
         // updated.
         doc = this._Document.unpopulate(doc);
-        this._Document.validate(doc);
+        const validated = await utils_1.promise(this._Document.validate({ ...doc }));
+        if (validated.err)
+            return Promise.reject(validated.err);
         if (this._id)
-            return Promise.reject(new yup_1.ValidationError([`Cannot create for collection "${this._Document.collection.namespace}" with existing 
-            id, did you mean ".save()"?`], doc, 'id'));
+            return Promise.reject(new error_1.ValidationError(`Cannot create for collection "${this._Document.collection.namespace}" with existing id, did you mean ".save()"?`, doc, 'id'));
         // TODO: Typing issue with Doc.
         const { err, data } = await utils_1.promise(this._Document.createOne(doc, options));
         if (err)
             return Promise.reject(err);
         this._doc = ((data.ops && data.ops[0]) || {});
+        this.bindProps(this._doc);
         return {
             ok: data.result.ok,
             insertId: data.insertedId,
@@ -67,12 +85,16 @@ class Model {
         options = { upsert: false, returnOriginal: false, ...options };
         options.upsert = false;
         this._doc = this._Document.unpopulate(this._doc);
-        this._doc = this._Document.validate(this._doc);
+        const validated = await utils_1.promise(this._Document.validate(this._doc));
+        if (validated.err)
+            return Promise.reject(validated.err);
+        this._doc = validated.data;
         const { _id, ...clone } = this._doc;
         const { err, data } = await utils_1.promise(this._Document.findUpdate(this._id, clone, options));
         if (err)
             return Promise.reject(err);
         this._doc = data.value;
+        this.bindProps(this._doc);
         return {
             ok: data.ok,
             insertId: null,
@@ -112,20 +134,16 @@ class Model {
         return Promise.resolve(data);
     }
     /**
-     * Validates instance against schema.
-     *
-     * @param schema optional schema to verify by or uses defined.
+     * Validates the document.
      */
-    validate(schema) {
-        return this._Document.validate(this._doc, schema);
+    validate() {
+        return this._Document.validate(this._doc);
     }
     /**
      * Checks if instance is valid against schema.
-     *
-     * @param schema optional schema to verify by or uses defined.
      */
-    isValid(schema) {
-        return this._Document.isValid(this._doc, schema);
+    isValid() {
+        return this._Document.isValid(this._doc);
     }
 }
 exports.Model = Model;

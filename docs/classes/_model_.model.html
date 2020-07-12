@@ -106,6 +106,7 @@
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="_model_.model.html#bindprops" class="tsd-kind-icon">bind<wbr>Props</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="_model_.model.html#create" class="tsd-kind-icon">create</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_model_.model.html#delete" class="tsd-kind-icon">delete</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_model_.model.html#isvalid" class="tsd-kind-icon">is<wbr>Valid</a></li>
@@ -124,13 +125,13 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Model<span class="tsd-signature-symbol">(</span>doc<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">S</span>, document<span class="tsd-signature-symbol">: </span><a href="../modules/_types_.html#deriveddocument" class="tsd-signature-type">DerivedDocument</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_model_.model.html" class="tsd-signature-type">Model</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Model<span class="tsd-signature-symbol">(</span>doc<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">S</span>, document<span class="tsd-signature-symbol">: </span><a href="../modules/_types_.html#deriveddocument" class="tsd-signature-type">DerivedDocument</a>, isClone<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_model_.model.html" class="tsd-signature-type">Model</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L14">model.ts:14</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L15">model.ts:15</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -140,6 +141,9 @@
 								</li>
 								<li>
 									<h5>document: <a href="../modules/_types_.html#deriveddocument" class="tsd-signature-type">DerivedDocument</a></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> isClone: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_model_.model.html" class="tsd-signature-type">Model</a></h4>
@@ -155,7 +159,7 @@
 					<div class="tsd-signature tsd-kind-icon">_<wbr>Document<span class="tsd-signature-symbol">:</span> <a href="../modules/_types_.html#deriveddocument" class="tsd-signature-type">DerivedDocument</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L11">model.ts:11</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L12">model.ts:12</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -165,7 +169,7 @@
 					<div class="tsd-signature tsd-kind-icon">_doc<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">S</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L14">model.ts:14</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L15">model.ts:15</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -175,13 +179,46 @@
 					<div class="tsd-signature tsd-kind-icon">_id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ObjectId</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L13">model.ts:13</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L14">model.ts:14</a></li>
 						</ul>
 					</aside>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="bindprops" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> bind<wbr>Props</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">bind<wbr>Props<span class="tsd-signature-symbol">(</span>props<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L49">model.ts:49</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Binds properties to instance.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> props: <span class="tsd-signature-type">object</span><span class="tsd-signature-symbol"> =&nbsp;{}</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>the properties to be bind.</p>
+									</div>
+									<ul class="tsd-parameters">
+									</ul>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
 					<a name="create" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagPrivate">Private</span> create</h3>
@@ -192,7 +229,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L54">model.ts:54</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L81">model.ts:81</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -223,7 +260,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L139">model.ts:139</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L177">model.ts:177</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -248,13 +285,13 @@
 					<a name="isvalid" class="tsd-anchor"></a>
 					<h3>is<wbr>Valid</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<span class="tsd-signature-symbol">(</span>schema<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">ObjectSchema</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+						<li class="tsd-signature tsd-kind-icon">is<wbr>Valid<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L170">model.ts:170</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L204">model.ts:204</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -262,16 +299,7 @@
 									<p>Checks if instance is valid against schema.</p>
 								</div>
 							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5><span class="tsd-flag ts-flagOptional">Optional</span> schema: <span class="tsd-signature-type">ObjectSchema</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>optional schema to verify by or uses defined.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -285,7 +313,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L148">model.ts:148</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L186">model.ts:186</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -316,7 +344,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L124">model.ts:124</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L162">model.ts:162</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -347,7 +375,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L91">model.ts:91</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L122">model.ts:122</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -372,30 +400,21 @@
 					<a name="validate" class="tsd-anchor"></a>
 					<h3>validate</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">validate<span class="tsd-signature-symbol">(</span>schema<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">ObjectSchema</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/_types_.idoc.html" class="tsd-signature-type">IDoc</a></li>
+						<li class="tsd-signature tsd-kind-icon">validate<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_types_.idoc.html" class="tsd-signature-type">IDoc</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/2f5cb11/src/model.ts#L161">model.ts:161</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/de5bd32/src/model.ts#L197">model.ts:197</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Validates instance against schema.</p>
+									<p>Validates the document.</p>
 								</div>
 							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5><span class="tsd-flag ts-flagOptional">Optional</span> schema: <span class="tsd-signature-type">ObjectSchema</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>optional schema to verify by or uses defined.</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../interfaces/_types_.idoc.html" class="tsd-signature-type">IDoc</a></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/_types_.idoc.html" class="tsd-signature-type">IDoc</a><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -409,6 +428,9 @@
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_document_.html">"document"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_error_.html">"error"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_index_.html">"index"</a>
@@ -448,6 +470,9 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_model_.model.html#_id" class="tsd-kind-icon">_id</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="_model_.model.html#bindprops" class="tsd-kind-icon">bind<wbr>Props</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
 								<a href="_model_.model.html#create" class="tsd-kind-icon">create</a>

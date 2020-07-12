@@ -3,8 +3,9 @@ import {
   FindOneAndUpdateOption
 } from 'mongodb';
 import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
-import { ValidationError, ObjectSchema } from 'yup';
-import { promise } from './utils';
+import { promise, hasDescriptor } from './utils';
+import { ValidationError } from './error';
+// import { ValidationError, ObjectSchema } from 'yup';
 
 export class Model<S extends IDoc> {
 
@@ -13,9 +14,7 @@ export class Model<S extends IDoc> {
   _id: ObjectId;
   _doc: S;
 
-  constructor(doc: S, document: DerivedDocument) {
-
-    const model = this;
+  constructor(doc: S, document: DerivedDocument, isClone = false) {
 
     Object.defineProperties(this, {
       _Document: {
@@ -31,17 +30,45 @@ export class Model<S extends IDoc> {
       }
     });
 
-    const fields = (document.schema.props as any).fields || {};
+    // If cloning existing props 
+    // we can't include the _id.
+    if (isClone)  {
+      delete doc._id;
+      
+    }
 
-    for (const k in fields) {
-      Object.defineProperty(this, k, {
-        get() {
-          return model._doc[k];
-        },
-        set(v) {
-          model._doc[k] = v;
-        }
-      });
+    this.bindProps(doc);
+
+  }
+
+  /**
+   * Binds properties to instance.
+   * 
+   * @param props the properties to be bind.
+   */
+  private bindProps(props = {}) {
+
+    const model = this;
+
+    for (const k in props) {
+
+      const descriptor = hasDescriptor(model, k);
+
+      if (!descriptor.exists) {
+
+        Object.defineProperty(this, k, {
+
+          get() {
+            return model._doc[k];
+          },
+          set(v) {
+            model._doc[k] = v;
+          }
+
+        });
+
+      }
+
     }
 
   }
@@ -60,11 +87,13 @@ export class Model<S extends IDoc> {
 
     doc = this._Document.unpopulate(doc) as S;
 
-    this._Document.validate(doc);
+    const validated = await promise(this._Document.validate({ ...doc }));
+
+    if (validated.err)
+      return Promise.reject(validated.err);
 
     if (this._id)
-      return Promise.reject(new ValidationError([`Cannot create for collection "${this._Document.collection.namespace}" with existing 
-            id, did you mean ".save()"?`], doc, 'id'));
+      return Promise.reject(new ValidationError(`Cannot create for collection "${this._Document.collection.namespace}" with existing id, did you mean ".save()"?`, doc, 'id'));
 
     // TODO: Typing issue with Doc.
     const { err, data } = await promise(this._Document.createOne(doc as any, options));
@@ -73,6 +102,8 @@ export class Model<S extends IDoc> {
       return Promise.reject(err);
 
     this._doc = ((data.ops && data.ops[0]) || {}) as S;
+
+    this.bindProps(this._doc);
 
     return {
       ok: data.result.ok,
@@ -96,7 +127,12 @@ export class Model<S extends IDoc> {
 
     this._doc = this._Document.unpopulate(this._doc) as S;
 
-    this._doc = this._Document.validate(this._doc) as S;
+    const validated = await promise(this._Document.validate(this._doc));
+
+    if (validated.err)
+      return Promise.reject(validated.err);
+
+    this._doc = validated.data as S;
 
     const { _id, ...clone } = this._doc;
 
@@ -106,6 +142,8 @@ export class Model<S extends IDoc> {
       return Promise.reject(err);
 
     this._doc = data.value as S;
+
+    this.bindProps(this._doc);
 
     return {
       ok: data.ok,
@@ -154,21 +192,17 @@ export class Model<S extends IDoc> {
   }
 
   /**
-   * Validates instance against schema.
-   * 
-   * @param schema optional schema to verify by or uses defined.
+   * Validates the document.
    */
-  validate(schema?: ObjectSchema<S>) {
-    return this._Document.validate(this._doc, schema);
+  validate() {
+    return this._Document.validate(this._doc);
   }
 
   /**
    * Checks if instance is valid against schema.
-   * 
-   * @param schema optional schema to verify by or uses defined.
    */
-  isValid(schema?: ObjectSchema<S>) {
-    return this._Document.isValid(this._doc, schema);
+  isValid() {
+    return this._Document.isValid(this._doc);
   }
 
 }

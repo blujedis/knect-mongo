@@ -31,4 +31,21 @@ export declare function fromNamespace(ns: string, delimiter?: string): {
     name: string;
     ns: string;
 };
+/**
+ * Checks if value is a promise.
+ *
+ * @param val the value to be inspected.
+ */
 export declare const isPromise: (val: any) => boolean;
+/**
+ * Checks if an object has a defined property descriptor.
+ * Also returns if has getter and/or setters.
+ *
+ * @param obj the object to inspect.
+ * @param prop the property within the object.
+ */
+export declare function hasDescriptor<T extends {}>(obj: T, prop: string): {
+    exists: boolean;
+    getter: boolean;
+    setter: boolean;
+};

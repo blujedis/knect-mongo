@@ -10,10 +10,20 @@ exports.MONGO_CLIENT_DEFAULTS = {
     useNewUrlParser: true,
     useUnifiedTopology: true
 };
+const DEFAULTS = {
+    delimiter: '.',
+    isValid: (...args) => Promise.resolve(true),
+    validate: (ns, doc) => Promise.resolve(doc)
+};
 class KnectMongo {
-    constructor() {
+    constructor(options) {
         this.models = new map_1.ModelMap();
-        this.delimiter = '.'; // used for defining schema names.
+        if (KnectMongo.instance)
+            return KnectMongo.instance;
+        this.options = { ...DEFAULTS, ...options };
+        if (this.options.uri)
+            this.connect(this.options.uri, this.options.clientOptions);
+        KnectMongo.instance = this;
     }
     /**
      * Ensures schema is valid configuration.
@@ -22,7 +32,6 @@ class KnectMongo {
      * @param schema the schema object.
      */
     normalizeSchema(name, schema) {
-        schema.props = schema.props || {};
         schema.joins = schema.joins || {};
         if (!schema.collectionName)
             throw new Error(`Cannot normalize schema "${name} using collectionName of undefined`);
@@ -41,13 +50,27 @@ class KnectMongo {
      * @param uri the Mongodb connection uri.
      * @param options Mongodb client connection options.
      */
-    async connect(uri, options) {
-        if (this.db)
-            return this.db;
+    async connect(uri = this.options.uri, options = this.options.clientOptions) {
+        if (this.client)
+            return this.client;
         options = { ...exports.MONGO_CLIENT_DEFAULTS, ...options };
-        this.dbname = utils_1.parseDbName(uri);
+        this.dbname = utils_1.parseDbName(uri) || null;
         this.client = await mongodb_1.MongoClient.connect(uri, options);
-        this.db = this.client.db(this.dbname);
+        if (this.dbname)
+            this.db = this.client.db(this.dbname);
+        return this.client;
+    }
+    /**
+     * Sets the database.
+     *
+     * @param name the database name to connect to.
+     */
+    async setDb(name) {
+        if (!this.client)
+            throw new Error(`Cannot set database with MongoClient of undefined.`);
+        if (!this.client.isConnected())
+            await this.client.connect();
+        this.db = this.client.db(name);
         return this.db;
     }
     /**
@@ -57,7 +80,7 @@ class KnectMongo {
      * @param schema the schema configuration containing document validation.
      */
     model(ns, schema) {
-        const parsedNs = utils_1.fromNamespace(ns, this.delimiter);
+        const parsedNs = utils_1.fromNamespace(ns, this.options.delimiter);
         if (!schema) {
             const model = this.models.get(ns);
             if (!model)
@@ -68,20 +91,18 @@ class KnectMongo {
         schema = this.normalizeSchema(ns, schema);
         const DocumentModel = document_1.initDocument(schema, this.client, this.db, model_1.Model, this);
         this.models.set(ns, DocumentModel);
-        // return DocumentModel as typeof DocumentModel & Constructor<Model<S> & S>;
-        // return DocumentModel as Document & DocumentContructor<Model<S>, S>;
         return DocumentModel;
     }
 }
 exports.KnectMongo = KnectMongo;
-let _instance;
+// let _instance: KnectMongo;
 /**
  * Gets singleton instance of KnectMongo
  */
-function getInstance() {
-    if (!_instance)
-        _instance = new KnectMongo();
-    return _instance;
-}
-exports.default = getInstance();
+// function getInstance(options?: IOptions) {
+//   if (!_instance)
+//     _instance = new KnectMongo(options);
+//   return _instance;
+// }
+// export default getInstance;
 //# sourceMappingURL=knect.js.map

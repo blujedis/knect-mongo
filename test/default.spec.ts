@@ -1,7 +1,9 @@
 import { assert } from 'chai';
 
-import KnectMongo, { promise } from '../src';
+import { promise, KnectMongo } from '../src';
 import { UserSchema, PostSchema } from './models';
+
+const knect = new KnectMongo();
 
 let lastPost;
 
@@ -27,18 +29,23 @@ async function each(arr, done) {
 
 async function load() {
 
-  if (!KnectMongo.client)
-    await KnectMongo.connect(`mongodb://10.10.20.5:32768/temp`);
+  if (!knect.client || !knect.client.isConnected())
+    await knect.connect(`mongodb://10.10.20.5:32768/temp`);
 
   // Reset schemas or you'll get dupe error.
   // KnectMongo.schemas.clear();
-  KnectMongo.models.clear();
+  knect.models.clear();
 
-  const User = KnectMongo.model('user', UserSchema);
-  const Post = KnectMongo.model('post', PostSchema);
+  const User = knect.model('user', UserSchema);
+  const Post = knect.model('post', PostSchema);
 
   User.pre('create', (next, doc) => {
     extendDate(doc, true);
+    next();
+  });
+
+  User.pre('update', (next, doc) => {
+    extendDate(doc, false);
     next();
   });
 
@@ -53,10 +60,10 @@ async function load() {
 
 async function drop(close?: boolean) {
 
-  if (!KnectMongo.client)
+  if (!knect.client)
     return;
 
-  const db = KnectMongo.db;
+  const db = knect.db;
 
   let collections: any[] = await db.collections();
   collections = collections.map(c => c.s.namespace.collection);
@@ -70,7 +77,7 @@ async function drop(close?: boolean) {
   });
 
   if (close)
-    KnectMongo.client.close();
+    knect.client.close();
 
 }
 
@@ -100,7 +107,6 @@ describe('Knect-Mongo', () => {
     const Models = await load();
     const User = Models.User;
 
-    // Test using callback.
     const result = await promise(User.findOne({ firstName: 'Milton' }));
 
     if (result.err)

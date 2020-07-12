@@ -19,37 +19,55 @@ $ yarn add knect-mongo
 After install import or require knect-mongo.
 
 ```ts
-import { KnectMongo }  from 'knect-mongo';   // or const { KnectMongo } = require('knect-mongo');
-import yup from 'yup';                  // or const yup = require('yup');
+import { KnectMongo }  from 'knect-mongo';
 
-const instance = new KnectMongo();
+/** 
+ * Create singleton instance.
+ */
+const knect = new KnectMongo();
 
 (async function init() {
 
-  const dbOptions = {};
-  await KnectMongo.connect('mongodb://localhost:27017/mydb', dbOptions);
-
-  const userDoc = yup.object({
-    firstName: yup.string().required(),
-    lastName: yup..string().required()
-  });
-
-  /* WITH TYPESCRIPT
-  ****************************************************/
-  type IUserDoc = InferType<typeof userDoc>;
-
-  const UserSchema: ISchema<IUserDoc> = {
-    props: userDoc
+  const dbOptions = {
+    // your options here.
   };
 
-  const User = instance.model('user', UserSchema);
-  /***************************************************/
+  await knect.connect('mongodb://localhost:27017/mydb', dbOptions);
 
-  /* WITHOUT TYPESCRIPT
-  ****************************************************/
-   const User = instance.model('user', { props: userDoc });
-  /***************************************************/
-  
+  export interface IBase {
+    _id?: LikeObjectId;
+    created?: number;
+    modified?: number;
+  }
+
+  export interface IPost extends IBase {
+    title: string;
+    body: string;
+    user: LikeObjectId;
+  }
+
+  export interface IUser extends IBase {
+    firstName: string;
+    lastName: string;
+    posts: (string | number | IPost | Model<any>)[];
+  }
+
+  export const UserSchema: ISchema<IUser> = {
+    joins: {
+      posts: { collection: 'post' }
+    }
+  };
+
+  export const PostSchema: ISchema<IPost> = {
+    joins: {
+      user: { collection: 'user' }
+    }
+  };
+
+
+  const User = knect.model('user', UserSchema);
+
+  const Post = knect.model('post', PostSchema);
 
   try {
     // Create a new user from model.
@@ -78,7 +96,7 @@ Additional boilerplate from above left out for clarity.
 async function getUser(_id) {
 
   // Create the Model
-  const User = instance.model('user', { your_schema_here });
+  const User = knect.model('user', { your_schema_here });
 
   // Using await get the user data.
   const userData = await User.findOne({ _id });
@@ -97,7 +115,7 @@ async function getUser(_id) {
 
   // Get the Model
   // NOTE: if NOT using Typescript "<IUserSchema>" is NOT required.
-  const User = instance.model<IUserSchema>('user');
+  const User = knect.model<IUserSchema>('user');
 
   // Using await get the user data.
   const userData = await User.findOne({ _id });
