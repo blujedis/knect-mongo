@@ -3,7 +3,8 @@ import { parseDbName, fromNamespace } from './utils';
 import { Model } from './model';
 import { initDocument } from './document';
 import { ModelMap } from './map';
-import { ISchema, IDoc, Constructor, IOptions } from './types';
+import { ISchema, IDoc, Constructor, IOptions, GlobalHooks, HookType, DocumentHook } from './types';
+import { NextHandler } from 'mustad';
 
 export const MONGO_CLIENT_DEFAULTS = {
   useNewUrlParser: true,
@@ -24,6 +25,8 @@ export class KnectMongo {
   client: MongoClient;
   db: Db;
   models: ModelMap = new ModelMap();
+  pres: GlobalHooks = {};
+  posts: GlobalHooks = {};
 
   options: IOptions;
 
@@ -99,6 +102,30 @@ export class KnectMongo {
   }
 
   /**
+   * Adds a pre hook for all Models.
+   * 
+   * @param type the hook handler type.
+   * @param handler the handler to be called.
+   */
+  pre<A1 = any, A2 = any, A3 = any>(type: HookType, handler: DocumentHook<A1, A2, A3>) {
+    this.pres[type] = this.pres[type] || [];
+    this.pres[type].push(handler);
+    return this;
+  }
+
+  /**
+   * Adds a post hook for all Models.
+   * 
+   * @param type the hook handler type.
+   * @param handler the handler to be called.
+   */
+  post<A1 = any, A2 = any, A3 = any>(type: HookType, handler: DocumentHook<A1, A2, A3>) {
+    this.posts[type] = this.posts[type] || [];
+    this.posts[type].push(handler);
+    return this;
+  }
+
+  /**
    * Accepts a schema and creates model with static and instance convenience methods.
    * 
    * @param ns the namespace for the schema.
@@ -116,11 +143,8 @@ export class KnectMongo {
     }
 
     schema.collectionName = schema.collectionName || parsedNs.collection;
-
     schema = this.normalizeSchema(ns, schema);
-
     const DocumentModel = initDocument(schema, this.client, this.db, Model, this);
-
     this.models.set(ns, DocumentModel as any);
 
     return DocumentModel as typeof DocumentModel & Constructor<Model<S> & S>;
@@ -128,16 +152,3 @@ export class KnectMongo {
   }
 
 }
-
-// let _instance: KnectMongo;
-
-/**
- * Gets singleton instance of KnectMongo
- */
-// function getInstance(options?: IOptions) {
-//   if (!_instance)
-//     _instance = new KnectMongo(options);
-//   return _instance;
-// }
-
-// export default getInstance;

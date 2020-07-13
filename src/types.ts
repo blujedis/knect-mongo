@@ -4,8 +4,6 @@ import {
 } from 'mongodb';
 import { IHookHandler } from 'mustad';
 import { initDocument } from './document';
-import { ValidationError } from './error';
-// import { ObjectSchema } from 'yup';
 
 const DocumentModel = (false as true) && initDocument();
 
@@ -60,6 +58,10 @@ export interface IModelSaveResult<S extends IDoc> {
   doc: S;
   response: InsertOneWriteOpResult<S & { _id: any; }> | FindAndModifyWriteOpResultObject<S>;
 }
+
+export type HookType = 'find' | 'create' | 'update' | 'delete';
+
+export type GlobalHooks = { [K in HookType]?: DocumentHook[] };
 
 export type DocumentHook<A1 = any, A2 = any, A3 = any> =
   (next: IHookHandler, arg1?: A1, arg2?: A2, arg3?: A3, ...args: any[]) => any;

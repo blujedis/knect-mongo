@@ -8,14 +8,13 @@ import {
 } from 'mongodb';
 import {
   ISchema, LikeObjectId, ICascadeResult, IFindOneOptions,
-  Constructor, IDoc, DocumentHook, Joins, KeyOf, IFindOneAndDeleteOption
+  Constructor, IDoc, DocumentHook, Joins, KeyOf, IFindOneAndDeleteOption,
+  HookType
 } from './types';
 import { promise, isPromise } from './utils';
 import { Model as BaseModel } from './model';
 import { Mustad } from 'mustad';
 import { KnectMongo } from './knect';
-
-export type HookType = 'find' | 'create' | 'update' | 'delete';
 
 const hookMap = {
   find: ['_find'],
@@ -42,7 +41,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
   db?: Db,
   Model?: Constructor<M>,
   knect?: KnectMongo,
-  ) {
+) {
 
   let mustad: Mustad<typeof Wrapper>;
 
@@ -1126,8 +1125,24 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
   // If no config only return the derived type.
   // Otherwise wrap with Mustad hooks.
-  if (config)
+  if (config) {
+
     mustad = new Mustad(Wrapper, { include: includeKeys });
+
+    // add global hooks if any.
+    Object.keys(knect.pres).forEach(type => {
+      const handlers = knect.pres[type];
+      if (handlers && handlers.length)
+        Wrapper.pre(type as HookType, handlers);
+    });
+
+    Object.keys(knect.posts).forEach(type => {
+      const handlers = knect.posts[type];
+      if (handlers && handlers.length)
+        Wrapper.post(type as HookType, handlers);
+    });
+
+  }
 
   return Wrapper;
 
