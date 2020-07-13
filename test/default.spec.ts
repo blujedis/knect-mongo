@@ -44,7 +44,7 @@ async function load() {
     next();
   });
 
-  User.pre('update', (next, doc) => {
+  User.pre('update', (next, doc, ...args) => {
     extendDate(doc, false);
     next();
   });

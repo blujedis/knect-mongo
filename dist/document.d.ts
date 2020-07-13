@@ -1,8 +1,7 @@
 import { FilterQuery, UpdateQuery, ObjectId, DeleteWriteOpResultObject, CollectionInsertOneOptions, CollectionInsertManyOptions, UpdateManyOptions, UpdateOneOptions, CommonOptions, Db, MongoClient, FindOneAndUpdateOption, MongoCallback, FindAndModifyWriteOpResultObject, InsertOneWriteOpResult, InsertWriteOpResult, UpdateWriteOpResult, OptionalId } from 'mongodb';
-import { ISchema, LikeObjectId, ICascadeResult, IFindOneOptions, Constructor, IDoc, DocumentHook, Joins, KeyOf, IFindOneAndDeleteOption } from './types';
+import { ISchema, LikeObjectId, ICascadeResult, IFindOneOptions, Constructor, IDoc, DocumentHook, Joins, KeyOf, IFindOneAndDeleteOption, HookType } from './types';
 import { Model as BaseModel } from './model';
 import { KnectMongo } from './knect';
-export declare type HookType = 'find' | 'create' | 'update' | 'delete';
 /**
  * Initializes a new Knect Document.
  *
@@ -31,6 +30,12 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param id the Like id value to convert to Mongodb ObjectID.
      */
     toObjectID(ids: LikeObjectId[]): ObjectId[];
+    /**
+     * Marks a document for soft deletion.
+     *
+     * @param doc the document to be updated.
+     */
+    toSoftDelete(doc: Partial<S>): Partial<S>;
     /**
      * Normalizes query.
      *
@@ -260,14 +265,6 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      */
     findDelete(query: LikeObjectId | FilterQuery<S>, options?: IFindOneAndDeleteOption<S>, cb?: MongoCallback<FindAndModifyWriteOpResultObject<S>>): Promise<FindAndModifyWriteOpResultObject<S>>;
     /**
-     * Finds a document and then replaces it.
-     *
-     * @param query the filter for finding the document.
-     * @param doc the doc used to replace existing.
-     * @param options the update options.
-     * @param cb optional callback to use instead of Promise.
-     */
-    /**
      * Creates multiple documents in database.
      *
      * @param docs the documents to be persisted to database.
@@ -279,14 +276,6 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
     }>>): Promise<InsertWriteOpResult<S & {
         _id: any;
     }>>;
-    /**
-     * Finds a document and then replaces it.
-     *
-     * @param query the filter for finding the document.
-     * @param doc the doc used to replace existing.
-     * @param options the update options.
-     * @param cb optional callback to use instead of Promise.
-     */
     /**
      * Creates multiple documents in database.
      *
@@ -377,6 +366,62 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param cb optional callback to use instead of promise.
      */
     updateOne(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    /**
+     * Deletes multiple documents by query softly by updating and tagging documents as
+     * deleted without removing.
+     *
+     * @param query the Mongodb filter for finding the desired documents to delete softly.
+     * @param update the soft delete query to be applied.
+     * @param options Mongodb update options.
+     * @param cb optional callback to use instead of promise.
+     */
+    deleteSoft(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, options: UpdateManyOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    /**
+     * Deletes multiple documents by query softly by updating and tagging documents as
+     * deleted without removing.
+     *
+     * @param query the Mongodb filter for finding the desired documents to delete softly.
+     * @param update the soft delete query to be applied.
+     * @param options Mongodb update options.
+     * @param cb optional callback to use instead of promise.
+     */
+    deleteSoft(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    /**
+     * Deletes one document by id softly.
+     *
+     * @param id the id of the document to delete softly.
+     * @param update the soft delete query to be applied.
+     * @param options Mongodb update options.
+     * @param cb optional callback to use instead of promise.
+     */
+    deleteOneSoft(id: LikeObjectId, update: UpdateQuery<Partial<S>> | Partial<S>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    /**
+     * Deletes one document by id softly.
+     *
+     * @param id the id of the document to delete softly.
+     * @param update the soft delete query to be applied.
+     * @param options Mongodb update options.
+     * @param cb optional callback to use instead of promise.
+     */
+    deleteOneSoft(id: LikeObjectId, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    /**
+     * Deletes one document by id softly.
+     *
+     * @param id the id of the document to delete softly.
+     * @param update the soft delete query to be applied.
+     * @param options Mongodb update options.
+     * @param cb optional callback to use instead of promise.
+     */
+    deleteOneSoft(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    /**
+     * Deletes one document by id softly.
+     *
+     * @param id the id of the document to delete softly.
+     * @param update the soft delete query to be applied.
+     * @param options Mongodb update options.
+     * @param cb optional callback to use instead of promise.
+     */
+    deleteOneSoft(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
      * Deletes multiple documents by query.
      *

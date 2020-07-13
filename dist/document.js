@@ -53,6 +53,23 @@ function initDocument(config, client, db, Model, knect) {
                 return result[0];
             }
             /**
+             * Marks a document for soft deletion.
+             *
+             * @param doc the document to be updated.
+             */
+            static toSoftDelete(doc) {
+                const handler = knect.options.onSoftDelete;
+                if (!handler)
+                    return doc;
+                if (handler === true)
+                    doc.deleted = Date.now();
+                else if (typeof handler === 'string')
+                    doc[handler] = Date.now();
+                else
+                    doc = handler(doc);
+                return doc;
+            }
+            /**
              * Normalizes query.
              *
              * @param query the Mongodb filter query.
@@ -457,10 +474,26 @@ function initDocument(config, client, db, Model, knect) {
                 }
                 const _query = this.toQuery(query);
                 update = this.toUpdate(update);
-                console.log('\n-- updateOne options --');
-                console.log('query:', _query);
-                console.log('update:', update);
-                console.log();
+                return this._handleResponse(this._update(_query, update, options, false), cb);
+            }
+            static deleteSoft(query, update, options, cb) {
+                if (typeof options === 'function') {
+                    cb = options;
+                    options = undefined;
+                }
+                query = this.toQuery(query);
+                update = this.toUpdate(update);
+                update.$set = this.toSoftDelete(update.$set);
+                return this._handleResponse(this._update(query, update, options, true), cb);
+            }
+            static deleteOneSoft(query, update, options, cb) {
+                if (typeof options === 'function') {
+                    cb = options;
+                    options = undefined;
+                }
+                const _query = this.toQuery(query);
+                update = this.toUpdate(update);
+                update.$set = this.toSoftDelete(update.$set);
                 return this._handleResponse(this._update(_query, update, options, false), cb);
             }
             static delete(filter, options, cb) {

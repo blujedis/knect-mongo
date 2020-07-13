@@ -101,6 +101,24 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
     }
 
     /**
+     * Marks a document for soft deletion.
+     * 
+     * @param doc the document to be updated.
+     */
+    static toSoftDelete(doc: Partial<S>) {
+      const handler = knect.options.onSoftDelete;
+      if (!handler)
+        return doc;
+      if (handler === true)
+        (doc as any).deleted = Date.now();
+      else if (typeof handler === 'string')
+        doc[handler as string] = Date.now();
+      else
+        doc = handler(doc);
+      return doc;
+    }
+
+    /**
      * Normalizes query.
      * 
      * @param query the Mongodb filter query.
@@ -169,7 +187,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param doc the document to be validated.
      */
     static isValid(doc: S) {
-      this.knect.options.isValid(this.collectionName, doc);
+      this.knect.options.isValid(this.collectionName, doc, this.schema);
     }
 
     /**
@@ -178,7 +196,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param doc the document to be validated.
      */
     static validate(doc: S) {
-      return this.knect.options.validate(this.collectionName, doc);
+      return this.knect.options.validate(this.collectionName, doc, this.schema);
     }
 
     ////////////////////////
@@ -796,24 +814,6 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       return this._handleResponse(this.collection.findOneAndDelete(_query, options), cb);
     }
 
-    // Maybe consider adding this back in at some point.
-    /**
-     * Finds a document and then replaces it.
-     * 
-     * @param query the filter for finding the document.
-     * @param doc the doc used to replace existing.
-     * @param options the update options.
-     * @param cb optional callback to use instead of Promise.
-     */
-    // static findReplace(
-    //   query: LikeObjectId | FilterQuery<S>,
-    //   doc: S,
-    //   options?: FindOneAndReplaceOption,
-    //   cb?: MongoCallback<FindAndModifyWriteOpResultObject<S>>) {
-    //   const _query = this.toQuery(query);
-    //   return this._handleResponse(this.collection.findOneAndReplace(_query, doc, options), cb);
-    // }
-
     /**
      * Creates multiple documents in database.
      * 
@@ -994,13 +994,124 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       const _query = this.toQuery(query);
       update = this.toUpdate(update);
 
-      console.log('\n-- updateOne options --');
-      console.log('query:', _query);
-      console.log('update:', update);
-      console.log();
-
       return this._handleResponse(this._update(_query, update, options as UpdateOneOptions, false), cb);
 
+    }
+
+    /**
+     * Excludes multiple documents by query by updating and tagging documents as 
+     * exlcuded/deleted without removing.
+     * 
+     * @param query the Mongodb filter for finding the desired documents to exclude softly.
+     * @param update the exclude query to be applied.
+     * @param options Mongodb update options.
+     * @param cb optional callback to use instead of promise.
+     */
+    static exclude(
+      query: FilterQuery<S>,
+      update: UpdateQuery<Partial<S>> | Partial<S>,
+      options: UpdateManyOptions,
+      cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+
+    /**
+     * Excludes multiple documents by query by updating and tagging documents as 
+     * exlcuded/deleted without removing.
+     * 
+     * @param query the Mongodb filter for finding the desired documents to exclude softly.
+     * @param update the exclude query to be applied.
+     * @param cb optional callback to use instead of promise.
+     */
+    static exclude(
+      query: FilterQuery<S>,
+      update: UpdateQuery<Partial<S>> | Partial<S>,
+      cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+
+    static exclude(
+      query: FilterQuery<S>,
+      update: UpdateQuery<Partial<S>> | Partial<S>,
+      options?: UpdateManyOptions | MongoCallback<UpdateWriteOpResult>,
+      cb?: MongoCallback<UpdateWriteOpResult>) {
+
+      if (typeof options === 'function') {
+        cb = options;
+        options = undefined;
+      }
+
+      query = this.toQuery(query);
+      update = this.toUpdate(update);
+      update.$set = this.toSoftDelete(update.$set);
+
+      return this._handleResponse(this._update(query, update, options as UpdateManyOptions, true), cb);
+
+    }
+
+    /**
+     * Excludes one document by id marking as deleted.
+     * 
+     * @param id the id of the document to be excluded softly.
+     * @param update the exclude query to be applied.
+     * @param options Mongodb update options.
+     * @param cb optional callback to use instead of promise.
+     */
+    static excludeOne(
+      id: LikeObjectId,
+      update: UpdateQuery<Partial<S>> | Partial<S>,
+      options: UpdateOneOptions,
+      cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+
+    /**
+     * Excludes one document by id marking as deleted.
+     * 
+     * @param id the id of the document to be excluded softly.
+     * @param update the exclude query to be applied.
+     * @param cb optional callback to use instead of promise.
+     */
+    static excludeOne(
+      id: LikeObjectId,
+      update: UpdateQuery<Partial<S>> | Partial<S>,
+      cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+
+    /**
+     * Excludes one document by id marking as deleted.
+     * 
+     * @param query the Mongodb filter for finding the desired documents to exclude softly.
+     * @param update the exclude query to be applied.
+     * @param options Mongodb update options.
+     * @param cb optional callback to use instead of promise.
+     */
+    static excludeOne(
+      query: FilterQuery<S>,
+      update: UpdateQuery<Partial<S>> | Partial<S>,
+      options: UpdateOneOptions,
+      cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+
+    /**
+     * Excludes one document by id marking as deleted.
+     * 
+     * @param query the Mongodb filter for finding the desired documents to exclude softly.
+     * @param update the exclude query to be applied.
+     * @param cb optional callback to use instead of promise.
+     */
+    static excludeOne(
+      query: FilterQuery<S>,
+      update: UpdateQuery<Partial<S>> | Partial<S>,
+      cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+
+    static excludeOne(
+      query: LikeObjectId | FilterQuery<S>,
+      update: UpdateQuery<Partial<S>> | Partial<S>,
+      options?: UpdateOneOptions | MongoCallback<UpdateWriteOpResult>,
+      cb?: MongoCallback<UpdateWriteOpResult>) {
+      if (typeof options === 'function') {
+        cb = options;
+        options = undefined;
+      }
+
+      const _query = this.toQuery(query);
+      update = this.toUpdate(update);
+      update.$set = this.toSoftDelete(update.$set);
+
+      return this._handleResponse(this._update(_query, update, options as UpdateOneOptions, false), cb);
     }
 
     /**
@@ -1125,7 +1236,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
   // If no config only return the derived type.
   // Otherwise wrap with Mustad hooks.
-  if (config) 
+  if (config)
     mustad = new Mustad(Wrapper, { include: includeKeys });
 
   return Wrapper;

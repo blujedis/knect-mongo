@@ -1,15 +1,18 @@
 import {
   ObjectId, FindOneOptions, DeleteWriteOpResultObject,
-  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndDeleteOption, MongoClientOptions
+  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndDeleteOption, MongoClientOptions, UpdateQuery
 } from 'mongodb';
 import { IHookHandler } from 'mustad';
 import { initDocument } from './document';
+import { number } from 'yup';
 
 const DocumentModel = (false as true) && initDocument();
 
 export interface IMap<T = any> {
   [key: string]: T;
 }
+
+export type ObjectType<T = any> = Record<keyof T, T[keyof T]>;
 
 export type DerivedDocument = typeof DocumentModel;
 
@@ -35,7 +38,7 @@ export interface IJoin {
 
 export type Joins<S> = { [K in keyof S]: IJoin };
 
-export interface ISchema<S extends {}> {
+export interface ISchema<S> {
   collectionName?: string;
   joins?: Joins<Partial<S>>;
 }
@@ -88,15 +91,28 @@ export interface IOptions {
    * 
    * @param ns the namespace being validated.
    * @param doc the document to be validated.
+   * @param schema the schema the model was initiated with.
    */
-  isValid?<S extends {}>(ns: string, doc: S): Promise<boolean>;
+  isValid?<S>(ns: string, doc: S, schema: ISchema<S>): Promise<boolean>;
 
   /**
    * Tests if the document is valid and returns ValidationError when false.
    * 
    * @param ns the namespace being validated.
    * @param doc the document to be validated.
+   * @param schema the schema the model was initiated with.
    */
-  validate?<S extends {}>(ns: string, doc: S): Promise<S>;
+  validate?<S>(ns: string, doc: S, schema: ISchema<S>): Promise<S>;
+
+  /**
+   * Handler when soft deletes are made.
+   * True = sets property "deleted" with epoch timestamp.
+   * String = sets property by this name with epoch timestamp.
+   * If using handler function update and return the document.
+   * 
+   * @default true
+   */
+  onSoftDelete?: true | string |
+  (<S extends IDoc>(update: Partial<S>) => Partial<S>);
 
 }

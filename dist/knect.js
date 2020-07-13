@@ -13,7 +13,8 @@ exports.MONGO_CLIENT_DEFAULTS = {
 const DEFAULTS = {
     delimiter: '.',
     isValid: (...args) => Promise.resolve(true),
-    validate: (ns, doc) => Promise.resolve(doc)
+    validate: (ns, doc) => Promise.resolve(doc),
+    onSoftDelete: true
 };
 class KnectMongo {
     constructor(options) {
@@ -95,14 +96,4 @@ class KnectMongo {
     }
 }
 exports.KnectMongo = KnectMongo;
-// let _instance: KnectMongo;
-/**
- * Gets singleton instance of KnectMongo
- */
-// function getInstance(options?: IOptions) {
-//   if (!_instance)
-//     _instance = new KnectMongo(options);
-//   return _instance;
-// }
-// export default getInstance;
 //# sourceMappingURL=knect.js.map
