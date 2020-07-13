@@ -39,25 +39,25 @@ async function load() {
   const User = knect.model('user', UserSchema);
   const Post = knect.model('post', PostSchema);
 
-  // User.pre('create', (next, doc) => {
-  //   extendDate(doc, true);
-  //   next();
-  // });
+  User.pre('create', (next, doc) => {
+    extendDate(doc, true);
+    next();
+  });
 
-  // User.pre('update', (next, doc) => {
-  //   extendDate(doc, false);
-  //   next();
-  // });
+  User.pre('update', (next, doc) => {
+    extendDate(doc, false);
+    next();
+  });
 
-  // Post.pre('create', (next, doc) => {
-  //   extendDate(doc, true);
-  //   next();
-  // });
+  Post.pre('create', (next, doc) => {
+    extendDate(doc, true);
+    next();
+  });
 
-  // Post.pre('update', (next, doc) => {
-  //   extendDate(doc, false);
-  //   next();
-  // });
+  Post.pre('update', (next, doc) => {
+    extendDate(doc, false);
+    next();
+  });
 
   const Models = {
     User,
@@ -80,11 +80,11 @@ async function drop(close?: boolean) {
 
   collections.length ? console.log('\n  Dropping Collections:') : null;
 
-  // await each(collections, async (name) => {
-  //   const dropped = await db.dropCollection(name);
-  //   if (dropped)
-  //     console.log(`    Dropped ${name}`);
-  // });
+  await each(collections, async (name) => {
+    const dropped = await db.dropCollection(name);
+    if (dropped)
+      console.log(`    Dropped ${name}`);
+  });
 
   if (close)
     knect.client.close();

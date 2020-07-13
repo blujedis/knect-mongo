@@ -3,8 +3,7 @@ import { parseDbName, fromNamespace } from './utils';
 import { Model } from './model';
 import { initDocument } from './document';
 import { ModelMap } from './map';
-import { ISchema, IDoc, Constructor, IOptions, GlobalHooks, HookType, DocumentHook } from './types';
-import { NextHandler } from 'mustad';
+import { ISchema, IDoc, Constructor, IOptions } from './types';
 
 export const MONGO_CLIENT_DEFAULTS = {
   useNewUrlParser: true,
@@ -25,8 +24,6 @@ export class KnectMongo {
   client: MongoClient;
   db: Db;
   models: ModelMap = new ModelMap();
-  pres: GlobalHooks = {};
-  posts: GlobalHooks = {};
 
   options: IOptions;
 
@@ -99,30 +96,6 @@ export class KnectMongo {
       await this.client.connect();
     this.db = this.client.db(name);
     return this.db;
-  }
-
-  /**
-   * Adds a pre hook for all Models.
-   * 
-   * @param type the hook handler type.
-   * @param handler the handler to be called.
-   */
-  pre<A1 = any, A2 = any, A3 = any>(type: HookType, handler: DocumentHook<A1, A2, A3>) {
-    this.pres[type] = this.pres[type] || [];
-    this.pres[type].push(handler);
-    return this;
-  }
-
-  /**
-   * Adds a post hook for all Models.
-   * 
-   * @param type the hook handler type.
-   * @param handler the handler to be called.
-   */
-  post<A1 = any, A2 = any, A3 = any>(type: HookType, handler: DocumentHook<A1, A2, A3>) {
-    this.posts[type] = this.posts[type] || [];
-    this.posts[type].push(handler);
-    return this;
   }
 
   /**

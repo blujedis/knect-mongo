@@ -61,8 +61,6 @@ export interface IModelSaveResult<S extends IDoc> {
 
 export type HookType = 'find' | 'create' | 'update' | 'delete';
 
-export type GlobalHooks = { [K in HookType]?: DocumentHook[] };
-
 export type DocumentHook<A1 = any, A2 = any, A3 = any> =
   (next: IHookHandler, arg1?: A1, arg2?: A2, arg3?: A3, ...args: any[]) => any;
 
