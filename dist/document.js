@@ -116,7 +116,7 @@ function initDocument(config, client, db, Model, knect) {
              * @param doc the document to be validated.
              */
             static isValid(doc) {
-                this.knect.options.isValid(this.collectionName, doc);
+                this.knect.options.isValid(this.collectionName, doc, this.schema);
             }
             /**
              * Validates a document against schema.
@@ -124,7 +124,7 @@ function initDocument(config, client, db, Model, knect) {
              * @param doc the document to be validated.
              */
             static validate(doc) {
-                return this.knect.options.validate(this.collectionName, doc);
+                return this.knect.options.validate(this.collectionName, doc, this.schema);
             }
             static async populate(docs, join) {
                 const isArray = Array.isArray(docs);
@@ -476,7 +476,7 @@ function initDocument(config, client, db, Model, knect) {
                 update = this.toUpdate(update);
                 return this._handleResponse(this._update(_query, update, options, false), cb);
             }
-            static deleteSoft(query, update, options, cb) {
+            static exclude(query, update, options, cb) {
                 if (typeof options === 'function') {
                     cb = options;
                     options = undefined;
@@ -486,7 +486,7 @@ function initDocument(config, client, db, Model, knect) {
                 update.$set = this.toSoftDelete(update.$set);
                 return this._handleResponse(this._update(query, update, options, true), cb);
             }
-            static deleteOneSoft(query, update, options, cb) {
+            static excludeOne(query, update, options, cb) {
                 if (typeof options === 'function') {
                     cb = options;
                     options = undefined;

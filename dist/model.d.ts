@@ -1,10 +1,10 @@
 import { ObjectId, CollectionInsertOneOptions, FindOneAndUpdateOption } from 'mongodb';
 import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
-export declare class Model<S extends IDoc> {
+export declare class Model<T extends IDoc> {
     private _Document;
     _id: ObjectId;
-    _doc: S;
-    constructor(doc: S, document: DerivedDocument, isClone?: boolean);
+    _doc: T;
+    constructor(doc: T, document: DerivedDocument, isClone?: boolean);
     /**
      * Binds properties to instance.
      *
@@ -28,13 +28,13 @@ export declare class Model<S extends IDoc> {
      *
      * @param options MongoDB update options.
      */
-    save(options?: FindOneAndUpdateOption | CollectionInsertOneOptions): Promise<IModelSaveResult<S>>;
+    save(options?: FindOneAndUpdateOption | CollectionInsertOneOptions): Promise<IModelSaveResult<T>>;
     /**
      * Deletes document persisting in database.
      *
      * @param options Mongodb delete options.
      */
-    delete(options?: IFindOneAndDeleteOption<S>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<IDoc>>;
+    delete(options?: IFindOneAndDeleteOption<T>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<IDoc>>;
     /**
      * Propulates child values based on join configurations.
      *

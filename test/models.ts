@@ -1,16 +1,6 @@
 import { LikeObjectId, ISchema } from '../src';
 import { Model } from '../src/model';
 
-// export interface IUser extends IBase {
-//   firstName: string;
-//   lastName: string;
-//   posts?: (LikeObjectId | IPost)[];
-// }
-
-// export interface IUserPopulated extends IUser {
-//   posts?: IPost[];
-// }
-
 // INTERFACES //
 
 export interface IBase {

@@ -4,7 +4,7 @@ declare const DocumentModel: {
     new (doc?: IDoc, isClone?: boolean): {};
     knect: import("./knect").KnectMongo;
     collectionName: string;
-    schema: ISchema<IDoc>;
+    schema: ISchema<IDoc, any>;
     readonly client: import("mongodb").MongoClient;
     readonly db: import("mongodb").Db;
     readonly collection: import("mongodb").Collection<IDoc>;
@@ -23,11 +23,11 @@ declare const DocumentModel: {
     unpopulate(docs: IDoc[], join?: string | string[] | Joins<IDoc>): IDoc[];
     cascade(doc: IDoc, join: string | string[] | Joins<IDoc>): Promise<ICascadeResult<IDoc>>;
     cascade(doc: IDoc[], join: string | string[] | Joins<IDoc>): Promise<ICascadeResult<IDoc>[]>;
-    cast<T extends Partial<IDoc>>(doc: T, include?: true, ...props: Extract<keyof T, string>[]): T;
-    cast<T_1 extends Partial<IDoc>>(doc: T_1, ...omit: Extract<keyof T_1, string>[]): T_1;
-    cast<T_2 extends Partial<IDoc>>(docs: T_2[], include?: true, ...props: Extract<keyof T_2, string>[]): T_2[];
-    cast<T_3 extends Partial<IDoc>>(docs: T_3[], ...omit: Extract<keyof T_3, string>[]): T_3[];
-    _handleResponse<T_4, E>(p: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
+    cast<U extends Partial<IDoc>>(doc: U, include?: true, ...props: Extract<keyof U, string>[]): U;
+    cast<U_1 extends Partial<IDoc>>(doc: U_1, ...omit: Extract<keyof U_1, string>[]): U_1;
+    cast<U_2 extends Partial<IDoc>>(docs: U_2[], include?: true, ...props: Extract<keyof U_2, string>[]): U_2[];
+    cast<U_3 extends Partial<IDoc>>(docs: U_3[], ...omit: Extract<keyof U_3, string>[]): U_3[];
+    _handleResponse<R, E>(p: R | Promise<R>, cb?: (err: E, data: R) => void): Promise<R>;
     _find(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions, isMany?: boolean): Promise<IDoc | IDoc[]>;
     _create(doc: (Pick<IDoc, never> & {
         _id?: ObjectId;
@@ -81,12 +81,12 @@ declare const DocumentModel: {
     updateOne(id: string | number | ObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     updateOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     updateOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    deleteSoft(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    deleteSoft(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    deleteOneSoft(id: string | number | ObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    deleteOneSoft(id: string | number | ObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    deleteOneSoft(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    deleteOneSoft(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    exclude(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    exclude(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    excludeOne(id: string | number | ObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    excludeOne(id: string | number | ObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    excludeOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    excludeOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     delete(query: import("mongodb").FilterQuery<IDoc>, options: import("mongodb").CommonOptions, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     delete(query: import("mongodb").FilterQuery<IDoc>, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     deleteOne(id: string | number | ObjectId, options: import("mongodb").CommonOptions & {
@@ -120,12 +120,13 @@ export interface IJoin {
     options?: FindOneOptions;
     cascade?: boolean;
 }
-export declare type Joins<S> = {
-    [K in keyof S]: IJoin;
+export declare type Joins<T> = {
+    [K in keyof T]?: IJoin;
 };
-export interface ISchema<S> {
+export interface ISchema<T, S = any> {
     collectionName?: string;
-    joins?: Joins<Partial<S>>;
+    props?: Record<keyof T, S>;
+    joins?: Joins<T>;
 }
 export interface IDoc {
     _id?: LikeObjectId;
@@ -133,16 +134,16 @@ export interface IDoc {
 export interface IFindOneOptions extends FindOneOptions {
     populate?: string | string[];
 }
-export interface IFindOneAndDeleteOption<S extends IDoc> extends FindOneAndDeleteOption {
-    cascade?: boolean | string | string[] | Joins<S>;
+export interface IFindOneAndDeleteOption<T extends IDoc> extends FindOneAndDeleteOption {
+    cascade?: boolean | string | string[] | Joins<T>;
 }
-export interface IModelSaveResult<S extends IDoc> {
+export interface IModelSaveResult<T extends IDoc> {
     insertId: LikeObjectId;
     ok: number;
-    doc: S;
-    response: InsertOneWriteOpResult<S & {
+    doc: T;
+    response: InsertOneWriteOpResult<T & {
         _id: any;
-    }> | FindAndModifyWriteOpResultObject<S>;
+    }> | FindAndModifyWriteOpResultObject<T>;
 }
 export declare type HookType = 'find' | 'create' | 'update' | 'delete';
 export declare type DocumentHook<A1 = any, A2 = any, A3 = any> = (next: IHookHandler, arg1?: A1, arg2?: A2, arg3?: A3, ...args: any[]) => any;
@@ -166,15 +167,17 @@ export interface IOptions {
      *
      * @param ns the namespace being validated.
      * @param doc the document to be validated.
+     * @param schema the schema the model was initiated with.
      */
-    isValid?<S>(ns: string, doc: S): Promise<boolean>;
+    isValid?<T, S = any>(ns: string, doc: T, schema: ISchema<T, S>): Promise<boolean>;
     /**
      * Tests if the document is valid and returns ValidationError when false.
      *
      * @param ns the namespace being validated.
      * @param doc the document to be validated.
+     * @param schema the schema the model was initiated with.
      */
-    validate?<S>(ns: string, doc: S): Promise<S>;
+    validate?<T, S = any>(ns: string, doc: T, schema: ISchema<T, S>): Promise<T>;
     /**
      * Handler when soft deletes are made.
      * True = sets property "deleted" with epoch timestamp.
@@ -183,6 +186,6 @@ export interface IOptions {
      *
      * @default true
      */
-    onSoftDelete?: true | string | (<S extends IDoc>(update: Partial<S>) => Partial<S>);
+    onSoftDelete?: true | string | (<T extends IDoc>(update: Partial<T>) => Partial<T>);
 }
 export {};

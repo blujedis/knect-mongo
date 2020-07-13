@@ -4,7 +4,7 @@ import {
 } from 'mongodb';
 import { IHookHandler } from 'mustad';
 import { initDocument } from './document';
-import { number } from 'yup';
+import { string } from 'yup';
 
 const DocumentModel = (false as true) && initDocument();
 
@@ -36,11 +36,12 @@ export interface IJoin {
   cascade?: boolean;
 }
 
-export type Joins<S> = { [K in keyof S]: IJoin };
+export type Joins<T> = { [K in keyof T]?: IJoin };
 
-export interface ISchema<S> {
+export interface ISchema<T, S = any> {
   collectionName?: string;
-  joins?: Joins<Partial<S>>;
+  props?: Record<keyof T, S>;
+  joins?: Joins<T>;
 }
 
 export interface IDoc {
@@ -51,15 +52,15 @@ export interface IFindOneOptions extends FindOneOptions {
   populate?: string | string[];
 }
 
-export interface IFindOneAndDeleteOption<S extends IDoc> extends FindOneAndDeleteOption {
-  cascade?: boolean | string | string[] | Joins<S>;
+export interface IFindOneAndDeleteOption<T extends IDoc> extends FindOneAndDeleteOption {
+  cascade?: boolean | string | string[] | Joins<T>;
 }
 
-export interface IModelSaveResult<S extends IDoc> {
+export interface IModelSaveResult<T extends IDoc> {
   insertId: LikeObjectId,
   ok: number;
-  doc: S;
-  response: InsertOneWriteOpResult<S & { _id: any; }> | FindAndModifyWriteOpResultObject<S>;
+  doc: T;
+  response: InsertOneWriteOpResult<T & { _id: any; }> | FindAndModifyWriteOpResultObject<T>;
 }
 
 export type HookType = 'find' | 'create' | 'update' | 'delete';
@@ -93,7 +94,7 @@ export interface IOptions {
    * @param doc the document to be validated.
    * @param schema the schema the model was initiated with.
    */
-  isValid?<S>(ns: string, doc: S, schema: ISchema<S>): Promise<boolean>;
+  isValid?<T, S = any>(ns: string, doc: T, schema: ISchema<T, S>): Promise<boolean>;
 
   /**
    * Tests if the document is valid and returns ValidationError when false.
@@ -102,7 +103,7 @@ export interface IOptions {
    * @param doc the document to be validated.
    * @param schema the schema the model was initiated with.
    */
-  validate?<S>(ns: string, doc: S, schema: ISchema<S>): Promise<S>;
+  validate?<T, S = any>(ns: string, doc: T, schema: ISchema<T, S>): Promise<T>;
 
   /**
    * Handler when soft deletes are made.
@@ -113,6 +114,6 @@ export interface IOptions {
    * @default true
    */
   onSoftDelete?: true | string |
-  (<S extends IDoc>(update: Partial<S>) => Partial<S>);
+  (<T extends IDoc>(update: Partial<T>) => Partial<T>);
 
 }

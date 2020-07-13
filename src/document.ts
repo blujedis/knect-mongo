@@ -35,8 +35,8 @@ const includeKeys = Object.keys(hookMap).reduce((a, c) => {
  * @param db the Mongo database connection.
  * @param Model the BaseModel type for creating models.
  */
-export function initDocument<S extends IDoc, M extends BaseModel<S>>(
-  config?: ISchema<S>,
+export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
+  config?: ISchema<T, S>,
   client?: MongoClient,
   db?: Db,
   Model?: Constructor<M>,
@@ -49,7 +49,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
     static knect: KnectMongo = knect;
     static collectionName: string = config && config.collectionName;
-    static schema: ISchema<S> = config;
+    static schema: ISchema<T, S> = config;
 
     static get client() {
       return client || this.knect.client;
@@ -60,7 +60,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
     }
 
     static get collection() {
-      return this.db.collection<S>(this.collectionName);
+      return this.db.collection<T>(this.collectionName);
     }
 
     /////////////
@@ -105,7 +105,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * 
      * @param doc the document to be updated.
      */
-    static toSoftDelete(doc: Partial<S>) {
+    static toSoftDelete(doc: Partial<T>) {
       const handler = knect.options.onSoftDelete;
       if (!handler)
         return doc;
@@ -123,10 +123,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * 
      * @param query the Mongodb filter query.
      */
-    static toQuery(query: LikeObjectId | FilterQuery<S>) {
-      let _query: FilterQuery<S> = query as any;
+    static toQuery(query: LikeObjectId | FilterQuery<T>) {
+      let _query: FilterQuery<T> = query as any;
       if (typeof query !== 'object')
-        _query = { _id: query } as FilterQuery<S>;
+        _query = { _id: query } as FilterQuery<T>;
       if (_query._id)
         _query._id = this.toObjectID(_query._id as LikeObjectId) as any;
       return _query;
@@ -137,7 +137,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * 
      * @param update the update query to be applied.
      */
-    static toUpdate(update: UpdateQuery<Partial<S>> | Partial<S>): UpdateQuery<Partial<S>> {
+    static toUpdate(update: UpdateQuery<Partial<T>> | Partial<T>): UpdateQuery<Partial<T>> {
       const hasSpecial = Object.keys(update).reduce((a, c) => {
         if (a === true)
           return a;
@@ -145,8 +145,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
         return a;
       }, false);
       if (!hasSpecial)
-        update = { $set: update } as UpdateQuery<S>;
-      return update as UpdateQuery<S>;
+        update = { $set: update } as UpdateQuery<T>;
+      return update as UpdateQuery<T>;
     }
 
     /**
@@ -155,7 +155,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param joins object containing joins to build list from.
      * @param filter an array of keys to exclude.
      */
-    static toCascades(joins: Joins<S>, ...filter: string[]): string[];
+    static toCascades(joins: Joins<T>, ...filter: string[]): string[];
 
     /**
      * Converts Joins<S> to cascade keys.
@@ -164,14 +164,14 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static toCascades(...filter: string[]): string[];
 
-    static toCascades(joins: string | Joins<S>, ...filter: string[]) {
+    static toCascades(joins: string | Joins<T>, ...filter: string[]) {
 
       if (typeof joins === 'string') {
         filter.unshift(joins as string);
         joins = undefined;
       }
 
-      const _joins = joins || (this.schema.joins || {}) as Joins<S>;
+      const _joins = joins || (this.schema.joins || {}) as Joins<T>;
 
       return Object.keys(_joins).reduce((a, c) => {
         if (!_joins[c].cascade || filter.includes(c))
@@ -186,7 +186,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * 
      * @param doc the document to be validated.
      */
-    static isValid(doc: S) {
+    static isValid(doc: T) {
       this.knect.options.isValid(this.collectionName, doc, this.schema);
     }
 
@@ -195,7 +195,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * 
      * @param doc the document to be validated.
      */
-    static validate(doc: S) {
+    static validate(doc: T) {
       return this.knect.options.validate(this.collectionName, doc, this.schema);
     }
 
@@ -209,7 +209,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param doc the document to populate joins for.
      * @param join the join config, configs or array of join names.
      */
-    static async populate(doc: S, join: string | string[] | Joins<S>): Promise<S>;
+    static async populate(doc: T, join: string | string[] | Joins<T>): Promise<T>;
 
     /**
      * Populates documents with specified join.
@@ -217,13 +217,13 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param docs the document to populate joins for.
      * @param join the join config, configs or array of join names.
      */
-    static async populate(docs: S[], join: string | string[] | Joins<S>): Promise<S[]>;
+    static async populate(docs: T[], join: string | string[] | Joins<T>): Promise<T[]>;
 
-    static async populate(docs: S | S[], join?: string | string[] | Joins<S>): Promise<S | S[]> {
+    static async populate(docs: T | T[], join?: string | string[] | Joins<T>): Promise<T | T[]> {
 
       const isArray = Array.isArray(docs);
 
-      let joins: Joins<S> = join as any;
+      let joins: Joins<T> = join as any;
       join = typeof join === 'string' ? [join] : join;
       join = join || Object.keys(this.schema.joins || {});
 
@@ -237,10 +237,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
           const j = this.schema.joins[c];
           if (j) a[c] = j;
           return a;
-        }, {} as Joins<S>);
+        }, {} as Joins<T>);
       }
 
-      const _docs = (!isArray ? [docs] : docs) as S[];
+      const _docs = (!isArray ? [docs] : docs) as T[];
 
       const { err, data } = await promise(Promise.all(_docs.map(async doc => {
 
@@ -257,10 +257,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
           if (key === '_id')
             values = (values as any).map(v => this.toObjectID(v));
 
-          const filter = { [key]: { '$in': values } } as FilterQuery<S>;
+          const filter = { [key]: { '$in': values } } as FilterQuery<T>;
 
           const { err: pErr, data: pData } = await promise(this.db
-            .collection<S>(conf.collection)
+            .collection<T>(conf.collection)
             .find(filter, conf.options)
             .toArray());
 
@@ -294,7 +294,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param doc the document to be unpopulated.
      * @param join the join string array or Joins<S> object.
      */
-    static unpopulate(doc: S, join?: string | string[] | Joins<S>): S;
+    static unpopulate(doc: T, join?: string | string[] | Joins<T>): T;
 
     /**
      * Iterates populated prop and restores to join key.
@@ -302,13 +302,13 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param docs the documents to be unpopulated.
      * @param join the join string array or Joins<S> object.
      */
-    static unpopulate(docs: S[], join?: string | string[] | Joins<S>): S[];
+    static unpopulate(docs: T[], join?: string | string[] | Joins<T>): T[];
 
-    static unpopulate(docs: S | S[], join?: string | string[] | Joins<S>) {
+    static unpopulate(docs: T | T[], join?: string | string[] | Joins<T>) {
 
       const isArray = Array.isArray(docs);
 
-      let joins: Joins<S> = join as any;
+      let joins: Joins<T> = join as any;
       join = typeof join === 'string' ? [join] : join;
       join = join || Object.keys(this.schema.joins || {});
 
@@ -322,10 +322,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
           const j = this.schema.joins[c];
           if (j) a[c] = j;
           return a;
-        }, {} as Joins<S>);
+        }, {} as Joins<T>);
       }
 
-      const _docs = (!isArray ? [docs] : docs) as S[];
+      const _docs = (!isArray ? [docs] : docs) as T[];
 
       const canPopulate = v =>
         typeof v !== 'undefined' && !ObjectID.isValid(v) && (Array.isArray(v) || typeof v === 'object');
@@ -336,7 +336,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
           if (doc.hasOwnProperty(k) && canPopulate(doc[k])) {
 
-            type DocKey = S[Extract<keyof S, string>];
+            type DocKey = T[Extract<keyof T, string>];
 
             const _join = joins[k];
             const _prop = doc[k] as DocKey | DocKey[];
@@ -377,7 +377,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param doc the document to populate joins for.
      * @param join the join string array or Joins<S> object.
      */
-    static async cascade(doc: S, join: string | string[] | Joins<S>): Promise<ICascadeResult<S>>;
+    static async cascade(doc: T, join: string | string[] | Joins<T>): Promise<ICascadeResult<T>>;
 
     /**
      * Cascades deletes with specified joins.
@@ -385,15 +385,15 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param docs the documents to populate joins for.
      * @param join the join string array or Joins<S> object.
      */
-    static async cascade(doc: S[], join: string | string[] | Joins<S>): Promise<ICascadeResult<S>[]>;
+    static async cascade(doc: T[], join: string | string[] | Joins<T>): Promise<ICascadeResult<T>[]>;
 
     static async cascade(
-      docs: S | S[],
-      join?: string | string[] | Joins<S>) {
+      docs: T | T[],
+      join?: string | string[] | Joins<T>) {
 
       const isArray = Array.isArray(docs);
 
-      let joins: Joins<S> = join as any;
+      let joins: Joins<T> = join as any;
       join = typeof join === 'string' ? [join] : join;
 
       // Hotpath nothing to do.
@@ -406,10 +406,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
           const j = this.schema.joins[c];
           if (j) a[c] = j;
           return a;
-        }, {} as Joins<S>);
+        }, {} as Joins<T>);
       }
 
-      const _docs = (!isArray ? [docs] : docs) as S[];
+      const _docs = (!isArray ? [docs] : docs) as T[];
 
       const session = this.client.startSession();
       session.startTransaction();
@@ -478,7 +478,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    static cast<T extends Partial<S>>(doc: T, include?: true, ...props: Array<KeyOf<T>>): T;
+    static cast<U extends Partial<T>>(doc: U, include?: true, ...props: Array<KeyOf<U>>): U;
 
     /**
      * Casts to new type.
@@ -486,7 +486,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param doc the document to be cast.
      * @param omit the list of props to omit.
      */
-    static cast<T extends Partial<S>>(doc: T, ...omit: Array<KeyOf<T>>): T;
+    static cast<U extends Partial<T>>(doc: U, ...omit: Array<KeyOf<U>>): U;
 
     /**
      * Casts to new type.
@@ -495,7 +495,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    static cast<T extends Partial<S>>(docs: T[], include?: true, ...props: Array<KeyOf<T>>): T[];
+    static cast<U extends Partial<T>>(docs: U[], include?: true, ...props: Array<KeyOf<U>>): U[];
 
     /**
      * Casts to new type.
@@ -503,9 +503,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param docs the documents to be cast.
      * @param omit the list of props to omit.
      */
-    static cast<T extends Partial<S>>(docs: T[], ...omit: Array<KeyOf<T>>): T[];
+    static cast<U extends Partial<T>>(docs: U[], ...omit: Array<KeyOf<U>>): U[];
 
-    static cast<T extends Partial<S>>(doc: T | T[], include?: boolean | KeyOf<T>, ...props: Array<KeyOf<T>>) {
+    static cast<U extends Partial<T>>(doc: U | U[], include?: boolean | KeyOf<U>, ...props: Array<KeyOf<U>>) {
 
       if (typeof include === 'string') {
         props.unshift(include);
@@ -513,7 +513,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       }
 
       const _doc = Array.isArray(doc) ? doc[0] : doc;
-      const _keys = Object.keys(_doc) as Array<KeyOf<T>>;
+      const _keys = Object.keys(_doc) as Array<KeyOf<U>>;
 
       if (include === true) {
         props = props.length ? props : _keys;
@@ -531,13 +531,13 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       }
 
       if (Array.isArray(doc)) {
-        doc = (doc as T[]).map(d => {
+        doc = (doc as U[]).map(d => {
           return clean(doc);
         });
-        return doc as T[];
+        return doc as U[];
       }
 
-      return clean(doc) as T;
+      return clean(doc) as U;
 
     }
 
@@ -551,10 +551,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param promise a promise to be handled.
      * @param cb an optional callback to be called with error or data.
      */
-    static async _handleResponse<T, E>(
-      p: T | Promise<T>,
-      cb?: (err: E, data: T) => void): Promise<T> {
-      const prom = (!isPromise(p) ? Promise.resolve(p) : p) as Promise<T>;
+    static async _handleResponse<R, E>(
+      p: R | Promise<R>,
+      cb?: (err: E, data: R) => void): Promise<R> {
+      const prom = (!isPromise(p) ? Promise.resolve(p) : p) as Promise<R>;
 
       return prom.then(res => {
         if (cb)
@@ -579,14 +579,14 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback instead of promise.
      */
     static async _find(
-      query?: FilterQuery<S>,
+      query?: FilterQuery<T>,
       options?: IFindOneOptions,
       isMany: boolean = false) {
 
       query = this.toQuery(query || {});
       options = options || {};
 
-      let result: { err?: Error, data?: S | S[]; };
+      let result: { err?: Error, data?: T | T[]; };
 
       if (isMany)
         result = await promise(this.collection.find(query, options).toArray());
@@ -598,13 +598,13 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
 
       if (!options.populate) {
         if (isMany)
-          return result.data as S[];
-        return result.data as S;
+          return result.data as T[];
+        return result.data as T;
       }
 
       if (isMany)
-        return this.populate(result.data as S[], options.populate);
-      return this.populate(result.data as S, options.populate);
+        return this.populate(result.data as T[], options.populate);
+      return this.populate(result.data as T, options.populate);
 
     }
 
@@ -615,7 +615,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param options Mongodb insert many options.
      */
     static _create(
-      doc: OptionalId<S> | OptionalId<S>[],
+      doc: OptionalId<T> | OptionalId<T>[],
       options: CollectionInsertOneOptions | CollectionInsertManyOptions = {}) {
 
       if (Array.isArray(doc)) {
@@ -641,8 +641,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param isMany when true update many.
      */
     static _update(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options?: UpdateOneOptions | UpdateManyOptions,
       isMany: boolean = false) {
       if (isMany)
@@ -658,7 +658,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param isMany when true uses collection.deleteMany().
      */
     static _delete(
-      query: FilterQuery<S>,
+      query: FilterQuery<T>,
       options?: CommonOptions & { bypassDocumentValidation?: boolean; },
       isMany: boolean = false) {
       if (isMany)
@@ -672,8 +672,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      */
-    static find(query?: FilterQuery<S>, options?: IFindOneOptions) {
-      return this._find(query, options, true) as Promise<S[]>;
+    static find(query?: FilterQuery<T>, options?: IFindOneOptions) {
+      return this._find(query, options, true) as Promise<T[]>;
     }
 
     /**
@@ -686,7 +686,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
     static findOne(
       id: LikeObjectId,
       options: IFindOneOptions,
-      cb?: MongoCallback<S | null>): Promise<S>;
+      cb?: MongoCallback<T | null>): Promise<T>;
 
     /**
      * Finds one document by query.
@@ -696,8 +696,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static findOne(
       id: LikeObjectId,
-      cb?: MongoCallback<S | null>,
-    ): Promise<S>;
+      cb?: MongoCallback<T | null>,
+    ): Promise<T>;
 
     /**
      * Finds one document by query.
@@ -707,9 +707,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb an optional callback instead of using promise.
      */
     static findOne(
-      query: FilterQuery<S>,
+      query: FilterQuery<T>,
       options: IFindOneOptions,
-      cb?: MongoCallback<S | null>): Promise<S>;
+      cb?: MongoCallback<T | null>): Promise<T>;
 
     /**
      * Finds one document by query.
@@ -718,20 +718,20 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb an optional callback instead of using promise.
      */
     static findOne(
-      query: FilterQuery<S>,
-      cb?: MongoCallback<S | null>,
-    ): Promise<S>;
+      query: FilterQuery<T>,
+      cb?: MongoCallback<T | null>,
+    ): Promise<T>;
 
     static findOne(
-      query: LikeObjectId | FilterQuery<S>,
-      options?: IFindOneOptions | MongoCallback<S | null>,
-      cb?: MongoCallback<S | null>) {
+      query: LikeObjectId | FilterQuery<T>,
+      options?: IFindOneOptions | MongoCallback<T | null>,
+      cb?: MongoCallback<T | null>) {
       if (typeof options === 'function') {
         cb = options;
         options = undefined;
       }
       const _query = this.toQuery(query);
-      return this._handleResponse(this._find(_query, options as IFindOneOptions, false) as Promise<S>, cb);
+      return this._handleResponse(this._find(_query, options as IFindOneOptions, false) as Promise<T>, cb);
     }
 
     /**
@@ -745,7 +745,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
     static async findModel(
       id: LikeObjectId,
       options?: IFindOneOptions,
-      cb?: MongoCallback<M & S | null>): Promise<M & S>;
+      cb?: MongoCallback<M & T | null>): Promise<M & T>;
 
     /**
      * Finds one document by query then converts to Model.
@@ -755,14 +755,14 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb an optional callback instead of using promise.
      */
     static async findModel(
-      query: FilterQuery<S>,
+      query: FilterQuery<T>,
       options?: IFindOneOptions,
-      cb?: MongoCallback<M & S | null>): Promise<M & S>;
+      cb?: MongoCallback<M & T | null>): Promise<M & T>;
 
     static async findModel(
-      query: LikeObjectId | FilterQuery<S>,
-      options?: IFindOneOptions | MongoCallback<M & S | null>,
-      cb?: MongoCallback<M & S | null>) {
+      query: LikeObjectId | FilterQuery<T>,
+      options?: IFindOneOptions | MongoCallback<M & T | null>,
+      cb?: MongoCallback<M & T | null>) {
 
       if (typeof options === 'function') {
         cb = options as any;
@@ -775,7 +775,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       if (err)
         return Promise.reject(err);
 
-      const model = new Model(data as S, Document) as M & S;
+      const model = new Model(data as T, Document) as M & T;
 
       return this._handleResponse(model, cb);
 
@@ -790,10 +790,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of Promise.
      */
     static findUpdate(
-      query: LikeObjectId | FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: LikeObjectId | FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options?: FindOneAndUpdateOption,
-      cb?: MongoCallback<FindAndModifyWriteOpResultObject<S>>) {
+      cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>) {
       const _query = this.toQuery(query);
       const _update = this.toUpdate(update);
       return this._handleResponse(this.collection.findOneAndUpdate(_query, _update, options), cb);
@@ -807,9 +807,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of Promise.
      */
     static findDelete(
-      query: LikeObjectId | FilterQuery<S>,
-      options?: IFindOneAndDeleteOption<S>,
-      cb?: MongoCallback<FindAndModifyWriteOpResultObject<S>>) {
+      query: LikeObjectId | FilterQuery<T>,
+      options?: IFindOneAndDeleteOption<T>,
+      cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>) {
       const _query = this.toQuery(query);
       return this._handleResponse(this.collection.findOneAndDelete(_query, options), cb);
     }
@@ -822,9 +822,9 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static create(
-      docs: OptionalId<S>[],
+      docs: OptionalId<T>[],
       options: CollectionInsertManyOptions,
-      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any; }>>): Promise<InsertWriteOpResult<S & { _id: any; }>>;
+      cb?: MongoCallback<InsertWriteOpResult<T & { _id: any; }>>): Promise<InsertWriteOpResult<T & { _id: any; }>>;
 
     /**
      * Creates multiple documents in database.
@@ -833,19 +833,19 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static create(
-      docs: OptionalId<S>[],
-      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any; }>>): Promise<InsertWriteOpResult<S & { _id: any; }>>;
+      docs: OptionalId<T>[],
+      cb?: MongoCallback<InsertWriteOpResult<T & { _id: any; }>>): Promise<InsertWriteOpResult<T & { _id: any; }>>;
 
     static create(
-      docs: OptionalId<S>[],
-      options?: CollectionInsertManyOptions | MongoCallback<InsertWriteOpResult<S & { _id: any; }>>,
-      cb?: MongoCallback<InsertWriteOpResult<S & { _id: any; }>>) {
+      docs: OptionalId<T>[],
+      options?: CollectionInsertManyOptions | MongoCallback<InsertWriteOpResult<T & { _id: any; }>>,
+      cb?: MongoCallback<InsertWriteOpResult<T & { _id: any; }>>) {
       if (typeof options === 'function') {
         cb = options;
         options = undefined;
       }
       const creator = this._create(docs, options as CollectionInsertManyOptions) as any;
-      return this._handleResponse(creator as Promise<InsertWriteOpResult<S & { _id: any; }>>, cb);
+      return this._handleResponse(creator as Promise<InsertWriteOpResult<T & { _id: any; }>>, cb);
     }
 
     /**
@@ -856,10 +856,10 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static createOne(
-      doc: OptionalId<S>,
+      doc: OptionalId<T>,
       options: CollectionInsertOneOptions,
       cb?:
-        MongoCallback<InsertOneWriteOpResult<S & { _id: any; }>>): Promise<InsertOneWriteOpResult<S & { _id: any; }>>;
+        MongoCallback<InsertOneWriteOpResult<T & { _id: any; }>>): Promise<InsertOneWriteOpResult<T & { _id: any; }>>;
 
     /**
      * Creates document in database.
@@ -868,20 +868,20 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static createOne(
-      doc: OptionalId<S>,
+      doc: OptionalId<T>,
       cb?:
-        MongoCallback<InsertOneWriteOpResult<S & { _id: any; }>>): Promise<InsertOneWriteOpResult<S & { _id: any; }>>;
+        MongoCallback<InsertOneWriteOpResult<T & { _id: any; }>>): Promise<InsertOneWriteOpResult<T & { _id: any; }>>;
 
     static createOne(
-      doc: OptionalId<S>,
-      options?: CollectionInsertOneOptions | MongoCallback<InsertOneWriteOpResult<S & { _id: any; }>>,
-      cb?: MongoCallback<InsertOneWriteOpResult<S & { _id: any; }>>) {
+      doc: OptionalId<T>,
+      options?: CollectionInsertOneOptions | MongoCallback<InsertOneWriteOpResult<T & { _id: any; }>>,
+      cb?: MongoCallback<InsertOneWriteOpResult<T & { _id: any; }>>) {
       if (typeof options === 'function') {
         cb = options;
         options = undefined;
       }
       const creator = this._create(doc, options as CollectionInsertOneOptions) as any;
-      return this._handleResponse(creator as Promise<InsertOneWriteOpResult<S & { _id: any; }>>, cb);
+      return this._handleResponse(creator as Promise<InsertOneWriteOpResult<T & { _id: any; }>>, cb);
     }
 
     /**
@@ -893,8 +893,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static update(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options: UpdateManyOptions,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
@@ -906,13 +906,13 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static update(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
     static update(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options?: UpdateManyOptions | MongoCallback<UpdateWriteOpResult>,
       cb?: MongoCallback<UpdateWriteOpResult>) {
 
@@ -938,7 +938,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static updateOne(
       id: LikeObjectId,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options: UpdateOneOptions,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
@@ -951,7 +951,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static updateOne(
       id: LikeObjectId,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
     /**
@@ -963,8 +963,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static updateOne(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options: UpdateOneOptions,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
@@ -976,13 +976,13 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static updateOne(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
     static updateOne(
-      query: LikeObjectId | FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: LikeObjectId | FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options?: UpdateOneOptions | MongoCallback<UpdateWriteOpResult>,
       cb?: MongoCallback<UpdateWriteOpResult>) {
 
@@ -1008,8 +1008,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static exclude(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options: UpdateManyOptions,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
@@ -1022,13 +1022,13 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static exclude(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
     static exclude(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options?: UpdateManyOptions | MongoCallback<UpdateWriteOpResult>,
       cb?: MongoCallback<UpdateWriteOpResult>) {
 
@@ -1055,7 +1055,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static excludeOne(
       id: LikeObjectId,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options: UpdateOneOptions,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
@@ -1068,7 +1068,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      */
     static excludeOne(
       id: LikeObjectId,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
     /**
@@ -1080,8 +1080,8 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static excludeOne(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options: UpdateOneOptions,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
@@ -1093,13 +1093,13 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static excludeOne(
-      query: FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
     static excludeOne(
-      query: LikeObjectId | FilterQuery<S>,
-      update: UpdateQuery<Partial<S>> | Partial<S>,
+      query: LikeObjectId | FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
       options?: UpdateOneOptions | MongoCallback<UpdateWriteOpResult>,
       cb?: MongoCallback<UpdateWriteOpResult>) {
       if (typeof options === 'function') {
@@ -1122,7 +1122,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static delete(
-      query: FilterQuery<S>,
+      query: FilterQuery<T>,
       options: CommonOptions,
       cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
 
@@ -1133,11 +1133,11 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static delete(
-      query: FilterQuery<S>,
+      query: FilterQuery<T>,
       cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
 
     static delete(
-      filter: FilterQuery<S>,
+      filter: FilterQuery<T>,
       options?: CommonOptions | MongoCallback<DeleteWriteOpResultObject>,
       cb?: MongoCallback<DeleteWriteOpResultObject>) {
 
@@ -1180,7 +1180,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static deleteOne(
-      query: FilterQuery<S>,
+      query: FilterQuery<T>,
       options?: CommonOptions & { bypassDocumentValidation?: boolean; },
       cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
 
@@ -1191,11 +1191,11 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
      * @param cb optional callback to use instead of promise.
      */
     static deleteOne(
-      query: FilterQuery<S>,
+      query: FilterQuery<T>,
       cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
 
     static deleteOne(
-      query: LikeObjectId | FilterQuery<S>,
+      query: LikeObjectId | FilterQuery<T>,
       options?: CommonOptions & { bypassDocumentValidation?: boolean; } | MongoCallback<DeleteWriteOpResultObject>,
       cb?: MongoCallback<DeleteWriteOpResultObject>) {
 
@@ -1226,7 +1226,7 @@ export function initDocument<S extends IDoc, M extends BaseModel<S>>(
       return this;
     }
 
-    constructor(doc?: S, isClone = false) {
+    constructor(doc?: T, isClone = false) {
       if (!Document.db || !Document.client)
         throw new Error(`Failed to initialize model with "db" or "client" of undefined.`);
       return new Model(doc, Document, isClone);

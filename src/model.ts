@@ -5,16 +5,15 @@ import {
 import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
 import { promise, hasDescriptor } from './utils';
 import { ValidationError } from './error';
-// import { ValidationError, ObjectSchema } from 'yup';
 
-export class Model<S extends IDoc> {
+export class Model<T extends IDoc> {
 
   private _Document: DerivedDocument;
 
   _id: ObjectId;
-  _doc: S;
+  _doc: T;
 
-  constructor(doc: S, document: DerivedDocument, isClone = false) {
+  constructor(doc: T, document: DerivedDocument, isClone = false) {
 
     Object.defineProperties(this, {
       _Document: {
@@ -78,14 +77,14 @@ export class Model<S extends IDoc> {
    * 
    * @param options Mongodb create options.
    */
-  private async create(options?: CollectionInsertOneOptions): Promise<IModelSaveResult<S>> {
+  private async create(options?: CollectionInsertOneOptions): Promise<IModelSaveResult<T>> {
 
     let doc = this._doc;
 
     // Remove any populated data so it isn't
     // updated.
 
-    doc = this._Document.unpopulate(doc) as S;
+    doc = this._Document.unpopulate(doc) as T;
 
     const validated = await promise(this._Document.validate({ ...doc }));
 
@@ -101,7 +100,7 @@ export class Model<S extends IDoc> {
     if (err)
       return Promise.reject(err);
 
-    this._doc = ((data.ops && data.ops[0]) || {}) as S;
+    this._doc = ((data.ops && data.ops[0]) || {}) as T;
 
     this.bindProps(this._doc);
 
@@ -119,20 +118,20 @@ export class Model<S extends IDoc> {
    * 
    * @param options the update options.
    */
-  private async update(options?: FindOneAndUpdateOption): Promise<IModelSaveResult<S>> {
+  private async update(options?: FindOneAndUpdateOption): Promise<IModelSaveResult<T>> {
 
     // @ts-ignore
     options = { upsert: false, returnOriginal: false, ...options };
     (options as FindOneAndUpdateOption).upsert = false;
 
-    this._doc = this._Document.unpopulate(this._doc) as S;
+    this._doc = this._Document.unpopulate(this._doc) as T;
 
     const validated = await promise(this._Document.validate(this._doc));
 
     if (validated.err)
       return Promise.reject(validated.err);
 
-    this._doc = validated.data as S;
+    this._doc = validated.data as T;
 
     const { _id, ...clone } = this._doc;
 
@@ -141,7 +140,7 @@ export class Model<S extends IDoc> {
     if (err)
       return Promise.reject(err);
 
-    this._doc = data.value as S;
+    this._doc = data.value as T;
 
     this.bindProps(this._doc);
 
@@ -174,7 +173,7 @@ export class Model<S extends IDoc> {
    * 
    * @param options Mongodb delete options.
    */
-  async delete(options?: IFindOneAndDeleteOption<S>) {
+  async delete(options?: IFindOneAndDeleteOption<T>) {
     return this._Document.findDelete(this._id, options);
   }
 
@@ -187,7 +186,7 @@ export class Model<S extends IDoc> {
     const { err, data } = await promise(this._Document.populate(this._doc, names));
     if (err)
       return Promise.reject(err);
-    this._doc = data as S;
+    this._doc = data as T;
     return Promise.resolve(data);
   }
 

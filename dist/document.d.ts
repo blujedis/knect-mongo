@@ -10,14 +10,14 @@ import { KnectMongo } from './knect';
  * @param db the Mongo database connection.
  * @param Model the BaseModel type for creating models.
  */
-export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(config?: ISchema<S>, client?: MongoClient, db?: Db, Model?: Constructor<M>, knect?: KnectMongo): {
-    new (doc?: S, isClone?: boolean): {};
+export declare function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(config?: ISchema<T, S>, client?: MongoClient, db?: Db, Model?: Constructor<M>, knect?: KnectMongo): {
+    new (doc?: T, isClone?: boolean): {};
     knect: KnectMongo;
     collectionName: string;
-    schema: ISchema<S>;
+    schema: ISchema<T, S>;
     readonly client: MongoClient;
     readonly db: Db;
-    readonly collection: import("mongodb").Collection<S>;
+    readonly collection: import("mongodb").Collection<T>;
     /**
      * Convert value to ObjectID.
      *
@@ -35,26 +35,26 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      *
      * @param doc the document to be updated.
      */
-    toSoftDelete(doc: Partial<S>): Partial<S>;
+    toSoftDelete(doc: Partial<T>): Partial<T>;
     /**
      * Normalizes query.
      *
      * @param query the Mongodb filter query.
      */
-    toQuery(query: LikeObjectId | FilterQuery<S>): FilterQuery<S>;
+    toQuery(query: LikeObjectId | FilterQuery<T>): FilterQuery<T>;
     /**
      * Normalizes update query so that $set is always present.
      *
      * @param update the update query to be applied.
      */
-    toUpdate(update: UpdateQuery<Partial<S>> | Partial<S>): UpdateQuery<Partial<S>>;
+    toUpdate(update: UpdateQuery<Partial<T>> | Partial<T>): UpdateQuery<Partial<T>>;
     /**
      * Converts Joins<S> to cascade keys.
      *
      * @param joins object containing joins to build list from.
      * @param filter an array of keys to exclude.
      */
-    toCascades(joins: Joins<S>, ...filter: string[]): string[];
+    toCascades(joins: Joins<T>, ...filter: string[]): string[];
     /**
      * Converts Joins<S> to cascade keys.
      *
@@ -67,55 +67,55 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      *
      * @param doc the document to be validated.
      */
-    isValid(doc: S): void;
+    isValid(doc: T): void;
     /**
      * Validates a document against schema.
      *
      * @param doc the document to be validated.
      */
-    validate(doc: S): Promise<S>;
+    validate(doc: T): Promise<T>;
     /**
      * Populates document with specified joins.
      *
      * @param doc the document to populate joins for.
      * @param join the join config, configs or array of join names.
      */
-    populate(doc: S, join: string | string[] | Joins<S>): Promise<S>;
+    populate(doc: T, join: string | string[] | Joins<T>): Promise<T>;
     /**
      * Populates document with specified joins.
      *
      * @param doc the document to populate joins for.
      * @param join the join config, configs or array of join names.
      */
-    populate(docs: S[], join: string | string[] | Joins<S>): Promise<S[]>;
+    populate(docs: T[], join: string | string[] | Joins<T>): Promise<T[]>;
     /**
      * Iterates populated prop and restores to join key.
      *
      * @param doc the document to be unpopulated.
      * @param join the join string array or Joins<S> object.
      */
-    unpopulate(doc: S, join?: string | string[] | Joins<S>): S;
+    unpopulate(doc: T, join?: string | string[] | Joins<T>): T;
     /**
      * Iterates populated prop and restores to join key.
      *
      * @param doc the document to be unpopulated.
      * @param join the join string array or Joins<S> object.
      */
-    unpopulate(docs: S[], join?: string | string[] | Joins<S>): S[];
+    unpopulate(docs: T[], join?: string | string[] | Joins<T>): T[];
     /**
      * Cascades delete with specified joins.
      *
      * @param doc the document to populate joins for.
      * @param join the join string array or Joins<S> object.
      */
-    cascade(doc: S, join: string | string[] | Joins<S>): Promise<ICascadeResult<S>>;
+    cascade(doc: T, join: string | string[] | Joins<T>): Promise<ICascadeResult<T>>;
     /**
      * Cascades delete with specified joins.
      *
      * @param doc the document to populate joins for.
      * @param join the join string array or Joins<S> object.
      */
-    cascade(doc: S[], join: string | string[] | Joins<S>): Promise<ICascadeResult<S>[]>;
+    cascade(doc: T[], join: string | string[] | Joins<T>): Promise<ICascadeResult<T>[]>;
     /**
      * Casts to new type.
      *
@@ -123,7 +123,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    cast<T extends Partial<S>>(doc: T, include?: true, ...props: Extract<keyof T, string>[]): T;
+    cast<U extends Partial<T>>(doc: U, include?: true, ...props: Extract<keyof U, string>[]): U;
     /**
      * Casts to new type.
      *
@@ -131,7 +131,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    cast<T_1 extends Partial<S>>(doc: T_1, ...omit: Extract<keyof T_1, string>[]): T_1;
+    cast<U_1 extends Partial<T>>(doc: U_1, ...omit: Extract<keyof U_1, string>[]): U_1;
     /**
      * Casts to new type.
      *
@@ -139,7 +139,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    cast<T_2 extends Partial<S>>(docs: T_2[], include?: true, ...props: Extract<keyof T_2, string>[]): T_2[];
+    cast<U_2 extends Partial<T>>(docs: U_2[], include?: true, ...props: Extract<keyof U_2, string>[]): U_2[];
     /**
      * Casts to new type.
      *
@@ -147,14 +147,14 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    cast<T_3 extends Partial<S>>(docs: T_3[], ...omit: Extract<keyof T_3, string>[]): T_3[];
+    cast<U_3 extends Partial<T>>(docs: U_3[], ...omit: Extract<keyof U_3, string>[]): U_3[];
     /**
      * Internal method to handle all responses.
      *
      * @param promise a promise to be handled.
      * @param cb an optional callback to be called with error or data.
      */
-    _handleResponse<T_4, E>(p: T_4 | Promise<T_4>, cb?: (err: E, data: T_4) => void): Promise<T_4>;
+    _handleResponse<R, E>(p: R | Promise<R>, cb?: (err: E, data: R) => void): Promise<R>;
     /**
      * Common handler finds a document or collection of documents by query.
      *
@@ -163,14 +163,14 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param isMany when true find many.
      * @param cb optional callback instead of promise.
      */
-    _find(query?: FilterQuery<S>, options?: IFindOneOptions, isMany?: boolean): Promise<S | S[]>;
+    _find(query?: FilterQuery<T>, options?: IFindOneOptions, isMany?: boolean): Promise<T | T[]>;
     /**
      * Common handler to create single or multiple documents in database.
      *
      * @param docs the documents to be persisted to database.
      * @param options Mongodb insert many options.
      */
-    _create(doc: OptionalId<S> | OptionalId<S>[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions): Promise<InsertWriteOpResult<import("mongodb").WithId<S>>> | Promise<InsertOneWriteOpResult<import("mongodb").WithId<S>>>;
+    _create(doc: OptionalId<T> | OptionalId<T>[], options?: CollectionInsertOneOptions | CollectionInsertManyOptions): Promise<InsertWriteOpResult<import("mongodb").WithId<T>>> | Promise<InsertOneWriteOpResult<import("mongodb").WithId<T>>>;
     /**
      * Common update handler to update single or multiple documents by query.
      *
@@ -179,7 +179,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb update options.
      * @param isMany when true update many.
      */
-    _update(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, options?: UpdateOneOptions | UpdateManyOptions, isMany?: boolean): Promise<UpdateWriteOpResult>;
+    _update(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: UpdateOneOptions | UpdateManyOptions, isMany?: boolean): Promise<UpdateWriteOpResult>;
     /**
      * Common delete hander to delete multiple or single documents by query.
      *
@@ -187,7 +187,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb update options.
      * @param isMany when true uses collection.deleteMany().
      */
-    _delete(query: FilterQuery<S>, options?: CommonOptions & {
+    _delete(query: FilterQuery<T>, options?: CommonOptions & {
         bypassDocumentValidation?: boolean;
     }, isMany?: boolean): Promise<DeleteWriteOpResultObject>;
     /**
@@ -196,7 +196,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      */
-    find(query?: FilterQuery<S>, options?: IFindOneOptions): Promise<S[]>;
+    find(query?: FilterQuery<T>, options?: IFindOneOptions): Promise<T[]>;
     /**
      * Finds one document by query.
      *
@@ -204,7 +204,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb find options.
      * @param cb an optional callback instead of using promise.
      */
-    findOne(id: LikeObjectId, options: IFindOneOptions, cb?: MongoCallback<S | null>): Promise<S>;
+    findOne(id: LikeObjectId, options: IFindOneOptions, cb?: MongoCallback<T | null>): Promise<T>;
     /**
      * Finds one document by query.
      *
@@ -212,7 +212,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb find options.
      * @param cb an optional callback instead of using promise.
      */
-    findOne(id: LikeObjectId, cb?: MongoCallback<S | null>): Promise<S>;
+    findOne(id: LikeObjectId, cb?: MongoCallback<T | null>): Promise<T>;
     /**
      * Finds one document by query.
      *
@@ -220,7 +220,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb find options.
      * @param cb an optional callback instead of using promise.
      */
-    findOne(query: FilterQuery<S>, options: IFindOneOptions, cb?: MongoCallback<S | null>): Promise<S>;
+    findOne(query: FilterQuery<T>, options: IFindOneOptions, cb?: MongoCallback<T | null>): Promise<T>;
     /**
      * Finds one document by query.
      *
@@ -228,7 +228,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb find options.
      * @param cb an optional callback instead of using promise.
      */
-    findOne(query: FilterQuery<S>, cb?: MongoCallback<S | null>): Promise<S>;
+    findOne(query: FilterQuery<T>, cb?: MongoCallback<T | null>): Promise<T>;
     /**
      * Finds one document by query then converts to Model.
      *
@@ -237,7 +237,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options optional find one options.
      * @param cb an optional callback instead of using promise.
      */
-    findModel(id: LikeObjectId, options?: IFindOneOptions, cb?: MongoCallback<(M & S) | null>): Promise<M & S>;
+    findModel(id: LikeObjectId, options?: IFindOneOptions, cb?: MongoCallback<(M & T) | null>): Promise<M & T>;
     /**
      * Finds one document by query then converts to Model.
      *
@@ -246,7 +246,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options optional find one options.
      * @param cb an optional callback instead of using promise.
      */
-    findModel(query: FilterQuery<S>, options?: IFindOneOptions, cb?: MongoCallback<(M & S) | null>): Promise<M & S>;
+    findModel(query: FilterQuery<T>, options?: IFindOneOptions, cb?: MongoCallback<(M & T) | null>): Promise<M & T>;
     /**
      * Finds a document and then updates.
      *
@@ -255,7 +255,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options the update options.
      * @param cb optional callback to use instead of Promise.
      */
-    findUpdate(query: LikeObjectId | FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, options?: FindOneAndUpdateOption, cb?: MongoCallback<FindAndModifyWriteOpResultObject<S>>): Promise<FindAndModifyWriteOpResultObject<S>>;
+    findUpdate(query: LikeObjectId | FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: FindOneAndUpdateOption, cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>): Promise<FindAndModifyWriteOpResultObject<T>>;
     /**
      * Finds a document and then deletes.
      *
@@ -263,7 +263,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options the update options.
      * @param cb optional callback to use instead of Promise.
      */
-    findDelete(query: LikeObjectId | FilterQuery<S>, options?: IFindOneAndDeleteOption<S>, cb?: MongoCallback<FindAndModifyWriteOpResultObject<S>>): Promise<FindAndModifyWriteOpResultObject<S>>;
+    findDelete(query: LikeObjectId | FilterQuery<T>, options?: IFindOneAndDeleteOption<T>, cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>): Promise<FindAndModifyWriteOpResultObject<T>>;
     /**
      * Creates multiple documents in database.
      *
@@ -271,9 +271,9 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb insert many options.
      * @param cb optional callback to use instead of promise.
      */
-    create(docs: OptionalId<S>[], options: CollectionInsertManyOptions, cb?: MongoCallback<InsertWriteOpResult<S & {
+    create(docs: OptionalId<T>[], options: CollectionInsertManyOptions, cb?: MongoCallback<InsertWriteOpResult<T & {
         _id: any;
-    }>>): Promise<InsertWriteOpResult<S & {
+    }>>): Promise<InsertWriteOpResult<T & {
         _id: any;
     }>>;
     /**
@@ -283,9 +283,9 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb insert many options.
      * @param cb optional callback to use instead of promise.
      */
-    create(docs: OptionalId<S>[], cb?: MongoCallback<InsertWriteOpResult<S & {
+    create(docs: OptionalId<T>[], cb?: MongoCallback<InsertWriteOpResult<T & {
         _id: any;
-    }>>): Promise<InsertWriteOpResult<S & {
+    }>>): Promise<InsertWriteOpResult<T & {
         _id: any;
     }>>;
     /**
@@ -295,9 +295,9 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb insert one options.
      * @param cb optional callback to use instead of promise.
      */
-    createOne(doc: OptionalId<S>, options: CollectionInsertOneOptions, cb?: MongoCallback<InsertOneWriteOpResult<S & {
+    createOne(doc: OptionalId<T>, options: CollectionInsertOneOptions, cb?: MongoCallback<InsertOneWriteOpResult<T & {
         _id: any;
-    }>>): Promise<InsertOneWriteOpResult<S & {
+    }>>): Promise<InsertOneWriteOpResult<T & {
         _id: any;
     }>>;
     /**
@@ -307,9 +307,9 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb insert one options.
      * @param cb optional callback to use instead of promise.
      */
-    createOne(doc: OptionalId<S>, cb?: MongoCallback<InsertOneWriteOpResult<S & {
+    createOne(doc: OptionalId<T>, cb?: MongoCallback<InsertOneWriteOpResult<T & {
         _id: any;
-    }>>): Promise<InsertOneWriteOpResult<S & {
+    }>>): Promise<InsertOneWriteOpResult<T & {
         _id: any;
     }>>;
     /**
@@ -320,7 +320,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    update(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, options: UpdateManyOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    update(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options: UpdateManyOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
      * Updates multiple documents by query.
      *
@@ -329,7 +329,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    update(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    update(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
      * Updates one document by id.
      *
@@ -338,7 +338,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    updateOne(id: LikeObjectId, update: UpdateQuery<Partial<S>> | Partial<S>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    updateOne(id: LikeObjectId, update: UpdateQuery<Partial<T>> | Partial<T>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
      * Updates one document by id.
      *
@@ -347,7 +347,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    updateOne(id: LikeObjectId, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    updateOne(id: LikeObjectId, update: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
      * Updates one document by id.
      *
@@ -356,7 +356,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    updateOne(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    updateOne(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
      * Updates one document by id.
      *
@@ -365,63 +365,63 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    updateOne(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    updateOne(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
-     * Deletes multiple documents by query softly by updating and tagging documents as
-     * deleted without removing.
+     * Excludes multiple documents by query by updating and tagging documents as
+     * exlcuded/deleted without removing.
      *
-     * @param query the Mongodb filter for finding the desired documents to delete softly.
-     * @param update the soft delete query to be applied.
+     * @param query the Mongodb filter for finding the desired documents to exclude softly.
+     * @param update the exclude query to be applied.
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    deleteSoft(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, options: UpdateManyOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    exclude(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options: UpdateManyOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
-     * Deletes multiple documents by query softly by updating and tagging documents as
-     * deleted without removing.
+     * Excludes multiple documents by query by updating and tagging documents as
+     * exlcuded/deleted without removing.
      *
-     * @param query the Mongodb filter for finding the desired documents to delete softly.
-     * @param update the soft delete query to be applied.
+     * @param query the Mongodb filter for finding the desired documents to exclude softly.
+     * @param update the exclude query to be applied.
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    deleteSoft(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    exclude(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
-     * Deletes one document by id softly.
+     * Excludes one document by id marking as deleted.
      *
-     * @param id the id of the document to delete softly.
-     * @param update the soft delete query to be applied.
+     * @param id the id of the document to be excluded softly.
+     * @param update the exclude query to be applied.
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    deleteOneSoft(id: LikeObjectId, update: UpdateQuery<Partial<S>> | Partial<S>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    excludeOne(id: LikeObjectId, update: UpdateQuery<Partial<T>> | Partial<T>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
-     * Deletes one document by id softly.
+     * Excludes one document by id marking as deleted.
      *
-     * @param id the id of the document to delete softly.
-     * @param update the soft delete query to be applied.
+     * @param id the id of the document to be excluded softly.
+     * @param update the exclude query to be applied.
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    deleteOneSoft(id: LikeObjectId, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    excludeOne(id: LikeObjectId, update: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
-     * Deletes one document by id softly.
+     * Excludes one document by id marking as deleted.
      *
-     * @param id the id of the document to delete softly.
-     * @param update the soft delete query to be applied.
+     * @param id the id of the document to be excluded softly.
+     * @param update the exclude query to be applied.
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    deleteOneSoft(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    excludeOne(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options: UpdateOneOptions, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
-     * Deletes one document by id softly.
+     * Excludes one document by id marking as deleted.
      *
-     * @param id the id of the document to delete softly.
-     * @param update the soft delete query to be applied.
+     * @param id the id of the document to be excluded softly.
+     * @param update the exclude query to be applied.
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    deleteOneSoft(query: FilterQuery<S>, update: UpdateQuery<Partial<S>> | Partial<S>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    excludeOne(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
      * Deletes multiple documents by query.
      *
@@ -429,7 +429,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb delete options.
      * @param cb optional callback to use instead of promise.
      */
-    delete(query: FilterQuery<S>, options: CommonOptions, cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
+    delete(query: FilterQuery<T>, options: CommonOptions, cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     /**
      * Deletes multiple documents by query.
      *
@@ -437,7 +437,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb delete options.
      * @param cb optional callback to use instead of promise.
      */
-    delete(query: FilterQuery<S>, cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
+    delete(query: FilterQuery<T>, cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     /**
      * Deletes one document by id.
      *
@@ -463,7 +463,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb delete options.
      * @param cb optional callback to use instead of promise.
      */
-    deleteOne(query: FilterQuery<S>, options?: CommonOptions & {
+    deleteOne(query: FilterQuery<T>, options?: CommonOptions & {
         bypassDocumentValidation?: boolean;
     }, cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     /**
@@ -473,7 +473,7 @@ export declare function initDocument<S extends IDoc, M extends BaseModel<S>>(con
      * @param options Mongodb delete options.
      * @param cb optional callback to use instead of promise.
      */
-    deleteOne(query: FilterQuery<S>, cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
+    deleteOne(query: FilterQuery<T>, cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     pre<A1 = any, A2 = any, A3 = any>(type: HookType, handler: DocumentHook<A1, A2, A3>): any;
     post<A1_1 = any, A2_1 = any, A3_1 = any>(type: HookType, handler: DocumentHook<A1_1, A2_1, A3_1>): any;
 };

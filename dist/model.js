@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Model = void 0;
 const utils_1 = require("./utils");
 const error_1 = require("./error");
-// import { ValidationError, ObjectSchema } from 'yup';
 class Model {
     constructor(doc, document, isClone = false) {
         Object.defineProperties(this, {

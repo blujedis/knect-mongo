@@ -1,6 +1,6 @@
 import { MongoClient, MongoClientOptions, Db } from 'mongodb';
 import { parseDbName, fromNamespace } from './utils';
-import { Model } from './model';
+import { Model as BaseModel } from './model';
 import { initDocument } from './document';
 import { ModelMap } from './map';
 import { ISchema, IDoc, Constructor, IOptions } from './types';
@@ -43,7 +43,7 @@ export class KnectMongo {
    * @param name the name of the schema.
    * @param schema the schema object.
    */
-  private normalizeSchema<S extends IDoc>(name: string, schema: ISchema<S>) {
+  private normalizeSchema<T extends IDoc, S = any>(name: string, schema: ISchema<T, S>) {
 
     schema.joins = schema.joins || {} as any;
 
@@ -105,23 +105,26 @@ export class KnectMongo {
    * @param ns the namespace for the schema.
    * @param schema the schema configuration containing document validation.
    */
-  model<S extends object>(ns: string, schema?: ISchema<S>) {
+  model<T, S = any>(
+    ns: string,
+    schema?: ISchema<T, S>) {
 
     const parsedNs = fromNamespace(ns, this.options.delimiter);
 
-    if (!schema) {
-      const model = this.models.get(ns) as typeof DocumentModel & Constructor<Model<S> & S>;
-      if (!model)
-        throw new Error(`Model "${ns}" could NOT be found.`);
-      return model;
-    }
+    const ExistingModel = this.models.get(ns) as typeof Model & Constructor<BaseModel<T> & T>;
+
+    if (ExistingModel)
+      return ExistingModel;
 
     schema.collectionName = schema.collectionName || parsedNs.collection;
-    schema = this.normalizeSchema(ns, schema);
-    const DocumentModel = initDocument(schema, this.client, this.db, Model, this);
-    this.models.set(ns, DocumentModel as any);
+    schema = this.normalizeSchema(ns, schema || {});
 
-    return DocumentModel as typeof DocumentModel & Constructor<Model<S> & S>;
+    const Model =
+      initDocument<T, BaseModel<T>, S>(schema, this.client, this.db, BaseModel, this);
+
+    this.models.set(ns, Model as any);
+
+    return Model as typeof Model & Constructor<BaseModel<T> & T>;
 
   }
 
