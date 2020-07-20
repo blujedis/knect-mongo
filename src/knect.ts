@@ -76,7 +76,12 @@ export class KnectMongo {
 
     this.dbname = parseDbName(uri) || null;
 
-    this.client = await MongoClient.connect(uri, options);
+    try {
+      this.client = await MongoClient.connect(uri, options);
+    }
+    catch (ex) {
+      throw ex;
+    }
 
     if (this.dbname)
       this.db = this.client.db(this.dbname);
