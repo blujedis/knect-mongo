@@ -116,8 +116,9 @@ export class KnectMongo {
     if (ExistingModel)
       return ExistingModel;
 
+    schema = schema || {};
     schema.collectionName = schema.collectionName || parsedNs.collection;
-    schema = this.normalizeSchema(ns, schema || {});
+    schema = this.normalizeSchema(ns, schema);
 
     const Model =
       initDocument<T, BaseModel<T>, S>(schema, this.client, this.db, BaseModel, this);

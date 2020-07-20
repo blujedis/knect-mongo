@@ -82,17 +82,15 @@ class KnectMongo {
      */
     model(ns, schema) {
         const parsedNs = utils_1.fromNamespace(ns, this.options.delimiter);
-        if (!schema) {
-            const model = this.models.get(ns);
-            if (!model)
-                throw new Error(`Model "${ns}" could NOT be found.`);
-            return model;
-        }
+        const ExistingModel = this.models.get(ns);
+        if (ExistingModel)
+            return ExistingModel;
+        schema = schema || {};
         schema.collectionName = schema.collectionName || parsedNs.collection;
         schema = this.normalizeSchema(ns, schema);
-        const DocumentModel = document_1.initDocument(schema, this.client, this.db, model_1.Model, this);
-        this.models.set(ns, DocumentModel);
-        return DocumentModel;
+        const Model = document_1.initDocument(schema, this.client, this.db, model_1.Model, this);
+        this.models.set(ns, Model);
+        return Model;
     }
 }
 exports.KnectMongo = KnectMongo;

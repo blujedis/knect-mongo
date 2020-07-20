@@ -99,7 +99,7 @@
 					<div class="tsd-signature tsd-kind-icon">include<wbr>Keys<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;Object.keys(hookMap).reduce((a, c) &#x3D;&gt; {return [...a, ...hookMap[c]];}, [])</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/bc0a0e2/src/document.ts#L26">document.ts:26</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/115286f/src/document.ts#L26">document.ts:26</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -110,13 +110,13 @@
 					<a name="initdocument" class="tsd-anchor"></a>
 					<h3>init<wbr>Document</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module tsd-has-type-parameter">
-						<li class="tsd-signature tsd-kind-icon">init<wbr>Document&lt;S, M&gt;<span class="tsd-signature-symbol">(</span>config<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span>, client<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">MongoClient</span>, db<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Db</span>, Model<span class="tsd-signature-symbol">?: </span><a href="_types_.html#constructor" class="tsd-signature-type">Constructor</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">M</span><span class="tsd-signature-symbol">&gt;</span>, knect<span class="tsd-signature-symbol">?: </span><a href="../classes/_knect_.knectmongo.html" class="tsd-signature-type">KnectMongo</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Document</span></li>
+						<li class="tsd-signature tsd-kind-icon">init<wbr>Document&lt;T, M, S&gt;<span class="tsd-signature-symbol">(</span>config<span class="tsd-signature-symbol">?: </span><a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span>, client<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">MongoClient</span>, db<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Db</span>, Model<span class="tsd-signature-symbol">?: </span><a href="_types_.html#constructor" class="tsd-signature-type">Constructor</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">M</span><span class="tsd-signature-symbol">&gt;</span>, knect<span class="tsd-signature-symbol">?: </span><a href="../classes/_knect_.knectmongo.html" class="tsd-signature-type">KnectMongo</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Document</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/bc0a0e2/src/document.ts#L38">document.ts:38</a></li>
+									<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/115286f/src/document.ts#L38">document.ts:38</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -127,16 +127,19 @@
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
-									<h4>S<span class="tsd-signature-symbol">: </span><a href="../interfaces/_types_.idoc.html" class="tsd-signature-type">IDoc</a></h4>
+									<h4>T<span class="tsd-signature-symbol">: </span><a href="../interfaces/_types_.idoc.html" class="tsd-signature-type">IDoc</a></h4>
 								</li>
 								<li>
-									<h4>M<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BaseModel</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></h4>
+									<h4>M<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">BaseModel</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
+								</li>
+								<li>
+									<h4>S</h4>
 								</li>
 							</ul>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagOptional">Optional</span> config: <a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> config: <a href="../interfaces/_types_.ischema.html" class="tsd-signature-type">ISchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">&gt;</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<p>the configuration with schema.</p>
 									</div>
@@ -176,7 +179,7 @@
 					<div class="tsd-signature tsd-kind-icon">hook<wbr>Map<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/bc0a0e2/src/document.ts#L19">document.ts:19</a></li>
+							<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/115286f/src/document.ts#L19">document.ts:19</a></li>
 						</ul>
 					</aside>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal tsd-is-not-exported">
@@ -185,7 +188,7 @@
 						<div class="tsd-signature tsd-kind-icon">create<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[&#x27;_create&#x27;]</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/bc0a0e2/src/document.ts#L21">document.ts:21</a></li>
+								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/115286f/src/document.ts#L21">document.ts:21</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -195,7 +198,7 @@
 						<div class="tsd-signature tsd-kind-icon">delete<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[&#x27;_delete&#x27;, &#x27;findDelete&#x27;]</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/bc0a0e2/src/document.ts#L23">document.ts:23</a></li>
+								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/115286f/src/document.ts#L23">document.ts:23</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -205,7 +208,7 @@
 						<div class="tsd-signature tsd-kind-icon">find<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[&#x27;_find&#x27;]</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/bc0a0e2/src/document.ts#L20">document.ts:20</a></li>
+								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/115286f/src/document.ts#L20">document.ts:20</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -215,7 +218,7 @@
 						<div class="tsd-signature tsd-kind-icon">update<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[&#x27;_update&#x27;, &#x27;findUpdate&#x27;]</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/bc0a0e2/src/document.ts#L22">document.ts:22</a></li>
+								<li>Defined in <a href="https://github.com/blujedis/knect-mongo/blob/115286f/src/document.ts#L22">document.ts:22</a></li>
 							</ul>
 						</aside>
 					</section>
