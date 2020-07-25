@@ -31,9 +31,9 @@ export class Model<T extends IDoc> {
 
     // If cloning existing props 
     // we can't include the _id.
-    if (isClone)  {
+    if (isClone) {
       delete doc._id;
-      
+
     }
 
     this.bindProps(doc);

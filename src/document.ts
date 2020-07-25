@@ -127,8 +127,12 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
       let _query: FilterQuery<T> = query as any;
       if (typeof query !== 'object')
         _query = { _id: query } as FilterQuery<T>;
-      if (_query._id)
+      if (_query._id && typeof _query._id !== 'object')
         _query._id = this.toObjectID(_query._id as LikeObjectId) as any;
+      // The below happens when an objectId is being converted
+      // to a query, it is itself an object so above checks fail.
+      if (Object.keys(_query).includes('_bsontype'))
+        _query = { _id: _query } as any;
       return _query;
     }
 

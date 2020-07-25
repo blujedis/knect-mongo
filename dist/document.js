@@ -78,8 +78,12 @@ function initDocument(config, client, db, Model, knect) {
                 let _query = query;
                 if (typeof query !== 'object')
                     _query = { _id: query };
-                if (_query._id)
+                if (_query._id && typeof _query._id !== 'object')
                     _query._id = this.toObjectID(_query._id);
+                // The below happens when an objectId is being converted
+                // to a query, it is itself an object so above checks fail.
+                if (Object.keys(_query).includes('_bsontype'))
+                    _query = { _id: _query };
                 return _query;
             }
             /**

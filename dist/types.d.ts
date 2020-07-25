@@ -8,8 +8,8 @@ declare const DocumentModel: {
     readonly client: import("mongodb").MongoClient;
     readonly db: import("mongodb").Db;
     readonly collection: import("mongodb").Collection<IDoc>;
-    toObjectID(id: string | number | ObjectId): ObjectId;
-    toObjectID(ids: (string | number | ObjectId)[]): ObjectId[];
+    toObjectID(id: LikeObjectId): ObjectId;
+    toObjectID(ids: LikeObjectId[]): ObjectId[];
     toSoftDelete(doc: Partial<IDoc>): Partial<IDoc>;
     toQuery(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>): import("mongodb").FilterQuery<IDoc>;
     toUpdate(update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>): UpdateQuery<Partial<IDoc>>;
@@ -39,11 +39,11 @@ declare const DocumentModel: {
         bypassDocumentValidation?: boolean;
     }, isMany?: boolean): Promise<DeleteWriteOpResultObject>;
     find(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions): Promise<IDoc[]>;
-    findOne(id: string | number | ObjectId, options: IFindOneOptions, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
-    findOne(id: string | number | ObjectId, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
+    findOne(id: LikeObjectId, options: IFindOneOptions, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
+    findOne(id: LikeObjectId, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
     findOne(query: import("mongodb").FilterQuery<IDoc>, options: IFindOneOptions, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
     findOne(query: import("mongodb").FilterQuery<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
-    findModel(id: string | number | ObjectId, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
+    findModel(id: LikeObjectId, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
     findModel(query: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
     findUpdate(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
     findDelete(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, options?: IFindOneAndDeleteOption<IDoc>, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
@@ -77,22 +77,22 @@ declare const DocumentModel: {
     }>>;
     update(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     update(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    updateOne(id: string | number | ObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    updateOne(id: string | number | ObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    updateOne(id: LikeObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    updateOne(id: LikeObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     updateOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     updateOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     exclude(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     exclude(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    excludeOne(id: string | number | ObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    excludeOne(id: string | number | ObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    excludeOne(id: LikeObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    excludeOne(id: LikeObjectId, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     excludeOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     excludeOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     delete(query: import("mongodb").FilterQuery<IDoc>, options: import("mongodb").CommonOptions, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     delete(query: import("mongodb").FilterQuery<IDoc>, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
-    deleteOne(id: string | number | ObjectId, options: import("mongodb").CommonOptions & {
+    deleteOne(id: LikeObjectId, options: import("mongodb").CommonOptions & {
         bypassDocumentValidation?: boolean;
     }, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
-    deleteOne(id: string | number | ObjectId, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
+    deleteOne(id: LikeObjectId, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     deleteOne(query: import("mongodb").FilterQuery<IDoc>, options?: import("mongodb").CommonOptions & {
         bypassDocumentValidation?: boolean;
     }, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
