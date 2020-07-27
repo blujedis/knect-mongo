@@ -20,9 +20,8 @@ class Model {
         });
         // If cloning existing props 
         // we can't include the _id.
-        if (isClone) {
+        if (isClone)
             delete doc._id;
-        }
         this.bindProps(doc);
     }
     /**
@@ -47,6 +46,27 @@ class Model {
         }
     }
     /**
+     * Find missing descriptors by finding unbound static props.
+     */
+    findMissingDescriptors() {
+        const ownProps = Object.getOwnPropertyNames(this)
+            .filter(v => v !== '_Document' && v !== '_doc');
+        const knownProps = Object.keys(this._doc);
+        return ownProps.reduce((a, c) => {
+            if (!knownProps.includes(c))
+                a = [...a, c];
+            return a;
+        }, []);
+    }
+    /**
+     * Bind static props not known to model.
+     */
+    bindStaticProps() {
+        this.findMissingDescriptors().forEach(k => {
+            this._doc[k] = this[k];
+        });
+    }
+    /**
      * Creates and persists instance to database.
      *
      * @param options Mongodb create options.
@@ -56,6 +76,7 @@ class Model {
         // Remove any populated data so it isn't
         // updated.
         doc = this._Document.unpopulate(doc);
+        this.bindStaticProps();
         const validated = await utils_1.promise(this._Document.validate({ ...doc }));
         if (validated.err)
             return Promise.reject(validated.err);
@@ -79,17 +100,19 @@ class Model {
      *
      * @param options the update options.
      */
-    async update(options) {
+    async update(options, isExlcude = false) {
         // @ts-ignore
         options = { upsert: false, returnOriginal: false, ...options };
         options.upsert = false;
         this._doc = this._Document.unpopulate(this._doc);
+        this.bindStaticProps();
         const validated = await utils_1.promise(this._Document.validate(this._doc));
         if (validated.err)
             return Promise.reject(validated.err);
         this._doc = validated.data;
         const { _id, ...clone } = this._doc;
-        const { err, data } = await utils_1.promise(this._Document.findUpdate(this._id, clone, options));
+        const updateMethod = isExlcude ? this._Document.findExclude : this._Document.findUpdate;
+        const { err, data } = await utils_1.promise(updateMethod(this._id, clone, options));
         if (err)
             return Promise.reject(err);
         this._doc = data.value;
@@ -118,7 +141,20 @@ class Model {
      * @param options Mongodb delete options.
      */
     async delete(options) {
+        if (!this._id)
+            return Promise.reject('Cannot delete using _id of undefined.');
         return this._Document.findDelete(this._id, options);
+    }
+    /**
+     * Soft deletes calling excludeOne in Document.
+     * Requires using hooks to set deleted prop in doc.
+     *
+     * @param options MongoDB update options.
+     */
+    async exclude(options) {
+        if (!this._id)
+            return Promise.reject('Cannot exclude using _id of undefined.');
+        return this.update(options, true);
     }
     /**
      * Propulates child values based on join configurations.

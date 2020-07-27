@@ -35,7 +35,6 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>, S =
      *
      * @param doc the document to be updated.
      */
-    toSoftDelete(doc: Partial<T>): Partial<T>;
     /**
      * Normalizes query.
      *
@@ -181,6 +180,15 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>, S =
      */
     _update(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: UpdateOneOptions | UpdateManyOptions, isMany?: boolean): Promise<UpdateWriteOpResult>;
     /**
+     * Common update handler to update single or multiple documents by query.
+     *
+     * @param query the Mongodb filter for finding the desired documents to update.
+     * @param update the update query to be applied.
+     * @param options Mongodb update options.
+     * @param isMany when true update many.
+     */
+    _exclude(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: UpdateOneOptions | UpdateManyOptions, isMany?: boolean): Promise<UpdateWriteOpResult>;
+    /**
      * Common delete hander to delete multiple or single documents by query.
      *
      * @param query the Mongodb filter for finding the desired documents to update.
@@ -256,6 +264,15 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>, S =
      * @param cb optional callback to use instead of Promise.
      */
     findUpdate(query: LikeObjectId | FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: FindOneAndUpdateOption, cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>): Promise<FindAndModifyWriteOpResultObject<T>>;
+    /**
+     * Finds a document and then updates.
+     *
+     * @param query the filter for finding the document.
+     * @param update the update to be applied.
+     * @param options the update options.
+     * @param cb optional callback to use instead of Promise.
+     */
+    findExclude(query: LikeObjectId | FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: FindOneAndUpdateOption, cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>): Promise<FindAndModifyWriteOpResultObject<T>>;
     /**
      * Finds a document and then deletes.
      *

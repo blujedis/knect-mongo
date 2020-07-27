@@ -12,6 +12,14 @@ export declare class Model<T extends IDoc> {
      */
     private bindProps;
     /**
+     * Find missing descriptors by finding unbound static props.
+     */
+    private findMissingDescriptors;
+    /**
+     * Bind static props not known to model.
+     */
+    private bindStaticProps;
+    /**
      * Creates and persists instance to database.
      *
      * @param options Mongodb create options.
@@ -35,6 +43,13 @@ export declare class Model<T extends IDoc> {
      * @param options Mongodb delete options.
      */
     delete(options?: IFindOneAndDeleteOption<T>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<IDoc>>;
+    /**
+     * Soft deletes calling excludeOne in Document.
+     * Requires using hooks to set deleted prop in doc.
+     *
+     * @param options MongoDB update options.
+     */
+    exclude(options?: FindOneAndUpdateOption): Promise<IModelSaveResult<T>>;
     /**
      * Propulates child values based on join configurations.
      *

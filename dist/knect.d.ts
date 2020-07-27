@@ -50,7 +50,6 @@ export declare class KnectMongo {
         readonly collection: import("mongodb").Collection<T>;
         toObjectID(id: string | number | import("bson").ObjectId): import("bson").ObjectId;
         toObjectID(ids: (string | number | import("bson").ObjectId)[]): import("bson").ObjectId[];
-        toSoftDelete(doc: Partial<T>): Partial<T>;
         toQuery(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<T>): import("mongodb").FilterQuery<T>;
         toUpdate(update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>): import("mongodb").UpdateQuery<Partial<T>>;
         toCascades(joins: import("./types").Joins<T>, ...filter: string[]): string[];
@@ -71,6 +70,7 @@ export declare class KnectMongo {
         _find(query?: import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneOptions, isMany?: boolean): Promise<T | T[]>;
         _create(doc: import("mongodb").OptionalId<T> | import("mongodb").OptionalId<T>[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<import("mongodb").WithId<T>>> | Promise<import("mongodb").InsertOneWriteOpResult<import("mongodb").WithId<T>>>;
         _update(query: import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;
+        _exclude(query: import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;
         _delete(query: import("mongodb").FilterQuery<T>, options?: import("mongodb").CommonOptions & {
             bypassDocumentValidation?: boolean;
         }, isMany?: boolean): Promise<import("mongodb").DeleteWriteOpResultObject>;
@@ -82,6 +82,7 @@ export declare class KnectMongo {
         findModel(id: string | number | import("bson").ObjectId, options?: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<BaseModel<T> & T>): Promise<BaseModel<T> & T>;
         findModel(query: import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<BaseModel<T> & T>): Promise<BaseModel<T> & T>;
         findUpdate(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<T>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<T>>;
+        findExclude(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<T>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<T>>;
         findDelete(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneAndDeleteOption<T>, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<T>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<T>>;
         create(docs: import("mongodb").OptionalId<T>[], options: import("mongodb").CollectionInsertManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<T & {
             _id: any;

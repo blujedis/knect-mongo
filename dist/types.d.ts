@@ -10,7 +10,6 @@ declare const DocumentModel: {
     readonly collection: import("mongodb").Collection<IDoc>;
     toObjectID(id: string | number | ObjectId): ObjectId;
     toObjectID(ids: (string | number | ObjectId)[]): ObjectId[];
-    toSoftDelete(doc: Partial<IDoc>): Partial<IDoc>;
     toQuery(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>): import("mongodb").FilterQuery<IDoc>;
     toUpdate(update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>): UpdateQuery<Partial<IDoc>>;
     toCascades(joins: Joins<IDoc>, ...filter: string[]): string[];
@@ -35,6 +34,7 @@ declare const DocumentModel: {
         _id?: ObjectId;
     })[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<import("mongodb").WithId<IDoc>>> | Promise<InsertOneWriteOpResult<import("mongodb").WithId<IDoc>>>;
     _update(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;
+    _exclude(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;
     _delete(query: import("mongodb").FilterQuery<IDoc>, options?: import("mongodb").CommonOptions & {
         bypassDocumentValidation?: boolean;
     }, isMany?: boolean): Promise<DeleteWriteOpResultObject>;
@@ -46,6 +46,7 @@ declare const DocumentModel: {
     findModel(id: string | number | ObjectId, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
     findModel(query: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
     findUpdate(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
+    findExclude(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | UpdateQuery<Partial<IDoc>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
     findDelete(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, options?: IFindOneAndDeleteOption<IDoc>, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
     create(docs: (Pick<IDoc, never> & {
         _id?: ObjectId;
@@ -145,7 +146,7 @@ export interface IModelSaveResult<T extends IDoc> {
         _id: any;
     }> | FindAndModifyWriteOpResultObject<T>;
 }
-export declare type HookType = 'find' | 'create' | 'update' | 'delete';
+export declare type HookType = 'find' | 'create' | 'update' | 'delete' | 'exclude';
 export declare type DocumentHook<A1 = any, A2 = any, A3 = any> = (next: IHookHandler, arg1?: A1, arg2?: A2, arg3?: A3, ...args: any[]) => any;
 export interface IOptions {
     /**
@@ -178,14 +179,5 @@ export interface IOptions {
      * @param schema the schema the model was initiated with.
      */
     validate?<T, S = any>(ns: string, doc: T, schema: ISchema<T, S>): Promise<T>;
-    /**
-     * Handler when soft deletes are made.
-     * True = sets property "deleted" with epoch timestamp.
-     * String = sets property by this name with epoch timestamp.
-     * If using handler function update and return the document.
-     *
-     * @default true
-     */
-    onSoftDelete?: true | string | (<T extends IDoc>(update: Partial<T>) => Partial<T>);
 }
 export {};

@@ -13,8 +13,7 @@ exports.MONGO_CLIENT_DEFAULTS = {
 const DEFAULTS = {
     delimiter: '.',
     isValid: (...args) => Promise.resolve(true),
-    validate: (ns, doc) => Promise.resolve(doc),
-    onSoftDelete: true
+    validate: (ns, doc) => Promise.resolve(doc)
 };
 class KnectMongo {
     constructor(options) {

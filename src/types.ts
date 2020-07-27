@@ -63,7 +63,7 @@ export interface IModelSaveResult<T extends IDoc> {
   response: InsertOneWriteOpResult<T & { _id: any; }> | FindAndModifyWriteOpResultObject<T>;
 }
 
-export type HookType = 'find' | 'create' | 'update' | 'delete';
+export type HookType = 'find' | 'create' | 'update' | 'delete' | 'exclude';
 
 export type DocumentHook<A1 = any, A2 = any, A3 = any> =
   (next: IHookHandler, arg1?: A1, arg2?: A2, arg3?: A3, ...args: any[]) => any;
@@ -104,16 +104,5 @@ export interface IOptions {
    * @param schema the schema the model was initiated with.
    */
   validate?<T, S = any>(ns: string, doc: T, schema: ISchema<T, S>): Promise<T>;
-
-  /**
-   * Handler when soft deletes are made.
-   * True = sets property "deleted" with epoch timestamp.
-   * String = sets property by this name with epoch timestamp.
-   * If using handler function update and return the document.
-   * 
-   * @default true
-   */
-  onSoftDelete?: true | string |
-  (<T extends IDoc>(update: Partial<T>) => Partial<T>);
 
 }

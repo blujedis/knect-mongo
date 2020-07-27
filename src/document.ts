@@ -20,7 +20,8 @@ const hookMap = {
   find: ['_find'],
   create: ['_create'],
   update: ['_update', 'findUpdate'],
-  delete: ['_delete', 'findDelete']
+  delete: ['_delete', 'findDelete'],
+  exclude: ['_exclude', 'findExclude']
 };
 
 const includeKeys = Object.keys(hookMap).reduce((a, c) => {
@@ -105,18 +106,18 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
      * 
      * @param doc the document to be updated.
      */
-    static toSoftDelete(doc: Partial<T>) {
-      const handler = knect.options.onSoftDelete;
-      if (!handler)
-        return doc;
-      if (handler === true)
-        (doc as any).deleted = Date.now();
-      else if (typeof handler === 'string')
-        doc[handler as string] = Date.now();
-      else
-        doc = handler(doc);
-      return doc;
-    }
+    // static toSoftDelete(doc: Partial<T>) {
+    //   const handler = knect.options.onSoftDelete;
+    //   if (!handler)
+    //     return doc;
+    //   if (handler === true)
+    //     (doc as any).deleted = Date.now();
+    //   else if (typeof handler === 'string')
+    //     doc[handler as string] = Date.now();
+    //   else
+    //     doc = handler(doc);
+    //   return doc;
+    // }
 
     /**
      * Normalizes query.
@@ -655,6 +656,24 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
     }
 
     /**
+     * Common update handler to update single or multiple documents by query.
+     * 
+     * @param query the Mongodb filter for finding the desired documents to update.
+     * @param update the update query to be applied.
+     * @param options Mongodb update options.
+     * @param isMany when true update many.
+     */
+    static _exclude(
+      query: FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
+      options?: UpdateOneOptions | UpdateManyOptions,
+      isMany: boolean = false) {
+      if (isMany)
+        return this.collection.updateMany(query, update, options);
+      return this.collection.updateOne(query, update, options);
+    }
+
+    /**
      * Common delete hander to delete multiple or single documents by query.
      * 
      * @param query the Mongodb filter for finding the desired documents to update.
@@ -794,6 +813,24 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
      * @param cb optional callback to use instead of Promise.
      */
     static findUpdate(
+      query: LikeObjectId | FilterQuery<T>,
+      update: UpdateQuery<Partial<T>> | Partial<T>,
+      options?: FindOneAndUpdateOption,
+      cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>) {
+      const _query = this.toQuery(query);
+      const _update = this.toUpdate(update);
+      return this._handleResponse(this.collection.findOneAndUpdate(_query, _update, options), cb);
+    }
+
+    /**
+     * Finds a document and then updates.
+     * 
+     * @param query the filter for finding the document.
+     * @param update the update to be applied.
+     * @param options the update options.
+     * @param cb optional callback to use instead of Promise.
+     */
+    static findExclude(
       query: LikeObjectId | FilterQuery<T>,
       update: UpdateQuery<Partial<T>> | Partial<T>,
       options?: FindOneAndUpdateOption,
@@ -1043,9 +1080,9 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
 
       query = this.toQuery(query);
       update = this.toUpdate(update);
-      update.$set = this.toSoftDelete(update.$set);
+      // update.$set = this.toSoftDelete(update.$set);
 
-      return this._handleResponse(this._update(query, update, options as UpdateManyOptions, true), cb);
+      return this._handleResponse(this._exclude(query, update, options as UpdateManyOptions, true), cb);
 
     }
 
@@ -1113,9 +1150,9 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
 
       const _query = this.toQuery(query);
       update = this.toUpdate(update);
-      update.$set = this.toSoftDelete(update.$set);
+      // update.$set = this.toSoftDelete(update.$set);
 
-      return this._handleResponse(this._update(_query, update, options as UpdateOneOptions, false), cb);
+      return this._handleResponse(this._exclude(_query, update, options as UpdateOneOptions, false), cb);
     }
 
     /**

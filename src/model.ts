@@ -5,6 +5,7 @@ import {
 import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
 import { promise, hasDescriptor } from './utils';
 import { ValidationError } from './error';
+import { POINT_CONVERSION_COMPRESSED } from 'constants';
 
 export class Model<T extends IDoc> {
 
@@ -31,10 +32,8 @@ export class Model<T extends IDoc> {
 
     // If cloning existing props 
     // we can't include the _id.
-    if (isClone) {
+    if (isClone)
       delete doc._id;
-
-    }
 
     this.bindProps(doc);
 
@@ -73,6 +72,30 @@ export class Model<T extends IDoc> {
   }
 
   /**
+   * Find missing descriptors by finding unbound static props.
+   */
+  private findMissingDescriptors() {
+    const ownProps =
+      Object.getOwnPropertyNames(this)
+        .filter(v => v !== '_Document' && v !== '_doc');
+    const knownProps = Object.keys(this._doc);
+    return ownProps.reduce((a, c) => {
+      if (!knownProps.includes(c))
+        a = [...a, c];
+      return a;
+    }, []);
+  }
+
+  /**
+   * Bind static props not known to model.
+   */
+  private bindStaticProps() {
+    this.findMissingDescriptors().forEach(k => {
+      this._doc[k] = this[k];
+    });
+  }
+
+  /**
    * Creates and persists instance to database.
    * 
    * @param options Mongodb create options.
@@ -85,6 +108,8 @@ export class Model<T extends IDoc> {
     // updated.
 
     doc = this._Document.unpopulate(doc) as T;
+
+    this.bindStaticProps();
 
     const validated = await promise(this._Document.validate({ ...doc }));
 
@@ -118,13 +143,15 @@ export class Model<T extends IDoc> {
    * 
    * @param options the update options.
    */
-  private async update(options?: FindOneAndUpdateOption): Promise<IModelSaveResult<T>> {
+  private async update(options?: FindOneAndUpdateOption, isExlcude = false): Promise<IModelSaveResult<T>> {
 
     // @ts-ignore
     options = { upsert: false, returnOriginal: false, ...options };
     (options as FindOneAndUpdateOption).upsert = false;
 
     this._doc = this._Document.unpopulate(this._doc) as T;
+
+    this.bindStaticProps();
 
     const validated = await promise(this._Document.validate(this._doc));
 
@@ -135,7 +162,9 @@ export class Model<T extends IDoc> {
 
     const { _id, ...clone } = this._doc;
 
-    const { err, data } = await promise(this._Document.findUpdate(this._id, clone, options));
+    const updateMethod = isExlcude ? this._Document.findExclude : this._Document.findUpdate;
+
+    const { err, data } = await promise(updateMethod(this._id, clone, options));
 
     if (err)
       return Promise.reject(err);
@@ -174,7 +203,21 @@ export class Model<T extends IDoc> {
    * @param options Mongodb delete options.
    */
   async delete(options?: IFindOneAndDeleteOption<T>) {
+    if (!this._id)
+      return Promise.reject('Cannot delete using _id of undefined.');
     return this._Document.findDelete(this._id, options);
+  }
+
+  /**
+   * Soft deletes calling excludeOne in Document.
+   * Requires using hooks to set deleted prop in doc.
+   * 
+   * @param options MongoDB update options.
+   */
+  async exclude(options?: FindOneAndUpdateOption) {
+    if (!this._id)
+      return Promise.reject('Cannot exclude using _id of undefined.');
+    return this.update(options, true);
   }
 
   /**

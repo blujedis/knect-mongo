@@ -12,7 +12,6 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
         readonly collection: import("mongodb").Collection<S>;
         toObjectID(id: string | number | import("bson").ObjectId): import("bson").ObjectId;
         toObjectID(ids: (string | number | import("bson").ObjectId)[]): import("bson").ObjectId[];
-        toSoftDelete(doc: Partial<S>): Partial<S>;
         toQuery(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>): import("mongodb").FilterQuery<S>;
         toUpdate(update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>): import("mongodb").UpdateQuery<Partial<S>>;
         toCascades(joins: import("./types").Joins<S>, ...filter: string[]): string[];
@@ -33,6 +32,7 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
         _find(query?: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions, isMany?: boolean): Promise<S | S[]>;
         _create(doc: import("mongodb").OptionalId<S> | import("mongodb").OptionalId<S>[], options?: import("mongodb").CollectionInsertOneOptions | import("mongodb").CollectionInsertManyOptions): Promise<import("mongodb").InsertWriteOpResult<import("mongodb").WithId<S>>> | Promise<import("mongodb").InsertOneWriteOpResult<import("mongodb").WithId<S>>>;
         _update(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;
+        _exclude(query: import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").UpdateOneOptions | import("mongodb").UpdateManyOptions, isMany?: boolean): Promise<import("mongodb").UpdateWriteOpResult>;
         _delete(query: import("mongodb").FilterQuery<S>, options?: import("mongodb").CommonOptions & {
             bypassDocumentValidation?: boolean;
         }, isMany?: boolean): Promise<import("mongodb").DeleteWriteOpResultObject>;
@@ -44,6 +44,7 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
         findModel(id: string | number | import("bson").ObjectId, options?: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<Model<S> & S>): Promise<Model<S> & S>;
         findModel(query: import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneOptions, cb?: import("mongodb").MongoCallback<Model<S> & S>): Promise<Model<S> & S>;
         findUpdate(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
+        findExclude(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, update: Partial<S> | import("mongodb").UpdateQuery<Partial<S>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
         findDelete(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<S>, options?: import("./types").IFindOneAndDeleteOption<S>, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<S>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<S>>;
         create(docs: import("mongodb").OptionalId<S>[], options: import("mongodb").CollectionInsertManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").InsertWriteOpResult<S & {
             _id: any;
