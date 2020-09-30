@@ -6,7 +6,7 @@ export declare class ModelMap extends Map<string, DerivedDocument & Constructor<
         new (doc?: S, isClone?: boolean): {};
         knect: import("./knect").KnectMongo;
         collectionName: string;
-        schema: import("./types").ISchema<S, any>;
+        schema: import("./types").ISchema<S>;
         readonly client: import("mongodb").MongoClient;
         readonly db: import("mongodb").Db;
         readonly collection: import("mongodb").Collection<S>;

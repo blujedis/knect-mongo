@@ -10,11 +10,11 @@ import { KnectMongo } from './knect';
  * @param db the Mongo database connection.
  * @param Model the BaseModel type for creating models.
  */
-export declare function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(config?: ISchema<T, S>, client?: MongoClient, db?: Db, Model?: Constructor<M>, knect?: KnectMongo): {
+export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(config?: ISchema<T>, client?: MongoClient, db?: Db, Model?: Constructor<M>, knect?: KnectMongo): {
     new (doc?: T, isClone?: boolean): {};
     knect: KnectMongo;
     collectionName: string;
-    schema: ISchema<T, S>;
+    schema: ISchema<T>;
     readonly client: MongoClient;
     readonly db: Db;
     readonly collection: import("mongodb").Collection<T>;

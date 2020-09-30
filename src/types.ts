@@ -1,10 +1,9 @@
 import {
   ObjectId, FindOneOptions, DeleteWriteOpResultObject,
-  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndDeleteOption, MongoClientOptions, UpdateQuery
+  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndDeleteOption, MongoClientOptions
 } from 'mongodb';
 import { IHookHandler } from 'mustad';
 import { initDocument } from './document';
-import { string } from 'yup';
 
 const DocumentModel = (false as true) && initDocument();
 
@@ -38,9 +37,9 @@ export interface IJoin {
 
 export type Joins<T> = { [K in keyof T]?: IJoin };
 
-export interface ISchema<T, S = any> {
+export interface ISchema<T> {
   collectionName?: string;
-  props?: Record<keyof T, S>;
+  props?: Record<keyof T, unknown>;
   joins?: Joins<T>;
 }
 
@@ -94,7 +93,7 @@ export interface IOptions {
    * @param doc the document to be validated.
    * @param schema the schema the model was initiated with.
    */
-  isValid?<T, S = any>(ns: string, doc: T, schema: ISchema<T, S>): Promise<boolean>;
+  isValid?<T>(ns: string, doc: T, schema: ISchema<T>): Promise<boolean>;
 
   /**
    * Tests if the document is valid and returns ValidationError when false.
@@ -103,6 +102,6 @@ export interface IOptions {
    * @param doc the document to be validated.
    * @param schema the schema the model was initiated with.
    */
-  validate?<T, S = any>(ns: string, doc: T, schema: ISchema<T, S>): Promise<T>;
+  validate?<T>(ns: string, doc: T, schema: ISchema<T>): Promise<T>;
 
 }

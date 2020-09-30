@@ -321,7 +321,6 @@ function initDocument(config, client, db, Model, knect) {
                     if (cb)
                         cb(err, null);
                     throw err;
-                    // return err;
                 });
             }
             /**
@@ -514,7 +513,6 @@ function initDocument(config, client, db, Model, knect) {
                 }
                 query = this.toQuery(query);
                 update = this.toUpdate(update);
-                // update.$set = this.toSoftDelete(update.$set);
                 return this._handleResponse(this._exclude(query, update, options, true), cb);
             }
             static excludeOne(query, update, options, cb) {
@@ -524,16 +522,15 @@ function initDocument(config, client, db, Model, knect) {
                 }
                 const _query = this.toQuery(query);
                 update = this.toUpdate(update);
-                // update.$set = this.toSoftDelete(update.$set);
                 return this._handleResponse(this._exclude(_query, update, options, false), cb);
             }
-            static delete(filter, options, cb) {
+            static delete(query, options, cb) {
                 if (typeof options === 'function') {
                     cb = options;
                     options = undefined;
                 }
-                filter = this.toQuery(filter);
-                return this._handleResponse(this._delete(filter, options, true), cb);
+                query = this.toQuery(query);
+                return this._handleResponse(this._delete(query, options, true), cb);
             }
             static deleteOne(query, options, cb) {
                 if (typeof options === 'function') {

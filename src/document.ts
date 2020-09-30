@@ -36,8 +36,8 @@ const includeKeys = Object.keys(hookMap).reduce((a, c) => {
  * @param db the Mongo database connection.
  * @param Model the BaseModel type for creating models.
  */
-export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
-  config?: ISchema<T, S>,
+export function initDocument<T extends IDoc, M extends BaseModel<T>>(
+  config?: ISchema<T>,
   client?: MongoClient,
   db?: Db,
   Model?: Constructor<M>,
@@ -50,7 +50,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
 
     static knect: KnectMongo = knect;
     static collectionName: string = config && config.collectionName;
-    static schema: ISchema<T, S> = config;
+    static schema: ISchema<T> = config;
 
     static get client() {
       return client || this.knect.client;
@@ -569,9 +569,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
         .catch(err => {
           if (cb)
             cb(err, null);
-
           throw err;
-          // return err;
         });
     }
 
@@ -1080,7 +1078,6 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
 
       query = this.toQuery(query);
       update = this.toUpdate(update);
-      // update.$set = this.toSoftDelete(update.$set);
 
       return this._handleResponse(this._exclude(query, update, options as UpdateManyOptions, true), cb);
 
@@ -1150,7 +1147,6 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
 
       const _query = this.toQuery(query);
       update = this.toUpdate(update);
-      // update.$set = this.toSoftDelete(update.$set);
 
       return this._handleResponse(this._exclude(_query, update, options as UpdateOneOptions, false), cb);
     }
@@ -1178,7 +1174,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
       cb?: MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
 
     static delete(
-      filter: FilterQuery<T>,
+      query: FilterQuery<T>,
       options?: CommonOptions | MongoCallback<DeleteWriteOpResultObject>,
       cb?: MongoCallback<DeleteWriteOpResultObject>) {
 
@@ -1187,8 +1183,8 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>, S = any>(
         options = undefined;
       }
 
-      filter = this.toQuery(filter);
-      return this._handleResponse(this._delete(filter, options as CommonOptions, true), cb);
+      query = this.toQuery(query);
+      return this._handleResponse(this._delete(query, options as CommonOptions, true), cb);
     }
 
     /**

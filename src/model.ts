@@ -5,7 +5,6 @@ import {
 import { IDoc, IModelSaveResult, DerivedDocument, IFindOneAndDeleteOption } from './types';
 import { promise, hasDescriptor } from './utils';
 import { ValidationError } from './error';
-import { POINT_CONVERSION_COMPRESSED } from 'constants';
 
 export class Model<T extends IDoc> {
 

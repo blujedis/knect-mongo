@@ -40,11 +40,11 @@ export declare class KnectMongo {
      * @param ns the namespace for the schema.
      * @param schema the schema configuration containing document validation.
      */
-    model<T, S = any>(ns: string, schema?: ISchema<T, S>): {
+    model<T>(ns: string, schema?: ISchema<T>): {
         new (doc?: T, isClone?: boolean): {};
         knect: KnectMongo;
         collectionName: string;
-        schema: ISchema<T, S>;
+        schema: ISchema<T>;
         readonly client: MongoClient;
         readonly db: Db;
         readonly collection: import("mongodb").Collection<T>;

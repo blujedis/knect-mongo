@@ -42,7 +42,7 @@ export class KnectMongo {
    * @param name the name of the schema.
    * @param schema the schema object.
    */
-  private normalizeSchema<T extends IDoc, S = any>(name: string, schema: ISchema<T, S>) {
+  private normalizeSchema<T extends IDoc>(name: string, schema: ISchema<T>) {
 
     schema.joins = schema.joins || {} as any;
 
@@ -109,9 +109,9 @@ export class KnectMongo {
    * @param ns the namespace for the schema.
    * @param schema the schema configuration containing document validation.
    */
-  model<T, S = any>(
+  model<T>(
     ns: string,
-    schema?: ISchema<T, S>) {
+    schema?: ISchema<T>) {
 
     const parsedNs = fromNamespace(ns, this.options.delimiter);
 
@@ -125,7 +125,7 @@ export class KnectMongo {
     schema = this.normalizeSchema(ns, schema);
 
     const Model =
-      initDocument<T, BaseModel<T>, S>(schema, this.client, this.db, BaseModel, this);
+      initDocument<T, BaseModel<T>>(schema, this.client, this.db, BaseModel, this);
 
     this.models.set(ns, Model as any);
 
