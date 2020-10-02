@@ -5,7 +5,6 @@ const mongodb_1 = require("mongodb");
 const utils_1 = require("./utils");
 const model_1 = require("./model");
 const document_1 = require("./document");
-const map_1 = require("./map");
 exports.MONGO_CLIENT_DEFAULTS = {
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -13,11 +12,12 @@ exports.MONGO_CLIENT_DEFAULTS = {
 const DEFAULTS = {
     delimiter: '.',
     isValid: (...args) => Promise.resolve(true),
-    validate: (ns, doc) => Promise.resolve(doc)
+    validate: (ns, doc) => Promise.resolve(doc),
+    excludeKey: 'deleted'
 };
 class KnectMongo {
     constructor(options) {
-        this.models = new map_1.ModelMap();
+        this.schemas = new Map();
         if (KnectMongo.instance)
             return KnectMongo.instance;
         this.options = { ...DEFAULTS, ...options };
@@ -86,14 +86,19 @@ class KnectMongo {
      */
     model(ns, schema) {
         const parsedNs = utils_1.fromNamespace(ns, this.options.delimiter);
-        const ExistingModel = this.models.get(ns);
-        if (ExistingModel)
-            return ExistingModel;
+        const schemaExists = this.schemas.has(ns);
         schema = schema || {};
-        schema.collectionName = schema.collectionName || parsedNs.collection;
-        schema = this.normalizeSchema(ns, schema);
+        if (!schemaExists) {
+            schema.collectionName = schema.collectionName || parsedNs.collection;
+            schema = this.normalizeSchema(ns, schema);
+        }
+        else {
+            schema = this.schemas.get(ns);
+        }
         const Model = document_1.initDocument(schema, this.client, this.db, model_1.Model, this);
-        this.models.set(ns, Model);
+        // Update if new schema.
+        if (!schemaExists)
+            this.schemas.set(ns, schema);
         return Model;
     }
 }

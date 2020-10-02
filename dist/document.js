@@ -40,6 +40,9 @@ function initDocument(config, client, db, Model, knect) {
             static get collection() {
                 return this.db.collection(this.collectionName);
             }
+            static get options() {
+                return this.knect.options;
+            }
             static toObjectID(ids) {
                 const isArray = Array.isArray(ids);
                 if (!isArray)
@@ -101,6 +104,26 @@ function initDocument(config, client, db, Model, knect) {
                 }, false);
                 if (!hasSpecial)
                     update = { $set: update };
+                return update;
+            }
+            /**
+             * Normalizes update query so that exclude key is added and seet.
+             *
+             * @param update the update query to be applied.
+             */
+            static toExclude(update) {
+                const hasSpecial = Object.keys(update).reduce((a, c) => {
+                    if (a === true)
+                        return a;
+                    a = c.charAt(0) === '$';
+                    return a;
+                }, false);
+                const excludeKey = this.options.excludeKey;
+                let excludeValue = typeof this.options.excludeValue === 'function' ?
+                    this.options.excludeValue() :
+                    this.options.excludeValue;
+                excludeValue = excludeValue || Date.now();
+                update.$set[excludeKey] = excludeValue;
                 return update;
             }
             static toCascades(joins, ...filter) {
@@ -415,6 +438,22 @@ function initDocument(config, client, db, Model, knect) {
             static find(query, options) {
                 return this._find(query, options, true);
             }
+            /**
+             * Finds a collection of documents by query excluding documents defined by "excludeKey".
+             *
+             * @param query the Mongodb filter query.
+             * @param options Mongodb find options.
+             */
+            static findIncluded(query, options) {
+                query.$or = query.$or || [];
+                const excludeKey = this.options.excludeKey;
+                query.$or = [
+                    { [excludeKey]: { $exists: false } },
+                    { [excludeKey]: null },
+                    ...query.$or
+                ];
+                return this._find(query, options, true);
+            }
             static findOne(query, options, cb) {
                 if (typeof options === 'function') {
                     cb = options;
@@ -458,7 +497,8 @@ function initDocument(config, client, db, Model, knect) {
              */
             static findExclude(query, update, options, cb) {
                 const _query = this.toQuery(query);
-                const _update = this.toUpdate(update);
+                let _update = this.toUpdate(update);
+                _update = this.toExclude(_update);
                 return this._handleResponse(this.collection.findOneAndUpdate(_query, _update, options), cb);
             }
             /**
@@ -513,6 +553,7 @@ function initDocument(config, client, db, Model, knect) {
                 }
                 query = this.toQuery(query);
                 update = this.toUpdate(update);
+                update = this.toExclude(update);
                 return this._handleResponse(this._exclude(query, update, options, true), cb);
             }
             static excludeOne(query, update, options, cb) {
@@ -522,6 +563,7 @@ function initDocument(config, client, db, Model, knect) {
                 }
                 const _query = this.toQuery(query);
                 update = this.toUpdate(update);
+                update = this.toExclude(update);
                 return this._handleResponse(this._exclude(_query, update, options, false), cb);
             }
             static delete(query, options, cb) {

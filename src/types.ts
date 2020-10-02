@@ -15,7 +15,7 @@ export type ObjectType<T = any> = Record<keyof T, T[keyof T]>;
 
 export type DerivedDocument = typeof DocumentModel;
 
-export type KeyOf<T> = Extract<keyof T, string>;
+// export type KeyOf<T> = Extract<keyof T, string>;
 
 export type LikeObjectId = string | number | ObjectId;
 
@@ -28,18 +28,18 @@ export interface ICascadeResult<T = any> {
   };
 }
 
-export interface IJoin {
+export interface IJoin<T> {
   collection: string;
-  key?: string; // defaults to _id
-  options?: FindOneOptions;
+  key?: keyof T; // defaults to _id
+  options?: FindOneOptions<T>;
   cascade?: boolean;
 }
 
-export type Joins<T> = { [K in keyof T]?: IJoin };
+export type Joins<T extends IDoc> = { [K in keyof T]?: IJoin<T> };
 
 export interface ISchema<T> {
   collectionName?: string;
-  props?: Record<keyof T, unknown>;
+  props?: Record<keyof T, T[keyof T]>;
   joins?: Joins<T>;
 }
 
@@ -47,11 +47,11 @@ export interface IDoc {
   _id?: LikeObjectId;
 }
 
-export interface IFindOneOptions extends FindOneOptions {
+export interface IFindOneOptions<T> extends FindOneOptions<T> {
   populate?: string | string[];
 }
 
-export interface IFindOneAndDeleteOption<T extends IDoc> extends FindOneAndDeleteOption {
+export interface IFindOneAndDeleteOption<T extends IDoc> extends FindOneAndDeleteOption<T> {
   cascade?: boolean | string | string[] | Joins<T>;
 }
 
@@ -103,5 +103,19 @@ export interface IOptions {
    * @param schema the schema the model was initiated with.
    */
   validate?<T>(ns: string, doc: T, schema: ISchema<T>): Promise<T>;
+
+  /**
+   * The key to use when using exclude, excludeOne etc..
+   * This allows for simple soft deletes.
+   * 
+   * Default: deleted
+   */
+  excludeKey?: string;
+
+  /**
+   * If a value is provided it is used for the exclude key.
+   * Otherwise Date.now() is used.
+   */
+  excludeValue?: () => string | boolean | number | Date | object;
 
 }

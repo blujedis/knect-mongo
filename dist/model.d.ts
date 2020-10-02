@@ -36,7 +36,7 @@ export declare class Model<T extends IDoc> {
      *
      * @param options MongoDB update options.
      */
-    save(options?: FindOneAndUpdateOption | CollectionInsertOneOptions): Promise<IModelSaveResult<T>>;
+    save(options?: FindOneAndUpdateOption<T> | CollectionInsertOneOptions): Promise<IModelSaveResult<T>>;
     /**
      * Deletes document persisting in database.
      *
@@ -49,7 +49,7 @@ export declare class Model<T extends IDoc> {
      *
      * @param options MongoDB update options.
      */
-    exclude(options?: FindOneAndUpdateOption): Promise<IModelSaveResult<T>>;
+    exclude(options?: FindOneAndUpdateOption<T>): Promise<IModelSaveResult<T>>;
     /**
      * Propulates child values based on join configurations.
      *

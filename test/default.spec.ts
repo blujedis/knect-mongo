@@ -33,8 +33,7 @@ async function load() {
     await knect.connect(`mongodb://10.10.20.5:32768/test`);
 
   // Reset schemas or you'll get dupe error.
-  // KnectMongo.schemas.clear();
-  knect.models.clear();
+  knect.schemas.clear();
 
   const User = knect.model('user', UserSchema);
   const Post = knect.model('post', PostSchema);

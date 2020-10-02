@@ -8,7 +8,7 @@ import {
 } from 'mongodb';
 import {
   ISchema, LikeObjectId, ICascadeResult, IFindOneOptions,
-  Constructor, IDoc, DocumentHook, Joins, KeyOf, IFindOneAndDeleteOption,
+  Constructor, IDoc, DocumentHook, Joins, IFindOneAndDeleteOption,
   HookType
 } from './types';
 import { promise, isPromise } from './utils';
@@ -62,6 +62,10 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
 
     static get collection() {
       return this.db.collection<T>(this.collectionName);
+    }
+
+    static get options() {
+      return this.knect.options;
     }
 
     /////////////
@@ -152,6 +156,28 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
       if (!hasSpecial)
         update = { $set: update } as UpdateQuery<T>;
       return update as UpdateQuery<T>;
+    }
+
+    /**
+     * Normalizes update query so that exclude key is added and seet.
+     * 
+     * @param update the update query to be applied.
+     */
+    static toExclude(update: UpdateQuery<Partial<T>>): UpdateQuery<Partial<T>> {
+      const hasSpecial = Object.keys(update).reduce((a, c) => {
+        if (a === true)
+          return a;
+        a = c.charAt(0) === '$';
+        return a;
+      }, false);
+      const excludeKey = this.options.excludeKey as keyof T;
+      let excludeValue =
+        typeof this.options.excludeValue === 'function' ?
+          this.options.excludeValue() :
+          this.options.excludeValue;
+      excludeValue = excludeValue || Date.now();
+      update.$set[excludeKey] = excludeValue as any;
+      return update;
     }
 
     /**
@@ -266,7 +292,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
 
           const { err: pErr, data: pData } = await promise(this.db
             .collection<T>(conf.collection)
-            .find(filter, conf.options)
+            .find(filter, conf.options as any)
             .toArray());
 
           if (pErr)
@@ -341,7 +367,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
 
           if (doc.hasOwnProperty(k) && canPopulate(doc[k])) {
 
-            type DocKey = T[Extract<keyof T, string>];
+            type DocKey = T[keyof T];
 
             const _join = joins[k];
             const _prop = doc[k] as DocKey | DocKey[];
@@ -354,14 +380,14 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
                   doc[k][i] = p._doc[_join.key];
 
                 else if (typeof p === 'object' && !ObjectID.isValid(p as any))
-                  doc[k][i] = p[_join.key];
+                  doc[k][i] = p[_join.key as string];
 
               });
 
             }
 
             else if (typeof _prop === 'object') {
-              doc[k] = _prop[_join.key];
+              doc[k] = _prop[_join.key] as any;
             }
 
           }
@@ -444,7 +470,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
 
               const op = await this.db
                 .collection(conf.collection)
-                .deleteMany(filter, conf.options);
+                .deleteMany(filter, conf.options as CommonOptions);
 
               ops.push(op);
 
@@ -483,7 +509,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    static cast<U extends Partial<T>>(doc: U, include?: true, ...props: Array<KeyOf<U>>): U;
+    static cast<U extends Partial<T>>(doc: U, include?: true, ...props: Array<keyof U>): U;
 
     /**
      * Casts to new type.
@@ -491,7 +517,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * @param doc the document to be cast.
      * @param omit the list of props to omit.
      */
-    static cast<U extends Partial<T>>(doc: U, ...omit: Array<KeyOf<U>>): U;
+    static cast<U extends Partial<T>>(doc: U, ...omit: Array<keyof U>): U;
 
     /**
      * Casts to new type.
@@ -500,7 +526,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    static cast<U extends Partial<T>>(docs: U[], include?: true, ...props: Array<KeyOf<U>>): U[];
+    static cast<U extends Partial<T>>(docs: U[], include?: true, ...props: Array<keyof U>): U[];
 
     /**
      * Casts to new type.
@@ -508,9 +534,9 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * @param docs the documents to be cast.
      * @param omit the list of props to omit.
      */
-    static cast<U extends Partial<T>>(docs: U[], ...omit: Array<KeyOf<U>>): U[];
+    static cast<U extends Partial<T>>(docs: U[], ...omit: Array<keyof U>): U[];
 
-    static cast<U extends Partial<T>>(doc: U | U[], include?: boolean | KeyOf<U>, ...props: Array<KeyOf<U>>) {
+    static cast<U extends Partial<T>>(doc: U | U[], include?: boolean | keyof U, ...props: Array<keyof U>) {
 
       if (typeof include === 'string') {
         props.unshift(include);
@@ -518,7 +544,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
       }
 
       const _doc = Array.isArray(doc) ? doc[0] : doc;
-      const _keys = Object.keys(_doc) as Array<KeyOf<U>>;
+      const _keys = Object.keys(_doc) as Array<keyof U>;
 
       if (include === true) {
         props = props.length ? props : _keys;
@@ -583,7 +609,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      */
     static async _find(
       query?: FilterQuery<T>,
-      options?: IFindOneOptions,
+      options?: IFindOneOptions<T>,
       isMany: boolean = false) {
 
       query = this.toQuery(query || {});
@@ -592,9 +618,9 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
       let result: { err?: Error, data?: T | T[]; };
 
       if (isMany)
-        result = await promise(this.collection.find(query, options).toArray());
+        result = await promise(this.collection.find(query, options as any).toArray());
       else
-        result = await promise(this.collection.findOne(query, options));
+        result = await promise(this.collection.findOne(query, options as any) as any);
 
       if (result.err)
         return Promise.reject(result.err);
@@ -693,7 +719,24 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      */
-    static find(query?: FilterQuery<T>, options?: IFindOneOptions) {
+    static find(query?: FilterQuery<T>, options?: IFindOneOptions<T>) {
+      return this._find(query, options, true) as Promise<T[]>;
+    }
+
+    /**
+     * Finds a collection of documents by query excluding documents defined by "excludeKey".
+     * 
+     * @param query the Mongodb filter query.
+     * @param options Mongodb find options.
+     */
+    static findIncluded(query?: FilterQuery<T>, options?: IFindOneOptions<T>) {
+      query.$or = query.$or || [];
+      const excludeKey = this.options.excludeKey as any;
+      query.$or = [
+        { [excludeKey]: { $exists: false } },
+        { [excludeKey]: null },
+        ...query.$or
+      ];
       return this._find(query, options, true) as Promise<T[]>;
     }
 
@@ -706,7 +749,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      */
     static findOne(
       id: LikeObjectId,
-      options: IFindOneOptions,
+      options: IFindOneOptions<T>,
       cb?: MongoCallback<T | null>): Promise<T>;
 
     /**
@@ -729,7 +772,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      */
     static findOne(
       query: FilterQuery<T>,
-      options: IFindOneOptions,
+      options: IFindOneOptions<T>,
       cb?: MongoCallback<T | null>): Promise<T>;
 
     /**
@@ -745,14 +788,14 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
 
     static findOne(
       query: LikeObjectId | FilterQuery<T>,
-      options?: IFindOneOptions | MongoCallback<T | null>,
+      options?: IFindOneOptions<T> | MongoCallback<T | null>,
       cb?: MongoCallback<T | null>) {
       if (typeof options === 'function') {
         cb = options;
         options = undefined;
       }
       const _query = this.toQuery(query);
-      return this._handleResponse(this._find(_query, options as IFindOneOptions, false) as Promise<T>, cb);
+      return this._handleResponse(this._find(_query, options as IFindOneOptions<T>, false) as Promise<T>, cb);
     }
 
     /**
@@ -765,7 +808,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      */
     static async findModel(
       id: LikeObjectId,
-      options?: IFindOneOptions,
+      options?: IFindOneOptions<T>,
       cb?: MongoCallback<M & T | null>): Promise<M & T>;
 
     /**
@@ -777,12 +820,12 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      */
     static async findModel(
       query: FilterQuery<T>,
-      options?: IFindOneOptions,
+      options?: IFindOneOptions<T>,
       cb?: MongoCallback<M & T | null>): Promise<M & T>;
 
     static async findModel(
       query: LikeObjectId | FilterQuery<T>,
-      options?: IFindOneOptions | MongoCallback<M & T | null>,
+      options?: IFindOneOptions<T> | MongoCallback<M & T | null>,
       cb?: MongoCallback<M & T | null>) {
 
       if (typeof options === 'function') {
@@ -791,7 +834,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
       }
 
       const _query = this.toQuery(query);
-      const { err, data } = await promise(this._find(_query, options as IFindOneOptions, false));
+      const { err, data } = await promise(this._find(_query, options as IFindOneOptions<T>, false));
 
       if (err)
         return Promise.reject(err);
@@ -813,7 +856,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
     static findUpdate(
       query: LikeObjectId | FilterQuery<T>,
       update: UpdateQuery<Partial<T>> | Partial<T>,
-      options?: FindOneAndUpdateOption,
+      options?: FindOneAndUpdateOption<T>,
       cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>) {
       const _query = this.toQuery(query);
       const _update = this.toUpdate(update);
@@ -831,10 +874,11 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
     static findExclude(
       query: LikeObjectId | FilterQuery<T>,
       update: UpdateQuery<Partial<T>> | Partial<T>,
-      options?: FindOneAndUpdateOption,
+      options?: FindOneAndUpdateOption<T>,
       cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>) {
       const _query = this.toQuery(query);
-      const _update = this.toUpdate(update);
+      let _update = this.toUpdate(update);
+      _update = this.toExclude(_update);
       return this._handleResponse(this.collection.findOneAndUpdate(_query, _update, options), cb);
     }
 
@@ -1078,6 +1122,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
 
       query = this.toQuery(query);
       update = this.toUpdate(update);
+      update = this.toExclude(update);
 
       return this._handleResponse(this._exclude(query, update, options as UpdateManyOptions, true), cb);
 
@@ -1147,6 +1192,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
 
       const _query = this.toQuery(query);
       update = this.toUpdate(update);
+      update = this.toExclude(update);
 
       return this._handleResponse(this._exclude(_query, update, options as UpdateOneOptions, false), cb);
     }

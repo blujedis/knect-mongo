@@ -2,6 +2,11 @@
 
 List of changes for Knect-Mongo
 
+## 10/02/2020
+
+- Add .findIncluded() in document to find non-soft deleted records.
+- Add excludeKey and excludeValue for soft deletes in main options.
+
 ## 07/25/2020
 
 - Add .exclude() in Document for soft deletes. 

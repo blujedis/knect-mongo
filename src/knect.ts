@@ -13,7 +13,8 @@ export const MONGO_CLIENT_DEFAULTS = {
 const DEFAULTS: IOptions = {
   delimiter: '.',
   isValid: (...args) => Promise.resolve(true),
-  validate: (ns, doc) => Promise.resolve(doc)
+  validate: (ns, doc) => Promise.resolve(doc),
+  excludeKey: 'deleted'
 };
 
 export class KnectMongo {
@@ -23,7 +24,7 @@ export class KnectMongo {
   dbname: string;
   client: MongoClient;
   db: Db;
-  models: ModelMap = new ModelMap();
+  schemas = new Map<string, ISchema<any>>();
 
   options: IOptions;
 
@@ -109,25 +110,30 @@ export class KnectMongo {
    * @param ns the namespace for the schema.
    * @param schema the schema configuration containing document validation.
    */
-  model<T>(
+  model<T extends IDoc>(
     ns: string,
     schema?: ISchema<T>) {
 
     const parsedNs = fromNamespace(ns, this.options.delimiter);
 
-    const ExistingModel = this.models.get(ns) as typeof Model & Constructor<BaseModel<T> & T>;
-
-    if (ExistingModel)
-      return ExistingModel;
+    const schemaExists = this.schemas.has(ns);
 
     schema = schema || {};
-    schema.collectionName = schema.collectionName || parsedNs.collection;
-    schema = this.normalizeSchema(ns, schema);
+
+    if (!schemaExists) {
+      schema.collectionName = schema.collectionName || parsedNs.collection;
+      schema = this.normalizeSchema(ns as string, schema);
+    }
+    else {
+      schema = this.schemas.get(ns);
+    }
 
     const Model =
       initDocument<T, BaseModel<T>>(schema, this.client, this.db, BaseModel, this);
 
-    this.models.set(ns, Model as any);
+    // Update if new schema.
+    if (!schemaExists)
+      this.schemas.set(ns, schema);
 
     return Model as typeof Model & Constructor<BaseModel<T> & T>;
 

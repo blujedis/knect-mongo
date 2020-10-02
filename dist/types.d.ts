@@ -8,10 +8,12 @@ declare const DocumentModel: {
     readonly client: import("mongodb").MongoClient;
     readonly db: import("mongodb").Db;
     readonly collection: import("mongodb").Collection<IDoc>;
+    readonly options: IOptions;
     toObjectID(id: string | number | ObjectId): ObjectId;
     toObjectID(ids: (string | number | ObjectId)[]): ObjectId[];
     toQuery(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>): import("mongodb").FilterQuery<IDoc>;
     toUpdate(update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>): import("mongodb").UpdateQuery<Partial<IDoc>>;
+    toExclude(update: import("mongodb").UpdateQuery<Partial<IDoc>>): import("mongodb").UpdateQuery<Partial<IDoc>>;
     toCascades(joins: Joins<IDoc>, ...filter: string[]): string[];
     toCascades(...filter: string[]): string[];
     isValid(doc: IDoc): void;
@@ -22,12 +24,12 @@ declare const DocumentModel: {
     unpopulate(docs: IDoc[], join?: string | string[] | Joins<IDoc>): IDoc[];
     cascade(doc: IDoc, join: string | string[] | Joins<IDoc>): Promise<ICascadeResult<IDoc>>;
     cascade(doc: IDoc[], join: string | string[] | Joins<IDoc>): Promise<ICascadeResult<IDoc>[]>;
-    cast<U extends Partial<IDoc>>(doc: U, include?: true, ...props: Extract<keyof U, string>[]): U;
-    cast<U_1 extends Partial<IDoc>>(doc: U_1, ...omit: Extract<keyof U_1, string>[]): U_1;
-    cast<U_2 extends Partial<IDoc>>(docs: U_2[], include?: true, ...props: Extract<keyof U_2, string>[]): U_2[];
-    cast<U_3 extends Partial<IDoc>>(docs: U_3[], ...omit: Extract<keyof U_3, string>[]): U_3[];
+    cast<U extends Partial<IDoc>>(doc: U, include?: true, ...props: (keyof U)[]): U;
+    cast<U_1 extends Partial<IDoc>>(doc: U_1, ...omit: (keyof U_1)[]): U_1;
+    cast<U_2 extends Partial<IDoc>>(docs: U_2[], include?: true, ...props: (keyof U_2)[]): U_2[];
+    cast<U_3 extends Partial<IDoc>>(docs: U_3[], ...omit: (keyof U_3)[]): U_3[];
     _handleResponse<R, E>(p: R | Promise<R>, cb?: (err: E, data: R) => void): Promise<R>;
-    _find(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions, isMany?: boolean): Promise<IDoc | IDoc[]>;
+    _find(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions<IDoc>, isMany?: boolean): Promise<IDoc | IDoc[]>;
     _create(doc: (Pick<IDoc, never> & {
         _id?: ObjectId;
     }) | (Pick<IDoc, never> & {
@@ -38,15 +40,16 @@ declare const DocumentModel: {
     _delete(query: import("mongodb").FilterQuery<IDoc>, options?: import("mongodb").CommonOptions & {
         bypassDocumentValidation?: boolean;
     }, isMany?: boolean): Promise<DeleteWriteOpResultObject>;
-    find(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions): Promise<IDoc[]>;
-    findOne(id: string | number | ObjectId, options: IFindOneOptions, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
+    find(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions<IDoc>): Promise<IDoc[]>;
+    findIncluded(query?: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions<IDoc>): Promise<IDoc[]>;
+    findOne(id: string | number | ObjectId, options: IFindOneOptions<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
     findOne(id: string | number | ObjectId, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
-    findOne(query: import("mongodb").FilterQuery<IDoc>, options: IFindOneOptions, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
+    findOne(query: import("mongodb").FilterQuery<IDoc>, options: IFindOneOptions<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
     findOne(query: import("mongodb").FilterQuery<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
-    findModel(id: string | number | ObjectId, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
-    findModel(query: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
-    findUpdate(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
-    findExclude(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options?: import("mongodb").FindOneAndUpdateOption, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
+    findModel(id: string | number | ObjectId, options?: IFindOneOptions<IDoc>, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
+    findModel(query: import("mongodb").FilterQuery<IDoc>, options?: IFindOneOptions<IDoc>, cb?: import("mongodb").MongoCallback<import("./model").Model<IDoc> & IDoc>): Promise<import("./model").Model<IDoc> & IDoc>;
+    findUpdate(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options?: import("mongodb").FindOneAndUpdateOption<IDoc>, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
+    findExclude(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options?: import("mongodb").FindOneAndUpdateOption<IDoc>, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
     findDelete(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>, options?: IFindOneAndDeleteOption<IDoc>, cb?: import("mongodb").MongoCallback<FindAndModifyWriteOpResultObject<IDoc>>): Promise<FindAndModifyWriteOpResultObject<IDoc>>;
     create(docs: (Pick<IDoc, never> & {
         _id?: ObjectId;
@@ -106,7 +109,6 @@ export interface IMap<T = any> {
 }
 export declare type ObjectType<T = any> = Record<keyof T, T[keyof T]>;
 export declare type DerivedDocument = typeof DocumentModel;
-export declare type KeyOf<T> = Extract<keyof T, string>;
 export declare type LikeObjectId = string | number | ObjectId;
 export declare type Constructor<T = any> = new (...args: any[]) => T;
 export interface ICascadeResult<T = any> {
@@ -115,27 +117,27 @@ export interface ICascadeResult<T = any> {
         [key: string]: DeleteWriteOpResultObject[];
     };
 }
-export interface IJoin {
+export interface IJoin<T> {
     collection: string;
-    key?: string;
-    options?: FindOneOptions;
+    key?: keyof T;
+    options?: FindOneOptions<T>;
     cascade?: boolean;
 }
-export declare type Joins<T> = {
-    [K in keyof T]?: IJoin;
+export declare type Joins<T extends IDoc> = {
+    [K in keyof T]?: IJoin<T>;
 };
 export interface ISchema<T> {
     collectionName?: string;
-    props?: Record<keyof T, unknown>;
+    props?: Record<keyof T, T[keyof T]>;
     joins?: Joins<T>;
 }
 export interface IDoc {
     _id?: LikeObjectId;
 }
-export interface IFindOneOptions extends FindOneOptions {
+export interface IFindOneOptions<T> extends FindOneOptions<T> {
     populate?: string | string[];
 }
-export interface IFindOneAndDeleteOption<T extends IDoc> extends FindOneAndDeleteOption {
+export interface IFindOneAndDeleteOption<T extends IDoc> extends FindOneAndDeleteOption<T> {
     cascade?: boolean | string | string[] | Joins<T>;
 }
 export interface IModelSaveResult<T extends IDoc> {
@@ -179,5 +181,17 @@ export interface IOptions {
      * @param schema the schema the model was initiated with.
      */
     validate?<T>(ns: string, doc: T, schema: ISchema<T>): Promise<T>;
+    /**
+     * The key to use when using exclude, excludeOne etc..
+     * This allows for simple soft deletes.
+     *
+     * Default: deleted
+     */
+    excludeKey?: string;
+    /**
+     * If a value is provided it is used for the exclude key.
+     * Otherwise Date.now() is used.
+     */
+    excludeValue?: () => string | boolean | number | Date | object;
 }
 export {};

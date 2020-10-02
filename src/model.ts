@@ -142,11 +142,11 @@ export class Model<T extends IDoc> {
    * 
    * @param options the update options.
    */
-  private async update(options?: FindOneAndUpdateOption, isExlcude = false): Promise<IModelSaveResult<T>> {
+  private async update(options?: FindOneAndUpdateOption<T>, isExlcude = false): Promise<IModelSaveResult<T>> {
 
     // @ts-ignore
     options = { upsert: false, returnOriginal: false, ...options };
-    (options as FindOneAndUpdateOption).upsert = false;
+    (options as FindOneAndUpdateOption<T>).upsert = false;
 
     this._doc = this._Document.unpopulate(this._doc) as T;
 
@@ -186,7 +186,7 @@ export class Model<T extends IDoc> {
    * 
    * @param options MongoDB update options.
    */
-  async save(options?: FindOneAndUpdateOption | CollectionInsertOneOptions) {
+  async save(options?: FindOneAndUpdateOption<T> | CollectionInsertOneOptions) {
 
     // If no id try create.
     if (!this._id)
@@ -204,7 +204,7 @@ export class Model<T extends IDoc> {
   async delete(options?: IFindOneAndDeleteOption<T>) {
     if (!this._id)
       return Promise.reject('Cannot delete using _id of undefined.');
-    return this._Document.findDelete(this._id, options);
+    return this._Document.findDelete(this._id, options as any);
   }
 
   /**
@@ -213,7 +213,7 @@ export class Model<T extends IDoc> {
    * 
    * @param options MongoDB update options.
    */
-  async exclude(options?: FindOneAndUpdateOption) {
+  async exclude(options?: FindOneAndUpdateOption<T>) {
     if (!this._id)
       return Promise.reject('Cannot exclude using _id of undefined.');
     return this.update(options, true);

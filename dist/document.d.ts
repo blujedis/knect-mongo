@@ -1,5 +1,5 @@
 import { FilterQuery, UpdateQuery, ObjectId, DeleteWriteOpResultObject, CollectionInsertOneOptions, CollectionInsertManyOptions, UpdateManyOptions, UpdateOneOptions, CommonOptions, Db, MongoClient, FindOneAndUpdateOption, MongoCallback, FindAndModifyWriteOpResultObject, InsertOneWriteOpResult, InsertWriteOpResult, UpdateWriteOpResult, OptionalId } from 'mongodb';
-import { ISchema, LikeObjectId, ICascadeResult, IFindOneOptions, Constructor, IDoc, DocumentHook, Joins, KeyOf, IFindOneAndDeleteOption, HookType } from './types';
+import { ISchema, LikeObjectId, ICascadeResult, IFindOneOptions, Constructor, IDoc, DocumentHook, Joins, IFindOneAndDeleteOption, HookType } from './types';
 import { Model as BaseModel } from './model';
 import { KnectMongo } from './knect';
 /**
@@ -18,6 +18,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
     readonly client: MongoClient;
     readonly db: Db;
     readonly collection: import("mongodb").Collection<T>;
+    readonly options: import("./types").IOptions;
     /**
      * Convert value to ObjectID.
      *
@@ -47,6 +48,12 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param update the update query to be applied.
      */
     toUpdate(update: UpdateQuery<Partial<T>> | Partial<T>): UpdateQuery<Partial<T>>;
+    /**
+     * Normalizes update query so that exclude key is added and seet.
+     *
+     * @param update the update query to be applied.
+     */
+    toExclude(update: UpdateQuery<Partial<T>>): UpdateQuery<Partial<T>>;
     /**
      * Converts Joins<S> to cascade keys.
      *
@@ -122,7 +129,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    cast<U extends Partial<T>>(doc: U, include?: true, ...props: Extract<keyof U, string>[]): U;
+    cast<U extends Partial<T>>(doc: U, include?: true, ...props: (keyof U)[]): U;
     /**
      * Casts to new type.
      *
@@ -130,7 +137,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    cast<U_1 extends Partial<T>>(doc: U_1, ...omit: Extract<keyof U_1, string>[]): U_1;
+    cast<U_1 extends Partial<T>>(doc: U_1, ...omit: (keyof U_1)[]): U_1;
     /**
      * Casts to new type.
      *
@@ -138,7 +145,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    cast<U_2 extends Partial<T>>(docs: U_2[], include?: true, ...props: Extract<keyof U_2, string>[]): U_2[];
+    cast<U_2 extends Partial<T>>(docs: U_2[], include?: true, ...props: (keyof U_2)[]): U_2[];
     /**
      * Casts to new type.
      *
@@ -146,7 +153,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param include when true only the specified props are included.
      * @param props the list of props to include if empty, all included.
      */
-    cast<U_3 extends Partial<T>>(docs: U_3[], ...omit: Extract<keyof U_3, string>[]): U_3[];
+    cast<U_3 extends Partial<T>>(docs: U_3[], ...omit: (keyof U_3)[]): U_3[];
     /**
      * Internal method to handle all responses.
      *
@@ -162,7 +169,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param isMany when true find many.
      * @param cb optional callback instead of promise.
      */
-    _find(query?: FilterQuery<T>, options?: IFindOneOptions, isMany?: boolean): Promise<T | T[]>;
+    _find(query?: FilterQuery<T>, options?: IFindOneOptions<T>, isMany?: boolean): Promise<T | T[]>;
     /**
      * Common handler to create single or multiple documents in database.
      *
@@ -204,7 +211,14 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      */
-    find(query?: FilterQuery<T>, options?: IFindOneOptions): Promise<T[]>;
+    find(query?: FilterQuery<T>, options?: IFindOneOptions<T>): Promise<T[]>;
+    /**
+     * Finds a collection of documents by query excluding documents defined by "excludeKey".
+     *
+     * @param query the Mongodb filter query.
+     * @param options Mongodb find options.
+     */
+    findIncluded(query?: FilterQuery<T>, options?: IFindOneOptions<T>): Promise<T[]>;
     /**
      * Finds one document by query.
      *
@@ -212,7 +226,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param options Mongodb find options.
      * @param cb an optional callback instead of using promise.
      */
-    findOne(id: LikeObjectId, options: IFindOneOptions, cb?: MongoCallback<T | null>): Promise<T>;
+    findOne(id: LikeObjectId, options: IFindOneOptions<T>, cb?: MongoCallback<T | null>): Promise<T>;
     /**
      * Finds one document by query.
      *
@@ -228,7 +242,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param options Mongodb find options.
      * @param cb an optional callback instead of using promise.
      */
-    findOne(query: FilterQuery<T>, options: IFindOneOptions, cb?: MongoCallback<T | null>): Promise<T>;
+    findOne(query: FilterQuery<T>, options: IFindOneOptions<T>, cb?: MongoCallback<T | null>): Promise<T>;
     /**
      * Finds one document by query.
      *
@@ -245,7 +259,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param options optional find one options.
      * @param cb an optional callback instead of using promise.
      */
-    findModel(id: LikeObjectId, options?: IFindOneOptions, cb?: MongoCallback<(M & T) | null>): Promise<M & T>;
+    findModel(id: LikeObjectId, options?: IFindOneOptions<T>, cb?: MongoCallback<(M & T) | null>): Promise<M & T>;
     /**
      * Finds one document by query then converts to Model.
      *
@@ -254,7 +268,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param options optional find one options.
      * @param cb an optional callback instead of using promise.
      */
-    findModel(query: FilterQuery<T>, options?: IFindOneOptions, cb?: MongoCallback<(M & T) | null>): Promise<M & T>;
+    findModel(query: FilterQuery<T>, options?: IFindOneOptions<T>, cb?: MongoCallback<(M & T) | null>): Promise<M & T>;
     /**
      * Finds a document and then updates.
      *
@@ -263,7 +277,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param options the update options.
      * @param cb optional callback to use instead of Promise.
      */
-    findUpdate(query: LikeObjectId | FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: FindOneAndUpdateOption, cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>): Promise<FindAndModifyWriteOpResultObject<T>>;
+    findUpdate(query: LikeObjectId | FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: FindOneAndUpdateOption<T>, cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>): Promise<FindAndModifyWriteOpResultObject<T>>;
     /**
      * Finds a document and then updates.
      *
@@ -272,7 +286,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param options the update options.
      * @param cb optional callback to use instead of Promise.
      */
-    findExclude(query: LikeObjectId | FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: FindOneAndUpdateOption, cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>): Promise<FindAndModifyWriteOpResultObject<T>>;
+    findExclude(query: LikeObjectId | FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, options?: FindOneAndUpdateOption<T>, cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>): Promise<FindAndModifyWriteOpResultObject<T>>;
     /**
      * Finds a document and then deletes.
      *

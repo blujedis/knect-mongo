@@ -1,6 +1,6 @@
 {
   "name": "knect-mongo",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Mongodb connection and model helper.",
   "main": "dist/index.js",
   "publishConfig": {
@@ -23,7 +23,7 @@
     "url": "https://github.com/blujedis/knect-mongo.git"
   },
   "peerDependencies": {
-    "mongodb": "^3.5.9"
+    "mongodb": "^3.6.1"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
@@ -33,11 +33,7 @@
     "@types/yup": "^0.29.3",
     "chai": "^4.2.0",
     "mocha": "^8.0.1",
-<<<<<<< HEAD
-    "mongodb": "^3.5.9",
-=======
     "mongodb": "^3.6.1",
->>>>>>> f096a590d874ea23aff0d8df2684fbe941d65cb9
     "rimraf": "^3.0.2",
     "ts-node": "^8.10.2",
     "typedoc": "^0.19.0",
