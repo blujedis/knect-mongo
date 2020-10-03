@@ -106,39 +106,31 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
     }
 
     /**
-     * Marks a document for soft deletion.
-     * 
-     * @param doc the document to be updated.
-     */
-    // static toSoftDelete(doc: Partial<T>) {
-    //   const handler = knect.options.onSoftDelete;
-    //   if (!handler)
-    //     return doc;
-    //   if (handler === true)
-    //     (doc as any).deleted = Date.now();
-    //   else if (typeof handler === 'string')
-    //     doc[handler as string] = Date.now();
-    //   else
-    //     doc = handler(doc);
-    //   return doc;
-    // }
-
-    /**
-     * Normalizes query.
+     * Normalizes query ensures common cases _id are cast to ObjectID.
      * 
      * @param query the Mongodb filter query.
      */
     static toQuery(query: LikeObjectId | FilterQuery<T>) {
+
       let _query: FilterQuery<T> = query as any;
+
       if (typeof query !== 'object')
         _query = { _id: query } as FilterQuery<T>;
+      // Query contains id but isn't cast to ObjectID.
       if (_query._id && typeof _query._id !== 'object')
         _query._id = this.toObjectID(_query._id as LikeObjectId) as any;
+
+      // Query contains id with $in iterate each and cast to ObjectID.
+      else if (_query._id && typeof _query._id === 'object' && (_query._id as any).$in)
+        (_query._id as any).$in = (_query._id as any).$in.map(v => this.toObjectID(v));
+
       // The below happens when an objectId is being converted
       // to a query, it is itself an object so above checks fail.
       if (Object.keys(_query).includes('_bsontype'))
         _query = { _id: _query } as any;
+
       return _query;
+
     }
 
     /**
@@ -146,7 +138,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * 
      * @param update the update query to be applied.
      */
-    static toUpdate(update: UpdateQuery<Partial<T>> | Partial<T>): UpdateQuery<Partial<T>> {
+    static toUpdate(update: UpdateQuery<Partial<T>> | Partial<T> = {}): UpdateQuery<Partial<T>> {
       const hasSpecial = Object.keys(update).reduce((a, c) => {
         if (a === true)
           return a;
@@ -163,13 +155,15 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * 
      * @param update the update query to be applied.
      */
-    static toExclude(update: UpdateQuery<Partial<T>>): UpdateQuery<Partial<T>> {
+    static toExclude(update: UpdateQuery<Partial<T>> = {}): UpdateQuery<Partial<T>> {
       const hasSpecial = Object.keys(update).reduce((a, c) => {
         if (a === true)
           return a;
         a = c.charAt(0) === '$';
         return a;
       }, false);
+      if (!hasSpecial)
+        update = { $set: update } as UpdateQuery<T>;
       const excludeKey = this.options.excludeKey as keyof T;
       let excludeValue =
         typeof this.options.excludeValue === 'function' ?
@@ -729,7 +723,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      */
-    static findIncluded(query?: FilterQuery<T>, options?: IFindOneOptions<T>) {
+    static findIncluded(query: FilterQuery<T> = {}, options?: IFindOneOptions<T>) {
       query.$or = query.$or || [];
       const excludeKey = this.options.excludeKey as any;
       query.$or = [
@@ -1106,12 +1100,12 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      */
     static exclude(
       query: FilterQuery<T>,
-      update: UpdateQuery<Partial<T>> | Partial<T>,
+      update?: UpdateQuery<Partial<T>> | Partial<T>,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
     static exclude(
       query: FilterQuery<T>,
-      update: UpdateQuery<Partial<T>> | Partial<T>,
+      update?: UpdateQuery<Partial<T>> | Partial<T>,
       options?: UpdateManyOptions | MongoCallback<UpdateWriteOpResult>,
       cb?: MongoCallback<UpdateWriteOpResult>) {
 
@@ -1177,12 +1171,12 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      */
     static excludeOne(
       query: FilterQuery<T>,
-      update: UpdateQuery<Partial<T>> | Partial<T>,
+      update?: UpdateQuery<Partial<T>> | Partial<T>,
       cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
 
     static excludeOne(
       query: LikeObjectId | FilterQuery<T>,
-      update: UpdateQuery<Partial<T>> | Partial<T>,
+      update?: UpdateQuery<Partial<T>> | Partial<T>,
       options?: UpdateOneOptions | MongoCallback<UpdateWriteOpResult>,
       cb?: MongoCallback<UpdateWriteOpResult>) {
       if (typeof options === 'function') {

@@ -57,24 +57,7 @@ function initDocument(config, client, db, Model, knect) {
                 return result[0];
             }
             /**
-             * Marks a document for soft deletion.
-             *
-             * @param doc the document to be updated.
-             */
-            // static toSoftDelete(doc: Partial<T>) {
-            //   const handler = knect.options.onSoftDelete;
-            //   if (!handler)
-            //     return doc;
-            //   if (handler === true)
-            //     (doc as any).deleted = Date.now();
-            //   else if (typeof handler === 'string')
-            //     doc[handler as string] = Date.now();
-            //   else
-            //     doc = handler(doc);
-            //   return doc;
-            // }
-            /**
-             * Normalizes query.
+             * Normalizes query ensures common cases _id are cast to ObjectID.
              *
              * @param query the Mongodb filter query.
              */
@@ -82,8 +65,12 @@ function initDocument(config, client, db, Model, knect) {
                 let _query = query;
                 if (typeof query !== 'object')
                     _query = { _id: query };
+                // Query contains id but isn't cast to ObjectID.
                 if (_query._id && typeof _query._id !== 'object')
                     _query._id = this.toObjectID(_query._id);
+                // Query contains id with $in iterate each and cast to ObjectID.
+                else if (_query._id && typeof _query._id === 'object' && _query._id.$in)
+                    _query._id.$in = _query._id.$in.map(v => this.toObjectID(v));
                 // The below happens when an objectId is being converted
                 // to a query, it is itself an object so above checks fail.
                 if (Object.keys(_query).includes('_bsontype'))
@@ -95,7 +82,7 @@ function initDocument(config, client, db, Model, knect) {
              *
              * @param update the update query to be applied.
              */
-            static toUpdate(update) {
+            static toUpdate(update = {}) {
                 const hasSpecial = Object.keys(update).reduce((a, c) => {
                     if (a === true)
                         return a;
@@ -111,13 +98,15 @@ function initDocument(config, client, db, Model, knect) {
              *
              * @param update the update query to be applied.
              */
-            static toExclude(update) {
+            static toExclude(update = {}) {
                 const hasSpecial = Object.keys(update).reduce((a, c) => {
                     if (a === true)
                         return a;
                     a = c.charAt(0) === '$';
                     return a;
                 }, false);
+                if (!hasSpecial)
+                    update = { $set: update };
                 const excludeKey = this.options.excludeKey;
                 let excludeValue = typeof this.options.excludeValue === 'function' ?
                     this.options.excludeValue() :
@@ -444,7 +433,7 @@ function initDocument(config, client, db, Model, knect) {
              * @param query the Mongodb filter query.
              * @param options Mongodb find options.
              */
-            static findIncluded(query, options) {
+            static findIncluded(query = {}, options) {
                 query.$or = query.$or || [];
                 const excludeKey = this.options.excludeKey;
                 query.$or = [

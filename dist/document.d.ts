@@ -32,12 +32,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      */
     toObjectID(ids: LikeObjectId[]): ObjectId[];
     /**
-     * Marks a document for soft deletion.
-     *
-     * @param doc the document to be updated.
-     */
-    /**
-     * Normalizes query.
+     * Normalizes query ensures common cases _id are cast to ObjectID.
      *
      * @param query the Mongodb filter query.
      */
@@ -47,13 +42,13 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      *
      * @param update the update query to be applied.
      */
-    toUpdate(update: UpdateQuery<Partial<T>> | Partial<T>): UpdateQuery<Partial<T>>;
+    toUpdate(update?: UpdateQuery<Partial<T>> | Partial<T>): UpdateQuery<Partial<T>>;
     /**
      * Normalizes update query so that exclude key is added and seet.
      *
      * @param update the update query to be applied.
      */
-    toExclude(update: UpdateQuery<Partial<T>>): UpdateQuery<Partial<T>>;
+    toExclude(update?: UpdateQuery<Partial<T>>): UpdateQuery<Partial<T>>;
     /**
      * Converts Joins<S> to cascade keys.
      *
@@ -416,7 +411,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    exclude(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    exclude(query: FilterQuery<T>, update?: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
      * Excludes one document by id marking as deleted.
      *
@@ -452,7 +447,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param options Mongodb update options.
      * @param cb optional callback to use instead of promise.
      */
-    excludeOne(query: FilterQuery<T>, update: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
+    excludeOne(query: FilterQuery<T>, update?: UpdateQuery<Partial<T>> | Partial<T>, cb?: MongoCallback<UpdateWriteOpResult>): Promise<UpdateWriteOpResult>;
     /**
      * Deletes multiple documents by query.
      *

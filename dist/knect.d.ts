@@ -51,8 +51,8 @@ export declare class KnectMongo {
         toObjectID(id: string | number | import("bson").ObjectId): import("bson").ObjectId;
         toObjectID(ids: (string | number | import("bson").ObjectId)[]): import("bson").ObjectId[];
         toQuery(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<T>): import("mongodb").FilterQuery<T>;
-        toUpdate(update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>): import("mongodb").UpdateQuery<Partial<T>>;
-        toExclude(update: import("mongodb").UpdateQuery<Partial<T>>): import("mongodb").UpdateQuery<Partial<T>>;
+        toUpdate(update?: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>): import("mongodb").UpdateQuery<Partial<T>>;
+        toExclude(update?: import("mongodb").UpdateQuery<Partial<T>>): import("mongodb").UpdateQuery<Partial<T>>;
         toCascades(joins: import("./types").Joins<T>, ...filter: string[]): string[];
         toCascades(...filter: string[]): string[];
         isValid(doc: T): void;
@@ -113,11 +113,11 @@ export declare class KnectMongo {
         updateOne(query: import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         updateOne(query: import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         exclude(query: import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-        exclude(query: import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+        exclude(query: import("mongodb").FilterQuery<T>, update?: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         excludeOne(id: string | number | import("bson").ObjectId, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         excludeOne(id: string | number | import("bson").ObjectId, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         excludeOne(query: import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-        excludeOne(query: import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+        excludeOne(query: import("mongodb").FilterQuery<T>, update?: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
         delete(query: import("mongodb").FilterQuery<T>, options: import("mongodb").CommonOptions, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
         delete(query: import("mongodb").FilterQuery<T>, cb?: import("mongodb").MongoCallback<import("mongodb").DeleteWriteOpResultObject>): Promise<import("mongodb").DeleteWriteOpResultObject>;
         deleteOne(id: string | number | import("bson").ObjectId, options: import("mongodb").CommonOptions & {

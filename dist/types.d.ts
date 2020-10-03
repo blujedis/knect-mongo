@@ -12,8 +12,8 @@ declare const DocumentModel: {
     toObjectID(id: string | number | ObjectId): ObjectId;
     toObjectID(ids: (string | number | ObjectId)[]): ObjectId[];
     toQuery(query: string | number | ObjectId | import("mongodb").FilterQuery<IDoc>): import("mongodb").FilterQuery<IDoc>;
-    toUpdate(update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>): import("mongodb").UpdateQuery<Partial<IDoc>>;
-    toExclude(update: import("mongodb").UpdateQuery<Partial<IDoc>>): import("mongodb").UpdateQuery<Partial<IDoc>>;
+    toUpdate(update?: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>): import("mongodb").UpdateQuery<Partial<IDoc>>;
+    toExclude(update?: import("mongodb").UpdateQuery<Partial<IDoc>>): import("mongodb").UpdateQuery<Partial<IDoc>>;
     toCascades(joins: Joins<IDoc>, ...filter: string[]): string[];
     toCascades(...filter: string[]): string[];
     isValid(doc: IDoc): void;
@@ -86,11 +86,11 @@ declare const DocumentModel: {
     updateOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     updateOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     exclude(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateManyOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    exclude(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    exclude(query: import("mongodb").FilterQuery<IDoc>, update?: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     excludeOne(id: string | number | ObjectId, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     excludeOne(id: string | number | ObjectId, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     excludeOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, options: import("mongodb").UpdateOneOptions, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
-    excludeOne(query: import("mongodb").FilterQuery<IDoc>, update: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
+    excludeOne(query: import("mongodb").FilterQuery<IDoc>, update?: Partial<IDoc> | import("mongodb").UpdateQuery<Partial<IDoc>>, cb?: import("mongodb").MongoCallback<import("mongodb").UpdateWriteOpResult>): Promise<import("mongodb").UpdateWriteOpResult>;
     delete(query: import("mongodb").FilterQuery<IDoc>, options: import("mongodb").CommonOptions, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     delete(query: import("mongodb").FilterQuery<IDoc>, cb?: import("mongodb").MongoCallback<DeleteWriteOpResultObject>): Promise<DeleteWriteOpResultObject>;
     deleteOne(id: string | number | ObjectId, options: import("mongodb").CommonOptions & {
