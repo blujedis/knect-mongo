@@ -737,29 +737,6 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
     /**
      * Finds one document by query.
      * 
-     * @param id the id of the document to find.
-     * @param options Mongodb find options.
-     * @param cb an optional callback instead of using promise.
-     */
-    static findOne(
-      id: LikeObjectId,
-      options: IFindOneOptions<T>,
-      cb?: MongoCallback<T | null>): Promise<T>;
-
-    /**
-     * Finds one document by query.
-     * 
-     * @param id the id of the document to find.
-     * @param cb an optional callback instead of using promise.
-     */
-    static findOne(
-      id: LikeObjectId,
-      cb?: MongoCallback<T | null>,
-    ): Promise<T>;
-
-    /**
-     * Finds one document by query.
-     * 
      * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      * @param cb an optional callback instead of using promise.
@@ -790,6 +767,30 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
       }
       const _query = this.toQuery(query);
       return this._handleResponse(this._find(_query, options as IFindOneOptions<T>, false) as Promise<T>, cb);
+    }
+
+    /**
+     * Finds one document by id.
+     * 
+     * @param id the id of the document to find.
+     * @param options Mongodb find options.
+     * @param cb an optional callback instead of using promise.
+     */
+    static findId(id: LikeObjectId, options: IFindOneOptions<T>, cb?: MongoCallback<T | null>): Promise<T>;
+
+    /**
+     * Finds one document by id.
+     * 
+     * @param id the id of the document to find.
+     * @param cb an optional callback instead of using promise.
+     */
+    static findId(id: LikeObjectId, cb?: MongoCallback<T | null>): Promise<T>;
+
+    static findId(
+      id: LikeObjectId,
+      options?: IFindOneOptions<T> | MongoCallback<T | null>,
+      cb?: MongoCallback<T | null>) {
+      return this.findOne({ _id: id as any }, options as IFindOneOptions<T>, cb);
     }
 
     /**

@@ -217,23 +217,7 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
     /**
      * Finds one document by query.
      *
-     * @param id the id of the document to find.
-     * @param options Mongodb find options.
-     * @param cb an optional callback instead of using promise.
-     */
-    findOne(id: LikeObjectId, options: IFindOneOptions<T>, cb?: MongoCallback<T | null>): Promise<T>;
-    /**
-     * Finds one document by query.
-     *
-     * @param id the id of the document to find.
-     * @param options Mongodb find options.
-     * @param cb an optional callback instead of using promise.
-     */
-    findOne(id: LikeObjectId, cb?: MongoCallback<T | null>): Promise<T>;
-    /**
-     * Finds one document by query.
-     *
-     * @param id the id of the document to find.
+     * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      * @param cb an optional callback instead of using promise.
      */
@@ -241,11 +225,27 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
     /**
      * Finds one document by query.
      *
-     * @param id the id of the document to find.
+     * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      * @param cb an optional callback instead of using promise.
      */
     findOne(query: FilterQuery<T>, cb?: MongoCallback<T | null>): Promise<T>;
+    /**
+     * Finds one document by id.
+     *
+     * @param id the id of the document to find.
+     * @param options Mongodb find options.
+     * @param cb an optional callback instead of using promise.
+     */
+    findId(id: LikeObjectId, options: IFindOneOptions<T>, cb?: MongoCallback<T | null>): Promise<T>;
+    /**
+     * Finds one document by id.
+     *
+     * @param id the id of the document to find.
+     * @param options Mongodb find options.
+     * @param cb an optional callback instead of using promise.
+     */
+    findId(id: LikeObjectId, cb?: MongoCallback<T | null>): Promise<T>;
     /**
      * Finds one document by query then converts to Model.
      *

@@ -2,6 +2,10 @@
 
 List of changes for Knect-Mongo
 
+## 10/06/2020
+
+- add findId() method.
+
 ## 10/02/2020
 
 - Add .findIncluded() in document to find non-soft deleted records.

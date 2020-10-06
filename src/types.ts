@@ -1,6 +1,6 @@
 import {
   ObjectId, FindOneOptions, DeleteWriteOpResultObject,
-  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndDeleteOption, MongoClientOptions
+  InsertOneWriteOpResult, FindAndModifyWriteOpResultObject, FindOneAndDeleteOption, MongoClientOptions, FilterQuery
 } from 'mongodb';
 import { IHookHandler } from 'mustad';
 import { initDocument } from './document';
@@ -50,6 +50,8 @@ export interface IDoc {
 export interface IFindOneOptions<T> extends FindOneOptions<T> {
   populate?: string | string[];
 }
+
+// export type FilterQueryExt<T> = FilterQuery<T> & { $populate: boolean | string | string[] };
 
 export interface IFindOneAndDeleteOption<T extends IDoc> extends FindOneAndDeleteOption<T> {
   cascade?: boolean | string | string[] | Joins<T>;

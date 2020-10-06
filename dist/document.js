@@ -451,6 +451,9 @@ function initDocument(config, client, db, Model, knect) {
                 const _query = this.toQuery(query);
                 return this._handleResponse(this._find(_query, options, false), cb);
             }
+            static findId(id, options, cb) {
+                return this.findOne({ _id: id }, options, cb);
+            }
             static async findModel(query, options, cb) {
                 if (typeof options === 'function') {
                     cb = options;

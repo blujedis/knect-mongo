@@ -77,10 +77,10 @@ export declare class KnectMongo {
         }, isMany?: boolean): Promise<import("mongodb").DeleteWriteOpResultObject>;
         find(query?: import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneOptions<T>): Promise<T[]>;
         findIncluded(query?: import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneOptions<T>): Promise<T[]>;
-        findOne(id: string | number | import("bson").ObjectId, options: import("./types").IFindOneOptions<T>, cb?: import("mongodb").MongoCallback<T>): Promise<T>;
-        findOne(id: string | number | import("bson").ObjectId, cb?: import("mongodb").MongoCallback<T>): Promise<T>;
         findOne(query: import("mongodb").FilterQuery<T>, options: import("./types").IFindOneOptions<T>, cb?: import("mongodb").MongoCallback<T>): Promise<T>;
         findOne(query: import("mongodb").FilterQuery<T>, cb?: import("mongodb").MongoCallback<T>): Promise<T>;
+        findId(id: string | number | import("bson").ObjectId, options: import("./types").IFindOneOptions<T>, cb?: import("mongodb").MongoCallback<T>): Promise<T>;
+        findId(id: string | number | import("bson").ObjectId, cb?: import("mongodb").MongoCallback<T>): Promise<T>;
         findModel(id: string | number | import("bson").ObjectId, options?: import("./types").IFindOneOptions<T>, cb?: import("mongodb").MongoCallback<BaseModel<T> & T>): Promise<BaseModel<T> & T>;
         findModel(query: import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneOptions<T>, cb?: import("mongodb").MongoCallback<BaseModel<T> & T>): Promise<BaseModel<T> & T>;
         findUpdate(query: string | number | import("bson").ObjectId | import("mongodb").FilterQuery<T>, update: Partial<T> | import("mongodb").UpdateQuery<Partial<T>>, options?: import("mongodb").FindOneAndUpdateOption<T>, cb?: import("mongodb").MongoCallback<import("mongodb").FindAndModifyWriteOpResultObject<T>>): Promise<import("mongodb").FindAndModifyWriteOpResultObject<T>>;
