@@ -30,7 +30,7 @@ async function each(arr, done) {
 async function load() {
 
   if (!knect.client || !knect.client.isConnected())
-    await knect.connect(`mongodb://10.10.20.5:32768/test`);
+    await knect.connect(`mongodb://10.10.20.5:32769/test`);
 
   // Reset schemas or you'll get dupe error.
   knect.schemas.clear();

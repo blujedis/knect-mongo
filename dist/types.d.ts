@@ -109,6 +109,7 @@ export interface IMap<T = any> {
 }
 export declare type ObjectType<T = any> = Record<keyof T, T[keyof T]>;
 export declare type DerivedDocument = typeof DocumentModel;
+export declare type DerivedDocument2<T> = typeof DocumentModel & T;
 export declare type LikeObjectId = string | number | ObjectId;
 export declare type Constructor<T = any> = new (...args: any[]) => T;
 export interface ICascadeResult<T = any> {

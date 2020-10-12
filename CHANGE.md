@@ -5,6 +5,7 @@ List of changes for Knect-Mongo
 ## 10/06/2020
 
 - add findId() method.
+- add singleton back, just handy.
 
 ## 10/02/2020
 

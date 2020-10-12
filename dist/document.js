@@ -477,6 +477,9 @@ function initDocument(config, client, db, Model, knect) {
             static findUpdate(query, update, options, cb) {
                 const _query = this.toQuery(query);
                 const _update = this.toUpdate(update);
+                options = { ...options };
+                if (typeof options.returnOriginal === 'undefined')
+                    options.returnOriginal = false;
                 return this._handleResponse(this.collection.findOneAndUpdate(_query, _update, options), cb);
             }
             /**

@@ -2,7 +2,6 @@ import { MongoClient, MongoClientOptions, Db } from 'mongodb';
 import { parseDbName, fromNamespace } from './utils';
 import { Model as BaseModel } from './model';
 import { initDocument } from './document';
-import { ModelMap } from './map';
 import { ISchema, IDoc, Constructor, IOptions } from './types';
 
 export const MONGO_CLIENT_DEFAULTS = {
@@ -63,6 +62,16 @@ export class KnectMongo {
   }
 
   /**
+   * Simply updates/sets the options.
+   * 
+   * @param options Knect Mongo options.
+   */
+  setOptions(options: IOptions) {
+    this.options = { ...this.options, ...options };
+    return this;
+  }
+
+  /**
    * Connects to Mongodb instance.
    * 
    * @param uri the Mongodb connection uri.
@@ -72,11 +81,14 @@ export class KnectMongo {
 
     if (this.client) return this.client;
 
-    options = { ...MONGO_CLIENT_DEFAULTS, ...options };
+    if (!this.options.uri)
+      this.options.uri = uri;
 
-    this.dbname = parseDbName(uri) || null;
+    options = { ...MONGO_CLIENT_DEFAULTS, ...options };
+    this.options.clientOptions = { ...options };
 
     try {
+      this.dbname = parseDbName(uri) || null;
       this.client = await MongoClient.connect(uri, options);
     }
     catch (ex) {

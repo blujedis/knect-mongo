@@ -45,6 +45,15 @@ class KnectMongo {
         return schema;
     }
     /**
+     * Simply updates/sets the options.
+     *
+     * @param options Knect Mongo options.
+     */
+    setOptions(options) {
+        this.options = { ...this.options, ...options };
+        return this;
+    }
+    /**
      * Connects to Mongodb instance.
      *
      * @param uri the Mongodb connection uri.
@@ -53,9 +62,12 @@ class KnectMongo {
     async connect(uri = this.options.uri, options = this.options.clientOptions) {
         if (this.client)
             return this.client;
+        if (!this.options.uri)
+            this.options.uri = uri;
         options = { ...exports.MONGO_CLIENT_DEFAULTS, ...options };
-        this.dbname = utils_1.parseDbName(uri) || null;
+        this.options.clientOptions = { ...options };
         try {
+            this.dbname = utils_1.parseDbName(uri) || null;
             this.client = await mongodb_1.MongoClient.connect(uri, options);
         }
         catch (ex) {

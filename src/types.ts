@@ -15,7 +15,7 @@ export type ObjectType<T = any> = Record<keyof T, T[keyof T]>;
 
 export type DerivedDocument = typeof DocumentModel;
 
-// export type KeyOf<T> = Extract<keyof T, string>;
+export type DerivedDocument2<T> = typeof DocumentModel & T;
 
 export type LikeObjectId = string | number | ObjectId;
 

@@ -21,6 +21,12 @@ export declare class KnectMongo {
      */
     private normalizeSchema;
     /**
+     * Simply updates/sets the options.
+     *
+     * @param options Knect Mongo options.
+     */
+    setOptions(options: IOptions): this;
+    /**
      * Connects to Mongodb instance.
      *
      * @param uri the Mongodb connection uri.

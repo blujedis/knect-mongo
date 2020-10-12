@@ -855,6 +855,9 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
       cb?: MongoCallback<FindAndModifyWriteOpResultObject<T>>) {
       const _query = this.toQuery(query);
       const _update = this.toUpdate(update);
+      options = { ...options };
+      if (typeof options.returnOriginal === 'undefined')
+        options.returnOriginal = false;
       return this._handleResponse(this.collection.findOneAndUpdate(_query, _update, options), cb);
     }
 
