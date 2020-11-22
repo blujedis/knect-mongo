@@ -2,6 +2,10 @@
 
 List of changes for Knect-Mongo
 
+## 11/19/2020
+
+- add findOneInclude method.
+
 ## 10/06/2020
 
 - add findId() method.

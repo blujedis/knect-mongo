@@ -112,6 +112,7 @@ function initDocument(config, client, db, Model, knect) {
                     this.options.excludeValue() :
                     this.options.excludeValue;
                 excludeValue = excludeValue || Date.now();
+                console.log(excludeValue);
                 update.$set[excludeKey] = excludeValue;
                 return update;
             }
@@ -433,7 +434,7 @@ function initDocument(config, client, db, Model, knect) {
              * @param query the Mongodb filter query.
              * @param options Mongodb find options.
              */
-            static findIncluded(query = {}, options) {
+            static findIncluded(query = {}, options, cb) {
                 query.$or = query.$or || [];
                 const excludeKey = this.options.excludeKey;
                 query.$or = [
@@ -441,7 +442,17 @@ function initDocument(config, client, db, Model, knect) {
                     { [excludeKey]: null },
                     ...query.$or
                 ];
-                return this._find(query, options, true);
+                return this._handleResponse(this._find(query, options, true), cb);
+            }
+            static findOneIncluded(query = {}, options, cb) {
+                query.$or = query.$or || [];
+                const excludeKey = this.options.excludeKey;
+                query.$or = [
+                    { [excludeKey]: { $exists: false } },
+                    { [excludeKey]: null },
+                    ...query.$or
+                ];
+                return this._handleResponse(this._find(query, options, false), cb);
             }
             static findOne(query, options, cb) {
                 if (typeof options === 'function') {
@@ -494,6 +505,7 @@ function initDocument(config, client, db, Model, knect) {
                 const _query = this.toQuery(query);
                 let _update = this.toUpdate(update);
                 _update = this.toExclude(_update);
+                console.log(_update);
                 return this._handleResponse(this.collection.findOneAndUpdate(_query, _update, options), cb);
             }
             /**

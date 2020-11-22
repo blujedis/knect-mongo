@@ -82,7 +82,8 @@ export declare class KnectMongo {
             bypassDocumentValidation?: boolean;
         }, isMany?: boolean): Promise<import("mongodb").DeleteWriteOpResultObject>;
         find(query?: import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneOptions<T>): Promise<T[]>;
-        findIncluded(query?: import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneOptions<T>): Promise<T[]>;
+        findIncluded(query?: import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneOptions<T>, cb?: import("mongodb").MongoCallback<T>): Promise<T[]>;
+        findOneIncluded(query?: import("mongodb").FilterQuery<T>, options?: import("./types").IFindOneOptions<T>, cb?: import("mongodb").MongoCallback<T>): Promise<T>;
         findOne(query: import("mongodb").FilterQuery<T>, options: import("./types").IFindOneOptions<T>, cb?: import("mongodb").MongoCallback<T>): Promise<T>;
         findOne(query: import("mongodb").FilterQuery<T>, cb?: import("mongodb").MongoCallback<T>): Promise<T>;
         findId(id: string | number | import("bson").ObjectId, options: import("./types").IFindOneOptions<T>, cb?: import("mongodb").MongoCallback<T>): Promise<T>;

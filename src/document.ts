@@ -170,6 +170,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
           this.options.excludeValue() :
           this.options.excludeValue;
       excludeValue = excludeValue || Date.now();
+      console.log(excludeValue);
       update.$set[excludeKey] = excludeValue as any;
       return update;
     }
@@ -577,7 +578,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * @param cb an optional callback to be called with error or data.
      */
     static async _handleResponse<R, E>(
-      p: R | Promise<R>,
+      p: R | Promise<R> | Promise<R>,
       cb?: (err: E, data: R) => void): Promise<R> {
       const prom = (!isPromise(p) ? Promise.resolve(p) : p) as Promise<R>;
 
@@ -723,7 +724,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
      * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      */
-    static findIncluded(query: FilterQuery<T> = {}, options?: IFindOneOptions<T>) {
+    static findIncluded(query: FilterQuery<T> = {}, options?: IFindOneOptions<T>, cb?: MongoCallback<T | null>) {
       query.$or = query.$or || [];
       const excludeKey = this.options.excludeKey as any;
       query.$or = [
@@ -731,7 +732,18 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
         { [excludeKey]: null },
         ...query.$or
       ];
-      return this._find(query, options, true) as Promise<T[]>;
+      return this._handleResponse(this._find(query, options, true) as any, cb) as unknown as Promise<T[]>;
+    }
+
+    static findOneIncluded(query: FilterQuery<T> = {}, options?: IFindOneOptions<T>, cb?: MongoCallback<T | null>) {
+      query.$or = query.$or || [];
+      const excludeKey = this.options.excludeKey as any;
+      query.$or = [
+        { [excludeKey]: { $exists: false } },
+        { [excludeKey]: null },
+        ...query.$or
+      ];
+      return this._handleResponse(this._find(query, options, false) as Promise<T>, cb);
     }
 
     /**
@@ -877,6 +889,7 @@ export function initDocument<T extends IDoc, M extends BaseModel<T>>(
       const _query = this.toQuery(query);
       let _update = this.toUpdate(update);
       _update = this.toExclude(_update);
+      console.log(_update);
       return this._handleResponse(this.collection.findOneAndUpdate(_query, _update, options), cb);
     }
 

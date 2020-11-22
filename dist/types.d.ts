@@ -41,7 +41,8 @@ declare const DocumentModel: {
         bypassDocumentValidation?: boolean;
     }, isMany?: boolean): Promise<DeleteWriteOpResultObject>;
     find(query?: FilterQuery<IDoc>, options?: IFindOneOptions<IDoc>): Promise<IDoc[]>;
-    findIncluded(query?: FilterQuery<IDoc>, options?: IFindOneOptions<IDoc>): Promise<IDoc[]>;
+    findIncluded(query?: FilterQuery<IDoc>, options?: IFindOneOptions<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc[]>;
+    findOneIncluded(query?: FilterQuery<IDoc>, options?: IFindOneOptions<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
     findOne(query: FilterQuery<IDoc>, options: IFindOneOptions<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
     findOne(query: FilterQuery<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;
     findId(id: string | number | ObjectId, options: IFindOneOptions<IDoc>, cb?: import("mongodb").MongoCallback<IDoc>): Promise<IDoc>;

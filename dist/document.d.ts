@@ -213,7 +213,8 @@ export declare function initDocument<T extends IDoc, M extends BaseModel<T>>(con
      * @param query the Mongodb filter query.
      * @param options Mongodb find options.
      */
-    findIncluded(query?: FilterQuery<T>, options?: IFindOneOptions<T>): Promise<T[]>;
+    findIncluded(query?: FilterQuery<T>, options?: IFindOneOptions<T>, cb?: MongoCallback<T | null>): Promise<T[]>;
+    findOneIncluded(query?: FilterQuery<T>, options?: IFindOneOptions<T>, cb?: MongoCallback<T | null>): Promise<T>;
     /**
      * Finds one document by query.
      *
